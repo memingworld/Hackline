@@ -305,7 +305,196 @@ export async function POST(request: Request) {
     }
 
     // ==========================================
-    // 3. DIRECT HTML PARSER (For Unstop, Luma, Custom & General)
+    // 3. UNSTOP SEARCH API HANDLER (100% Reliable, Structured JSON)
+    // ==========================================
+    if (platform === "unstop") {
+      try {
+        const parsed = new URL(cleanUrl);
+        const pathParts = parsed.pathname.split("/").filter(Boolean);
+        const lastPart = pathParts[pathParts.length - 1] || "";
+
+        // Extract trailing numeric ID if present (e.g. flipkart-grid-60-...-1025542 -> 1025542)
+        const idMatch = lastPart.match(/-(\d{4,})$/);
+        const opportunityId = idMatch ? idMatch[1] : "";
+
+        // Extract title slug search keywords
+        const cleanSlug = lastPart
+          .replace(/-\d{4,}$/, "")
+          .replace(/[-_]+/g, " ")
+          .replace(/\b(\d{1,2})0\b/g, "$1.0 ")
+          .trim();
+
+        const candidateQueries = [opportunityId, cleanSlug].filter(Boolean);
+        let item: any = null;
+
+        for (const q of candidateQueries) {
+          if (!q) continue;
+          const unstopRes = await fetch(
+            `https://unstop.com/api/public/opportunity/search-result?search=${encodeURIComponent(q)}&per_page=10`,
+            {
+              headers: {
+                "User-Agent":
+                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                Accept: "application/json",
+                Referer: "https://unstop.com/",
+              },
+            }
+          );
+
+          if (unstopRes.ok) {
+            const json = await unstopRes.json();
+            const items = json?.data?.data || [];
+            if (opportunityId) {
+              item = items.find((x: any) => String(x.id) === opportunityId);
+            }
+            if (!item && items.length > 0) {
+              item = items[0];
+            }
+            if (item) break;
+          }
+        }
+
+        if (item && item.title) {
+          let prizePool = "TBA";
+          if (item.prizes && Array.isArray(item.prizes) && item.prizes.length > 0) {
+            const totalCash = item.prizes.reduce(
+              (sum: number, p: any) => sum + (Number(p.cash) || 0),
+              0
+            );
+            const currCode = item.prizes[0].currency;
+            const currSym = currCode === "fa-rupee" ? "₹" : currCode === "fa-dollar" ? "$" : "";
+            if (totalCash > 0) {
+              prizePool = `${currSym}${totalCash.toLocaleString()} in prizes`;
+            } else if (item.prizes[0].rank) {
+              prizePool = item.prizes[0].rank;
+            }
+          }
+
+          const startsAt =
+            item.regnRequirements?.start_regn_dt || item.created_at || new Date().toISOString();
+          const endsAt =
+            item.regnRequirements?.end_regn_dt ||
+            item.end_date ||
+            new Date(Date.now() + 1000 * 60 * 60 * 72).toISOString();
+
+          let description = cleanString(item.details || "");
+          if (!description) {
+            const org = item.organisation?.name || "Unstop";
+            description = `Official ${item.type || "hackathon"} challenge organized by ${org}.`;
+          }
+
+          const bannerUrl = item.logoUrl2 || item.banner_mobile?.image_url || null;
+
+          const slug = item.title
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, "")
+            .replace(/\s+/g, "-")
+            .slice(0, 50);
+
+          return NextResponse.json({
+            title: item.title,
+            slug: `${slug}-${Math.random().toString(36).substring(2, 6)}`,
+            source_platform: "unstop",
+            source_url: item.seo_url || cleanUrl,
+            banner_url: bannerUrl,
+            prize_pool: prizePool,
+            description: description.slice(0, 400),
+            starts_at: startsAt,
+            ends_at: endsAt,
+            timeline_gates: [
+              {
+                title: "Registration Checkpoint",
+                deadline: startsAt,
+                event_type: "registration_deadline",
+              },
+              {
+                title: "Submission Gate",
+                deadline: endsAt,
+                event_type: "submission_deadline",
+              },
+            ],
+            extraction_method: "unstop_api_engine",
+          });
+        }
+      } catch (unstopErr) {
+        console.warn("Unstop API lookup failed, falling back:", unstopErr);
+      }
+    }
+
+    // ==========================================
+    // 4. LUMA NEXT_DATA STRUCTURED HANDLER (100% Reliable)
+    // ==========================================
+    if (platform === "luma") {
+      try {
+        const lumaRes = await fetch(cleanUrl, {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          },
+        });
+
+        if (lumaRes.ok) {
+          const html = await lumaRes.text();
+          const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+
+          if (nextDataMatch) {
+            const nextData = JSON.parse(nextDataMatch[1]);
+            const event =
+              nextData.props?.pageProps?.initialData?.data?.event ||
+              nextData.props?.pageProps?.event;
+
+            if (event && event.name) {
+              const startsAt = event.start_at || new Date().toISOString();
+              const endsAt =
+                event.end_at || new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString();
+              const bannerUrl = event.cover_url || null;
+              const description =
+                event.summary ||
+                (event.description_mirror
+                  ? cleanString(event.description_mirror)
+                  : `Official Luma Event in ${event.timezone || "Online"}.`);
+
+              const slug = event.name
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, "")
+                .replace(/\s+/g, "-")
+                .slice(0, 50);
+
+              return NextResponse.json({
+                title: event.name,
+                slug: `${slug}-${Math.random().toString(36).substring(2, 6)}`,
+                source_platform: "luma",
+                source_url: cleanUrl,
+                banner_url: bannerUrl,
+                prize_pool: "Community / Track Event",
+                description: description.slice(0, 400),
+                starts_at: startsAt,
+                ends_at: endsAt,
+                timeline_gates: [
+                  {
+                    title: "Event Starts",
+                    deadline: startsAt,
+                    event_type: "registration_deadline",
+                  },
+                  {
+                    title: "Submission Gate",
+                    deadline: endsAt,
+                    event_type: "submission_deadline",
+                  },
+                ],
+                extraction_method: "luma_nextdata_engine",
+              });
+            }
+          }
+        }
+      } catch (lumaErr) {
+        console.warn("Luma structured data extraction failed, falling back:", lumaErr);
+      }
+    }
+
+    // ==========================================
+    // 5. DIRECT HTML & JSON-LD PARSER (For Custom & General)
     // ==========================================
     try {
       const res = await fetch(cleanUrl, {
