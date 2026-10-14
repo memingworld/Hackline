@@ -106,9 +106,6 @@ export function ManualHackathonForm({ onSuccess }: { onSuccess?: () => void }) {
         throw new Error(res.error || "Failed to create hackathon.");
       }
 
-      // Set as active hackathon cookie
-      document.cookie = `active_hackathon_id=${res.hackathonId}; path=/; max-age=31536000`;
-
       toast.success("Hackathon & Workspace Initialized!", {
         description: `Created "${title}" with command center ready.`,
       });

@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { Hackathon, Team, TimelineEvent, SubmissionChecklistItem } from "@/types/database";
-import { extractReservedMembers, toReservedTeamMember } from "@/lib/data/squads";
+import { extractReservedMembers, toReservedTeamMember } from "@/lib/data/reserved-members";
 
 /**
  * Fetch all active hackathons associated with the authenticated user directly from the Supabase database.

@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { cookies } from "next/headers";
 import { getActiveHackathons } from "@/lib/data/hackathons";
 import { getUserSavedSquads } from "@/lib/data/squads";
 import { HackathonsManager } from "@/components/scraper/HackathonsManager";
@@ -9,14 +8,7 @@ export const metadata: Metadata = {
   description: "Scrape, track, and manage hackathons from Devfolio, Unstop, Devpost, and Luma.",
 };
 
-export default async function HackathonsPage(props: {
-  searchParams: Promise<{ hackathon?: string; action?: string }>;
-}) {
-  const searchParams = await props.searchParams;
-  const cookieStore = await cookies();
-  const activeHackathonId =
-    searchParams.hackathon || cookieStore.get("active_hackathon_id")?.value;
-
+export default async function HackathonsPage() {
   const [hackathons, savedPresets] = await Promise.all([
     getActiveHackathons(),
     getUserSavedSquads(),
@@ -27,7 +19,6 @@ export default async function HackathonsPage(props: {
       <HackathonsManager
         initialHackathons={hackathons}
         savedSquadPresets={savedPresets}
-        activeHackathonId={activeHackathonId}
       />
     </div>
   );

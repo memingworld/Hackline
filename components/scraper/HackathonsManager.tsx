@@ -29,13 +29,11 @@ import { toast } from "sonner";
 interface HackathonsManagerProps {
   initialHackathons: Hackathon[];
   savedSquadPresets?: SavedSquad[];
-  activeHackathonId?: string;
 }
 
 export function HackathonsManager({
   initialHackathons,
   savedSquadPresets = [],
-  activeHackathonId,
 }: HackathonsManagerProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = React.useState<"magic" | "manual">("magic");

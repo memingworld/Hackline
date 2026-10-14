@@ -26,7 +26,6 @@ interface DashboardHeaderProps {
   userName: string;
   hackathons?: Hackathon[];
   activeHackathonId?: string;
-  hackathonTitle?: string | null;
   currentTeam?: Team | null;
 }
 
