@@ -297,7 +297,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-2 text-xs text-zinc-300">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>WhatsApp T-2h alerted</span>
+                  <span>Telegram T-2h alerted</span>
                 </div>
               </div>
             </div>

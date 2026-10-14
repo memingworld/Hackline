@@ -7,7 +7,7 @@ import { SettingsForm } from "@/components/settings/SettingsForm";
 
 export const metadata: Metadata = {
   title: "Settings & Alerts | Hackline Command Center",
-  description: "Configure profile credentials, WhatsApp automated notifications, and submission gates.",
+  description: "Configure profile credentials, Telegram automated notifications, and submission gates.",
 };
 
 export default async function SettingsPage() {
@@ -46,7 +46,7 @@ export default async function SettingsPage() {
             </span>
           </div>
           <p className="mt-1 text-xs text-zinc-400 max-w-xl">
-            Manage your developer profile, configure WhatsApp automated deadline warnings, and customize pre-flight submission gates.
+            Manage your developer profile, configure Telegram automated deadline warnings, and customize pre-flight submission gates.
           </p>
         </div>
       </div>

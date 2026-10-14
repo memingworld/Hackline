@@ -65,10 +65,26 @@ export interface Team {
   description: string | null;
   invite_code: string;
   max_members?: number;
+  telegram_chat_id?: string | null;
+  telegram_connected_at?: string | null;
+  notify_t24?: boolean;
+  notify_t2?: boolean;
   created_at: string;
   updated_at: string;
   members?: TeamMember[];
   hackathon?: Hackathon;
+}
+
+export interface TelegramNotification {
+  id: string;
+  team_id: string;
+  hackathon_id: string;
+  trigger_type: "T-24h" | "T-2h" | "test";
+  message_text: string;
+  status: "pending" | "sent" | "failed";
+  telegram_message_id?: string | null;
+  error_message?: string | null;
+  created_at: string;
 }
 
 export interface TimelineEvent {

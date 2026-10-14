@@ -193,7 +193,7 @@ export function SubmissionChecklistWidget({ initialItems, teamId }: ChecklistPro
 
         {/* Footer info */}
         <div className="mt-5 pt-4 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500 font-mono">
-          <span>Automated WhatsApp ping triggers at T-2h</span>
+          <span>Automated Telegram ping triggers at T-2h</span>
           {teamId && !isAdding && (
             <button
               onClick={() => setIsAdding(true)}

@@ -11,7 +11,6 @@ import {
   UserMinus,
   Edit2,
   Share2,
-  MessageCircle,
   ExternalLink,
   Shield,
   Plus,
@@ -201,13 +200,6 @@ export function ActiveSquadRoster({
     }
   };
 
-  const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(
-      `Join our hackathon squad "${team.name}" on Hackline! Accept invite: ${getInviteUrl()}`
-    );
-    window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
-  };
-
   const handleShareTelegram = () => {
     const url = encodeURIComponent(getInviteUrl());
     const text = encodeURIComponent(`Join our hackathon squad "${team.name}" on Hackline!`);
@@ -281,13 +273,6 @@ export function ActiveSquadRoster({
               <span>{copied ? "Copied" : "Copy Invite Link"}</span>
             </button>
 
-            <button
-              onClick={handleShareWhatsApp}
-              title="Share on WhatsApp"
-              className="p-2 h-9 w-9 flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950/70 hover:bg-emerald-950/40 hover:border-emerald-500/30 text-zinc-400 hover:text-emerald-400 transition-colors"
-            >
-              <MessageCircle className="h-4 w-4" />
-            </button>
 
             <button
               onClick={handleShareTelegram}

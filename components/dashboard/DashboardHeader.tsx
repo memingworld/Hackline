@@ -107,7 +107,7 @@ export function DashboardHeader({
         {/* Notifications Beacon */}
         <button
           onClick={() =>
-            toast.info("WhatsApp notifications active for T-24h and T-2h alerts")
+            toast.info("Telegram notifications active for T-24h and T-2h alerts")
           }
           className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-800/80 bg-zinc-900/60 text-zinc-400 hover:text-white transition-colors"
         >

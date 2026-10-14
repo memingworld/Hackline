@@ -3,19 +3,17 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export interface NotificationSettingsPayload {
-  phone: string;
+export interface TelegramSettingsPayload {
+  teamId: string;
+  chatId?: string;
   enableT24: boolean;
   enableT2: boolean;
-  teamId?: string;
-  hackathonId?: string;
-  endsAt?: string;
 }
 
 /**
- * Save WhatsApp notification settings and schedule automated T-24h and T-2h alerts.
+ * Save Telegram notification settings and alert preferences for a squad.
  */
-export async function saveNotificationSettings(payload: NotificationSettingsPayload) {
+export async function saveTelegramSettings(payload: TelegramSettingsPayload) {
   try {
     const supabase = await createClient();
     const {
@@ -26,94 +24,43 @@ export async function saveNotificationSettings(payload: NotificationSettingsPayl
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
-    const cleanPhone = payload.phone?.trim() || "";
-
-    // 1. Update user profile phone number
-    if (cleanPhone) {
-      await supabase
-        .from("profiles")
-        .update({ phone_number: cleanPhone, updated_at: new Date().toISOString() })
-        .eq("id", user.id);
+    if (!payload.teamId) {
+      return { success: false, error: "Active squad not found." };
     }
 
-    // 2. Schedule alerts if team and hackathon deadline exist
-    if (payload.teamId && payload.hackathonId && payload.endsAt && cleanPhone) {
-      const endsTime = new Date(payload.endsAt).getTime();
+    const cleanChatId = payload.chatId?.trim() || null;
 
-      // Clear existing pending alerts for this team
-      await supabase
-        .from("whatsapp_notifications")
-        .delete()
-        .eq("team_id", payload.teamId)
-        .eq("status", "pending");
+    const updatePayload: Record<string, any> = {
+      notify_t24: payload.enableT24,
+      notify_t2: payload.enableT2,
+      updated_at: new Date().toISOString(),
+    };
 
-      const notificationsToInsert = [];
+    if (cleanChatId) {
+      updatePayload.telegram_chat_id = cleanChatId;
+      updatePayload.telegram_connected_at = new Date().toISOString();
+    }
 
-      // T-24h Alert (24h before submission deadline)
-      if (payload.enableT24) {
-        const t24Time = new Date(endsTime - 24 * 60 * 60 * 1000);
-        notificationsToInsert.push({
-          team_id: payload.teamId,
-          hackathon_id: payload.hackathonId,
-          recipient_phone: cleanPhone,
-          trigger_type: "T-24h",
-          scheduled_for: t24Time.toISOString(),
-          status: "pending",
-        });
-      }
+    const { error } = await supabase
+      .from("teams")
+      .update(updatePayload)
+      .eq("id", payload.teamId);
 
-      // T-2h Alert (2h before submission deadline)
-      if (payload.enableT2) {
-        const t2Time = new Date(endsTime - 2 * 60 * 60 * 1000);
-        notificationsToInsert.push({
-          team_id: payload.teamId,
-          hackathon_id: payload.hackathonId,
-          recipient_phone: cleanPhone,
-          trigger_type: "T-2h",
-          scheduled_for: t2Time.toISOString(),
-          status: "pending",
-        });
-      }
-
-      if (notificationsToInsert.length > 0) {
-        await supabase
-          .from("whatsapp_notifications")
-          .insert(notificationsToInsert);
-      }
+    if (error) {
+      return { success: false, error: error.message };
     }
 
     revalidatePath("/dashboard/settings");
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err.message || "Failed to save settings." };
+    return { success: false, error: err.message || "Failed to save Telegram settings." };
   }
 }
 
 /**
- * Normalize raw input into clean international E.164 format.
- * Strips whitespace, brackets, hyphens, and prepends country code if missing.
+ * Disconnect Telegram notifications from a squad.
  */
-function normalizePhoneNumber(rawPhone: string): string {
-  let cleaned = rawPhone.trim().replace(/[^\d+]/g, "");
-  if (!cleaned.startsWith("+")) {
-    if (/^\d{10}$/.test(cleaned)) {
-      // Default standard 10-digit mobile number to Indian country code (+91)
-      cleaned = `+91${cleaned}`;
-    } else {
-      cleaned = `+${cleaned}`;
-    }
-  }
-  return cleaned;
-}
-
-/**
- * Dispatch a live or simulated test WhatsApp alert to verify connectivity.
- */
-export async function sendTestWhatsAppNotification(
-  phone: string,
-  teamName: string,
-  hackathonTitle: string
-) {
+export async function disconnectTelegram(teamId: string) {
   try {
     const supabase = await createClient();
     const {
@@ -124,69 +71,108 @@ export async function sendTestWhatsAppNotification(
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
-    if (!phone?.trim()) {
-      return { success: false, error: "Please enter a valid phone number with country code." };
+    const { error } = await supabase
+      .from("teams")
+      .update({
+        telegram_chat_id: null,
+        telegram_connected_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", teamId);
+
+    if (error) {
+      return { success: false, error: error.message };
     }
 
-    const normalizedPhone = normalizePhoneNumber(phone);
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromWhatsAppNumber = process.env.TWILIO_WHATSAPP_NUMBER || "whatsapp:+14155238886";
+    revalidatePath("/dashboard/settings");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to disconnect Telegram." };
+  }
+}
 
-    const messageBody = `🚨 *Hackline Alert* 🚨\n\nSquad: *${teamName}*\nEvent: *${hackathonTitle}*\n\nThis is a verified test dispatch from your Hackline Command Center. Your automated T-24h and T-2h submission gates are configured!`;
+/**
+ * Dispatch an instant test Telegram notification to verify connectivity.
+ */
+export async function sendTestTelegramNotification(teamId: string, customChatId?: string) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (accountSid && authToken && !accountSid.startsWith("placeholder")) {
-      // Dispatches real WhatsApp message via Twilio API
-      const authHeader = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
-      const formattedTo = `whatsapp:${normalizedPhone}`;
+    if (!user) {
+      return { success: false, error: "Unauthorized: Please sign in." };
+    }
 
-      const params = new URLSearchParams();
-      params.append("To", formattedTo);
-      params.append("From", fromWhatsAppNumber);
-      params.append("Body", messageBody);
+    // Fetch team info
+    const { data: team, error: teamError } = await supabase
+      .from("teams")
+      .select("id, name, telegram_chat_id, hackathon:hackathons(id, title)")
+      .eq("id", teamId)
+      .single();
 
-      const twilioRes = await fetch(
-        `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Basic ${authHeader}`,
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: params.toString(),
-        }
-      );
+    if (teamError || !team) {
+      return { success: false, error: "Squad not found." };
+    }
 
-      const twilioData = await twilioRes.json();
+    const targetChatId = customChatId?.trim() || team.telegram_chat_id;
 
-      if (!twilioRes.ok) {
-        return {
-          success: false,
-          error: twilioData.message || "Failed to dispatch Twilio WhatsApp message.",
-        };
-      }
-
+    if (!targetChatId) {
       return {
-        success: true,
-        mode: "live",
-        sid: twilioData.sid,
-        message: `Live WhatsApp message dispatched to ${normalizedPhone}!`,
+        success: false,
+        error: "No Telegram Chat ID found. Click 'Connect via Telegram' or enter a Chat ID first.",
       };
-    } else {
-      // Informative simulated mode for environments without paid Twilio keys
-      console.log("[Hackline Notification Engine] Simulated WhatsApp Dispatch:", {
-        to: normalizedPhone,
-        body: messageBody,
-        timestamp: new Date().toISOString(),
+    }
+
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    if (!botToken) {
+      return {
+        success: false,
+        error: "TELEGRAM_BOT_TOKEN is not configured in Vercel / environment variables.",
+      };
+    }
+
+    const teamName = team.name || "Your Squad";
+    const hackathonTitle = (team.hackathon as any)?.title || "Upcoming Hackathon";
+
+    const message = `🚨 *Hackline Alert [TEST DISPATCH]* 🚨\n\nSquad: *${teamName}*\nEvent: *${hackathonTitle}*\n\n✅ Your Telegram notification channel is active! Your squad will receive automated T-24h and T-2h alerts before portal submission closes.`;
+
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: targetChatId,
+        text: message,
+        parse_mode: "Markdown",
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return {
+        success: false,
+        error: data.description || "Failed to dispatch Telegram message.",
+      };
+    }
+
+    // Log the successful notification in database if table exists
+    if ((team.hackathon as any)?.id) {
+      await supabase.from("telegram_notifications").insert({
+        team_id: team.id,
+        hackathon_id: (team.hackathon as any).id,
+        trigger_type: "test",
+        message_text: message,
+        status: "sent",
+        telegram_message_id: data?.result?.message_id ? String(data.result.message_id) : null,
       });
-
-      return {
-        success: true,
-        mode: "simulated",
-        normalizedPhone,
-        message: `Test dispatch verified for ${normalizedPhone}. Notification pipeline active.`,
-      };
     }
+
+    return {
+      success: true,
+      message: `Test alert dispatched to Telegram chat (${targetChatId})!`,
+    };
   } catch (err: any) {
     return {
       success: false,

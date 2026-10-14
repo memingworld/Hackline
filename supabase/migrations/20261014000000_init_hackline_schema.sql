@@ -98,6 +98,10 @@ CREATE TABLE IF NOT EXISTS public.teams (
   slug TEXT NOT NULL,
   description TEXT,
   invite_code TEXT UNIQUE DEFAULT encode(gen_random_bytes(6), 'hex'),
+  telegram_chat_id TEXT,
+  telegram_connected_at TIMESTAMPTZ,
+  notify_t24 BOOLEAN DEFAULT true,
+  notify_t2 BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   UNIQUE(hackathon_id, slug)
@@ -197,16 +201,15 @@ CREATE TABLE IF NOT EXISTS public.submission_checklists (
   UNIQUE(team_id, item_key)
 );
 
--- 3.10 NOTIFICATION WEBHOOKS (WhatsApp T-24h & T-2h Triggers)
-CREATE TABLE IF NOT EXISTS public.whatsapp_notifications (
+-- 3.10 NOTIFICATION WEBHOOKS (Telegram T-24h & T-2h Triggers)
+CREATE TABLE IF NOT EXISTS public.telegram_notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   team_id UUID REFERENCES public.teams(id) ON DELETE CASCADE NOT NULL,
   hackathon_id UUID REFERENCES public.hackathons(id) ON DELETE CASCADE NOT NULL,
-  recipient_phone TEXT NOT NULL,
-  trigger_type TEXT NOT NULL, -- 'T-24h', 'T-2h', 'custom'
-  scheduled_for TIMESTAMPTZ NOT NULL,
-  sent_at TIMESTAMPTZ,
-  status public.notification_status DEFAULT 'pending' NOT NULL,
+  trigger_type TEXT NOT NULL, -- 'T-24h', 'T-2h', 'test'
+  message_text TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'sent' CHECK (status IN ('pending', 'sent', 'failed')),
+  telegram_message_id TEXT,
   error_message TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -224,7 +227,7 @@ CREATE INDEX IF NOT EXISTS idx_problem_votes_problem ON public.problem_votes(pro
 CREATE INDEX IF NOT EXISTS idx_assets_team ON public.assets(team_id);
 CREATE INDEX IF NOT EXISTS idx_timeline_events_team ON public.timeline_events(team_id);
 CREATE INDEX IF NOT EXISTS idx_checklists_team ON public.submission_checklists(team_id);
-CREATE INDEX IF NOT EXISTS idx_notifications_status ON public.whatsapp_notifications(status, scheduled_for);
+CREATE INDEX IF NOT EXISTS idx_telegram_notifs_team_trigger ON public.telegram_notifications(team_id, trigger_type);
 
 -- ==============================================================================
 -- 5. ROW LEVEL SECURITY (RLS) POLICIES
@@ -242,7 +245,7 @@ ALTER TABLE public.problem_votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.timeline_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submission_checklists ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.whatsapp_notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.telegram_notifications ENABLE ROW LEVEL SECURITY;
 
 -- 5.1 PROFILES POLICIES
 CREATE POLICY "Public profiles are readable by authenticated users"
@@ -482,12 +485,17 @@ CREATE POLICY "Team members can view and toggle checklist items"
 
 -- 5.11 NOTIFICATIONS POLICIES
 CREATE POLICY "Captains and team members can monitor their notifications"
-  ON public.whatsapp_notifications FOR SELECT
+  ON public.telegram_notifications FOR SELECT
   TO authenticated
   USING (
     EXISTS (
       SELECT 1 FROM public.team_members
-      WHERE team_members.team_id = whatsapp_notifications.team_id
+      WHERE team_members.team_id = telegram_notifications.team_id
       AND team_members.user_id = auth.uid()
     )
   );
+
+CREATE POLICY "Service or authenticated users can insert telegram notifications"
+  ON public.telegram_notifications FOR INSERT
+  TO authenticated
+  WITH CHECK (true);
