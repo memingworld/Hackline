@@ -6,6 +6,7 @@ import {
   getTeamTimeline,
   getSubmissionChecklist,
 } from "@/lib/data/hackathons";
+import { ensureDefaultChecklistItems } from "@/lib/actions/checklist";
 import { HackathonCountdownBanner } from "@/components/dashboard/HackathonCountdownBanner";
 import { TimelineMilestones } from "@/components/dashboard/TimelineMilestones";
 import { SquadRosterWidget } from "@/components/dashboard/SquadRosterWidget";
@@ -29,10 +30,14 @@ export default async function DashboardPage() {
   const teamId = currentTeam?.id;
   const hackathonId = activeHackathon?.id;
 
-  const [timelineEvents, checklistItems] = await Promise.all([
-    getTeamTimeline(teamId, hackathonId),
-    teamId ? getSubmissionChecklist(teamId) : Promise.resolve([]),
-  ]);
+  let checklistItems = teamId ? await getSubmissionChecklist(teamId) : [];
+
+  if (teamId && checklistItems.length === 0) {
+    await ensureDefaultChecklistItems(teamId);
+    checklistItems = await getSubmissionChecklist(teamId);
+  }
+
+  const timelineEvents = await getTeamTimeline(teamId, hackathonId);
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -81,7 +86,7 @@ export default async function DashboardPage() {
           <ActiveHackathonsList hackathons={hackathons} />
         </div>
         <div className="lg:col-span-6">
-          <SubmissionChecklistWidget initialItems={checklistItems} />
+          <SubmissionChecklistWidget initialItems={checklistItems} teamId={teamId} />
         </div>
       </div>
     </div>
