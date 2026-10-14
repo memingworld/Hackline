@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   Search,
@@ -29,7 +29,18 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const [showProfileMenu, setShowProfileMenu] = React.useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
+
+  const getSectionLabel = () => {
+    if (pathname.includes("/hackathons")) return "Hackathons";
+    if (pathname.includes("/squad")) return "Squad & Roles";
+    if (pathname.includes("/vault")) return "Idea Vault";
+    if (pathname.includes("/assets")) return "Asset Hub";
+    if (pathname.includes("/calendar")) return "Timeline & GCal";
+    if (pathname.includes("/settings")) return "Settings";
+    return "Overview";
+  };
 
   const handleSignOut = async () => {
     try {
@@ -63,7 +74,7 @@ export function DashboardHeader({
               <span className="text-zinc-600">/</span>
             </>
           ) : null}
-          <span className="text-indigo-400">Overview</span>
+          <span className="text-indigo-400 capitalize">{getSectionLabel()}</span>
         </div>
       </div>
 
