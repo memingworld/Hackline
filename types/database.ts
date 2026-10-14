@@ -114,3 +114,53 @@ export interface Asset {
   created_by: string | null;
   created_at: string;
 }
+
+export interface SavedSquadMember {
+  id: string;
+  squad_id: string;
+  member_user_id: string | null;
+  member_name: string;
+  member_email: string;
+  default_duty: string;
+  created_at: string;
+}
+
+export interface SavedSquad {
+  id: string;
+  owner_id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  members?: SavedSquadMember[];
+}
+
+export interface InviteTeamDetails {
+  id: string;
+  name: string;
+  description: string | null;
+  invite_code: string;
+  captain_id: string;
+  hackathon: {
+    id: string;
+    title: string;
+    source_platform: string;
+    banner_url: string | null;
+    prize_pool: string | null;
+    starts_at: string;
+    ends_at: string;
+  };
+  members: Array<{
+    id: string;
+    user_id: string;
+    duty: string;
+    is_captain: boolean;
+    user: {
+      id: string;
+      full_name: string | null;
+      avatar_url: string | null;
+      email?: string;
+    };
+  }>;
+}
+
