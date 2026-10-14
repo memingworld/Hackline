@@ -12,59 +12,77 @@ import {
   FolderGit2,
   CalendarDays,
   Settings,
-  ChevronRight,
   ShieldCheck,
-  Zap,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Hackathon, Team } from "@/types/database";
 
 const NAV_ITEMS = [
   {
     label: "Overview",
     href: "/dashboard",
     icon: LayoutDashboard,
-    badge: null,
   },
   {
     label: "Hackathons",
     href: "/dashboard/hackathons",
     icon: Trophy,
-    badge: "3 Live",
   },
   {
     label: "Squad & Roles",
     href: "/dashboard/squad",
     icon: Users,
-    badge: "4/4",
   },
   {
     label: "Idea Vault",
     href: "/dashboard/vault",
     icon: Lightbulb,
-    badge: "5 Ideas",
   },
   {
     label: "Asset Hub",
     href: "/dashboard/assets",
     icon: FolderGit2,
-    badge: null,
   },
   {
     label: "Timeline & GCal",
     href: "/dashboard/calendar",
     icon: CalendarDays,
-    badge: "T-18h",
   },
   {
     label: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
-    badge: null,
   },
 ];
 
-export function DashboardSidebar() {
+interface DashboardSidebarProps {
+  activeHackathon: Hackathon | null;
+  currentTeam: Team | null;
+  currentUserId?: string;
+}
+
+export function DashboardSidebar({
+  activeHackathon,
+  currentTeam,
+  currentUserId,
+}: DashboardSidebarProps) {
   const pathname = usePathname();
+
+  // Dynamic countdown tag calculation
+  const getSprintTag = () => {
+    if (!activeHackathon) return null;
+    const diffHours = Math.round(
+      (new Date(activeHackathon.ends_at).getTime() - Date.now()) / (1000 * 60 * 60)
+    );
+    if (diffHours <= 0) return "Concluded";
+    return `T-${diffHours}h`;
+  };
+
+  const isCaptain = currentTeam?.captain_id === currentUserId;
+  const teamInitials = currentTeam
+    ? currentTeam.name.substring(0, 2).toUpperCase()
+    : null;
 
   return (
     <aside className="w-64 shrink-0 border-r border-zinc-800/80 bg-zinc-950/90 backdrop-blur-xl flex flex-col justify-between p-4 min-h-screen">
@@ -92,22 +110,37 @@ export function DashboardSidebar() {
           </div>
         </Link>
 
-        {/* Active Sprint Live Beacon */}
-        <div className="mx-2 mb-6 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-3">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 font-semibold flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Active Sprint
+        {/* Dynamic Active Sprint Live Beacon */}
+        {activeHackathon ? (
+          <div className="mx-2 mb-6 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 font-semibold flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Active Sprint
+              </span>
+              <span className="text-[10px] font-mono text-zinc-400">{getSprintTag()}</span>
+            </div>
+            <span className="text-xs font-semibold text-white block truncate">
+              {activeHackathon.title}
             </span>
-            <span className="text-[10px] font-mono text-zinc-400">T-18h</span>
+            <span className="text-[11px] text-zinc-400 block mt-0.5 truncate">
+              {currentTeam ? currentTeam.name : "Solo Squad"}
+            </span>
           </div>
-          <span className="text-xs font-semibold text-white block truncate">
-            ETHIndia 2026
-          </span>
-          <span className="text-[11px] text-zinc-400 block mt-0.5 truncate">
-            Team Vanguard Alpha
-          </span>
-        </div>
+        ) : (
+          <div className="mx-2 mb-6 rounded-xl border border-dashed border-zinc-800 bg-zinc-950/40 p-3 text-center">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block mb-1">
+              No Active Sprint
+            </span>
+            <Link
+              href="/dashboard/hackathons?action=scrape"
+              className="text-xs text-indigo-400 hover:text-indigo-300 font-medium inline-flex items-center gap-1"
+            >
+              <Plus className="h-3 w-3" />
+              <span>Import Event</span>
+            </Link>
+          </div>
+        )}
 
         {/* Navigation Section */}
         <div className="space-y-1">
@@ -141,42 +174,40 @@ export function DashboardSidebar() {
                   />
                   <span>{item.label}</span>
                 </div>
-                {item.badge && (
-                  <span
-                    className={cn(
-                      "text-[10px] font-mono px-1.5 py-0.5 rounded-md",
-                      isActive
-                        ? "bg-white/20 text-white"
-                        : "bg-zinc-800 text-zinc-400 group-hover:text-zinc-300"
-                    )}
-                  >
-                    {item.badge}
-                  </span>
-                )}
               </Link>
             );
           })}
         </div>
       </div>
 
-      {/* Bottom Squad Badge */}
+      {/* Dynamic Bottom Squad Badge */}
       <div className="pt-4 border-t border-zinc-900">
-        <div className="flex items-center justify-between p-2 rounded-xl bg-zinc-900/40 border border-zinc-800/80">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800 font-mono text-xs font-bold text-zinc-200">
-              VA
+        {currentTeam ? (
+          <div className="flex items-center justify-between p-2 rounded-xl bg-zinc-900/40 border border-zinc-800/80">
+            <div className="flex items-center gap-2.5 truncate">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-800 font-mono text-xs font-bold text-zinc-200">
+                {teamInitials}
+              </div>
+              <div className="truncate">
+                <span className="text-xs font-medium text-white block truncate">
+                  {currentTeam.name}
+                </span>
+                <span className="text-[10px] text-emerald-400 block font-mono">
+                  {isCaptain ? "Captain Role" : "Squad Member"}
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-xs font-medium text-white block">
-                Vanguard Alpha
-              </span>
-              <span className="text-[10px] text-emerald-400 block font-mono">
-                Captain Role
-              </span>
-            </div>
+            <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
           </div>
-          <ShieldCheck className="h-4 w-4 text-emerald-400" />
-        </div>
+        ) : (
+          <Link
+            href="/dashboard/squad"
+            className="flex items-center justify-between p-2 rounded-xl bg-zinc-900/20 border border-dashed border-zinc-800 text-xs text-zinc-500 hover:text-zinc-300 hover:border-zinc-700 transition-colors"
+          >
+            <span>No Squad Joined</span>
+            <span className="text-[10px] font-mono text-indigo-400">+ Assemble</span>
+          </Link>
+        )}
       </div>
     </aside>
   );

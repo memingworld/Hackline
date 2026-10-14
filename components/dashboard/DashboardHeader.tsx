@@ -17,13 +17,15 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 
 interface DashboardHeaderProps {
-  userEmail?: string;
-  userName?: string;
+  userEmail: string;
+  userName: string;
+  hackathonTitle?: string | null;
 }
 
 export function DashboardHeader({
-  userEmail = "alex@hackline.dev",
-  userName = "Alex Vance",
+  userEmail,
+  userName,
+  hackathonTitle,
 }: DashboardHeaderProps) {
   const [showProfileMenu, setShowProfileMenu] = React.useState(false);
   const router = useRouter();
@@ -39,15 +41,28 @@ export function DashboardHeader({
     }
   };
 
+  const userInitials =
+    userName.length >= 2
+      ? userName.substring(0, 2).toUpperCase()
+      : userName.toUpperCase() || "ME";
+
   return (
     <header className="h-16 border-b border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl px-6 flex items-center justify-between sticky top-0 z-20">
       {/* Left Breadcrumb / Context */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="text-zinc-500">Hackline</span>
+          <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300 transition-colors">
+            Hackline
+          </Link>
           <span className="text-zinc-600">/</span>
-          <span className="text-zinc-300 font-semibold">ETHIndia 2026</span>
-          <span className="text-zinc-600">/</span>
+          {hackathonTitle ? (
+            <>
+              <span className="text-zinc-300 font-semibold truncate max-w-[140px] sm:max-w-xs">
+                {hackathonTitle}
+              </span>
+              <span className="text-zinc-600">/</span>
+            </>
+          ) : null}
           <span className="text-indigo-400">Overview</span>
         </div>
       </div>
@@ -56,7 +71,7 @@ export function DashboardHeader({
       <div className="flex items-center gap-3">
         {/* Quick Search Trigger */}
         <button
-          onClick={() => toast.info("Quick search active (use Ctrl+K)")}
+          onClick={() => toast.info("Search shortcut active (Ctrl+K)")}
           className="hidden md:flex items-center gap-3 h-9 px-3 rounded-xl border border-zinc-800/80 bg-zinc-900/60 text-xs text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 transition-colors"
         >
           <Search className="h-3.5 w-3.5 text-zinc-500" />
@@ -96,7 +111,7 @@ export function DashboardHeader({
             className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-xl hover:bg-zinc-900/60 transition-colors"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600/20 border border-indigo-500/30 font-mono text-xs font-bold text-indigo-300">
-              {userName.substring(0, 2).toUpperCase()}
+              {userInitials}
             </div>
           </button>
 
@@ -107,7 +122,7 @@ export function DashboardHeader({
                   {userName}
                 </span>
                 <span className="text-[11px] text-zinc-500 block truncate font-mono">
-                  {userEmail}
+                  {userEmail || "Authenticated User"}
                 </span>
               </div>
 

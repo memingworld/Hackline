@@ -117,7 +117,9 @@ export function ActiveHackathonsList({ hackathons }: ListProps) {
         {/* Footer */}
         <div className="mt-5 pt-4 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500 font-mono">
           <span>Auto-scraped via FastAPI engine</span>
-          <span className="text-zinc-400">3 Events Loaded</span>
+          <span className="text-zinc-400">
+            {hackathons.length} {hackathons.length === 1 ? "Event" : "Events"} Tracked
+          </span>
         </div>
       </div>
     </div>

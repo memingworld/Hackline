@@ -7,8 +7,6 @@ import {
   Clock,
   Calendar,
   AlertCircle,
-  Flag,
-  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +15,20 @@ interface TimelineProps {
 }
 
 export function TimelineMilestones({ events }: TimelineProps) {
+  const completedCount = events.filter((e) => e.is_completed).length;
+  const nextGate = events.find((e) => !e.is_completed);
+
+  const getNextGateTag = () => {
+    if (!nextGate) {
+      return completedCount > 0 ? "All Gates Met" : "No Gates Scheduled";
+    }
+    const diffHours = Math.max(
+      0,
+      Math.round((new Date(nextGate.deadline).getTime() - Date.now()) / (1000 * 60 * 60))
+    );
+    return `Next: T-${diffHours}h`;
+  };
+
   return (
     <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl h-full flex flex-col justify-between">
       <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-900/90 p-6 flex flex-col justify-between h-full">
@@ -36,9 +48,11 @@ export function TimelineMilestones({ events }: TimelineProps) {
                 </p>
               </div>
             </div>
-            <span className="text-[11px] font-mono text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 rounded-md px-2 py-0.5">
-              Next: T-12h
-            </span>
+            {events.length > 0 && (
+              <span className="text-[11px] font-mono text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 rounded-md px-2 py-0.5">
+                {getNextGateTag()}
+              </span>
+            )}
           </div>
 
           {/* Stepper List */}
@@ -129,8 +143,10 @@ export function TimelineMilestones({ events }: TimelineProps) {
 
         {/* Footer Meta */}
         <div className="mt-6 pt-4 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500 font-mono">
-          <span>5/5 gates registered</span>
-          <span className="text-emerald-400 font-medium">WhatsApp T-2h armed</span>
+          <span>{completedCount}/{events.length} gates verified</span>
+          <span className="text-emerald-400 font-medium">
+            {events.length > 0 ? "Timeline armed" : "Awaiting gates"}
+          </span>
         </div>
       </div>
     </div>
