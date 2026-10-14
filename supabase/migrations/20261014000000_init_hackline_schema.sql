@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS public.hackathons (
   description TEXT,
   starts_at TIMESTAMPTZ,
   ends_at TIMESTAMPTZ,
-  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_by UUID REFERENCES public.profiles(id) ON DELETE CASCADE DEFAULT auth.uid(),
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -257,10 +257,18 @@ CREATE POLICY "Users can update their own profile"
   WITH CHECK (auth.uid() = id);
 
 -- 5.2 HACKATHONS POLICIES
-CREATE POLICY "Hackathons are readable by authenticated users"
+CREATE POLICY "Users can only view hackathons they created or participate in"
   ON public.hackathons FOR SELECT
   TO authenticated
-  USING (true);
+  USING (
+    created_by = auth.uid() OR
+    EXISTS (
+      SELECT 1 FROM public.teams t
+      JOIN public.team_members tm ON tm.team_id = t.id
+      WHERE t.hackathon_id = hackathons.id
+      AND tm.user_id = auth.uid()
+    )
+  );
 
 CREATE POLICY "Authenticated users can create/scrape hackathons"
   ON public.hackathons FOR INSERT
@@ -269,6 +277,11 @@ CREATE POLICY "Authenticated users can create/scrape hackathons"
 
 CREATE POLICY "Hackathon creators can update their entries"
   ON public.hackathons FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = created_by);
+
+CREATE POLICY "Hackathon creators can delete their entries"
+  ON public.hackathons FOR DELETE
   TO authenticated
   USING (auth.uid() = created_by);
 
