@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 interface SignupFormProps {
   onVerificationRequired: (email: string) => void;
@@ -132,17 +133,9 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
           <span className="text-xs font-medium">GitHub</span>
         </Button>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="md"
+        <GoogleSignInButton
           isLoading={isOauthLoading === "google"}
-          onClick={() => handleOAuthLogin("google")}
-          className="w-full bg-zinc-950/40 border-zinc-800 hover:border-zinc-700"
-        >
-          <GoogleIcon className="h-4 w-4" />
-          <span className="text-xs font-medium">Google</span>
-        </Button>
+        />
       </div>
 
       <div className="relative flex items-center justify-center">

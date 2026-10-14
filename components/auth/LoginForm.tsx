@@ -10,6 +10,7 @@ import { loginSchema, type LoginFormValues } from "@/lib/validations/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import Link from "next/link";
 
 interface LoginFormProps {
@@ -117,17 +118,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           <span className="text-xs font-medium">GitHub</span>
         </Button>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="md"
+        <GoogleSignInButton
           isLoading={isOauthLoading === "google"}
-          onClick={() => handleOAuthLogin("google")}
-          className="w-full bg-zinc-950/40 border-zinc-800 hover:border-zinc-700"
-        >
-          <GoogleIcon className="h-4 w-4" />
-          <span className="text-xs font-medium">Google</span>
-        </Button>
+          onSuccess={onSuccess}
+        />
       </div>
 
       <div className="relative flex items-center justify-center">
