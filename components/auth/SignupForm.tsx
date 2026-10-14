@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff, ArrowRight, CheckCircle2 } from "lucide-react";
 import { GithubIcon, GoogleIcon } from "@/components/icons/OAuthIcons";
 import { signupSchema, type SignupFormValues } from "@/lib/validations/auth";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
@@ -16,6 +17,7 @@ interface SignupFormProps {
 }
 
 export function SignupForm({ onVerificationRequired }: SignupFormProps) {
+  const router = useRouter();
   const [showPassword, setShowPassword] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isOauthLoading, setIsOauthLoading] = React.useState<"github" | "google" | null>(null);
@@ -65,7 +67,16 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
         return;
       }
 
-      // Check if user is created and needs confirmation
+      // If email confirmation is disabled, Supabase returns a session immediately
+      if (data?.session) {
+        toast.success("Welcome aboard!", {
+          description: "Your account is live. Redirecting to command center...",
+        });
+        router.push("/dashboard");
+        return;
+      }
+
+      // If email confirmation is required and email dispatched
       if (data?.user) {
         toast.success("Account initiated", {
           description: "Confirmation link dispatched to your email.",
