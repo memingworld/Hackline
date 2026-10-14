@@ -13,6 +13,11 @@ import {
   Phone,
   Trash2,
   Plus,
+  Lock,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +27,7 @@ import {
   sendTestWhatsAppNotification,
 } from "@/lib/actions/notifications";
 import { createChecklistItem, deleteChecklistItem } from "@/lib/actions/checklist";
-import { createClient } from "@/utils/supabase/client";
+import { updateUserProfile, changeUserPassword } from "@/lib/actions/profile";
 import { useRouter } from "next/navigation";
 
 interface SettingsFormProps {
@@ -46,6 +51,15 @@ export function SettingsForm({
   const [primaryRole, setPrimaryRole] = React.useState(profile?.primary_role || "Full-Stack Developer");
   const [isSavingProfile, setIsSavingProfile] = React.useState(false);
 
+  // Password management state
+  const [currentPassword, setCurrentPassword] = React.useState("");
+  const [newPassword, setNewPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [showCurrent, setShowCurrent] = React.useState(false);
+  const [showNew, setShowNew] = React.useState(false);
+  const [showConfirm, setShowConfirm] = React.useState(false);
+  const [isChangingPassword, setIsChangingPassword] = React.useState(false);
+
   // WhatsApp notification state
   const [phone, setPhone] = React.useState(profile?.phone_number || "");
   const [enableT24, setEnableT24] = React.useState(true);
@@ -57,31 +71,88 @@ export function SettingsForm({
   const [newGateTitle, setNewGateTitle] = React.useState("");
   const [isAddingGate, setIsAddingGate] = React.useState(false);
 
+  // Calculate password strength
+  const getPasswordStrength = (pwd: string) => {
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    return score;
+  };
+
+  const strength = getPasswordStrength(newPassword);
+
+  const getStrengthLabel = (score: number) => {
+    if (!newPassword) return { label: "Enter password", color: "bg-zinc-800", text: "text-zinc-500" };
+    if (score <= 1) return { label: "Weak", color: "bg-rose-500", text: "text-rose-400" };
+    if (score === 2) return { label: "Fair", color: "bg-amber-500", text: "text-amber-400" };
+    if (score === 3) return { label: "Good", color: "bg-blue-500", text: "text-blue-400" };
+    return { label: "Bulletproof", color: "bg-emerald-500", text: "text-emerald-400" };
+  };
+
+  const strengthInfo = getStrengthLabel(strength);
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingProfile(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          full_name: fullName.trim(),
-          github_handle: githubHandle.trim() || null,
-          primary_role: primaryRole.trim() || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("email", userEmail);
+      const res = await updateUserProfile({
+        fullName,
+        githubHandle,
+        primaryRole,
+        phoneNumber: phone,
+      });
 
-      if (error) {
-        toast.error("Failed to update profile", { description: error.message });
-      } else {
-        toast.success("Profile updated successfully");
+      if (res.success) {
+        toast.success("Profile details updated successfully");
         router.refresh();
+      } else {
+        toast.error("Failed to update profile", { description: res.error });
       }
     } catch {
       toast.error("Error updating profile");
     } finally {
       setIsSavingProfile(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentPassword) {
+      toast.error("Please enter your current password.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error("New password must be at least 8 characters long.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const res = await changeUserPassword({
+        currentPassword,
+        newPassword,
+      });
+
+      if (res.success) {
+        toast.success("Password changed successfully!", {
+          description: "Your session credentials have been updated.",
+        });
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        toast.error("Password update failed", { description: res.error });
+      }
+    } catch {
+      toast.error("An unexpected error occurred while changing password.");
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -253,14 +324,142 @@ export function SettingsForm({
                 disabled={isSavingProfile}
                 className="text-xs rounded-xl px-5"
               >
-                {isSavingProfile ? "Saving..." : "Save Profile"}
+                {isSavingProfile ? "Saving..." : "Save Profile Details"}
               </Button>
             </div>
           </form>
         </div>
       </div>
 
-      {/* 2. Automated WhatsApp Notification Engine */}
+      {/* 2. Security & Password Management (Logged In) */}
+      <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
+        <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-8">
+          <div className="flex items-center gap-3 pb-5 border-b border-zinc-800">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <Lock className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white tracking-tight">
+                Security & Password Management
+              </h2>
+              <p className="text-xs text-zinc-400">
+                Update your login credentials. We verify your current password before committing changes.
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleChangePassword} className="mt-6 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Current Password */}
+              <div className="space-y-1.5 relative">
+                <label className="text-xs font-medium text-zinc-300">Current Password</label>
+                <div className="relative">
+                  <Input
+                    type={showCurrent ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    required
+                    className="bg-zinc-900/60 border-zinc-800 text-xs pr-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrent(!showCurrent)}
+                    className="absolute right-3 top-2.5 text-zinc-500 hover:text-zinc-300"
+                    tabIndex={-1}
+                  >
+                    {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* New Password */}
+              <div className="space-y-1.5 relative">
+                <label className="text-xs font-medium text-zinc-300">New Password</label>
+                <div className="relative">
+                  <Input
+                    type={showNew ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    required
+                    className="bg-zinc-900/60 border-zinc-800 text-xs pr-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNew(!showNew)}
+                    className="absolute right-3 top-2.5 text-zinc-500 hover:text-zinc-300"
+                    tabIndex={-1}
+                  >
+                    {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm New Password */}
+              <div className="space-y-1.5 relative">
+                <label className="text-xs font-medium text-zinc-300">Confirm New Password</label>
+                <div className="relative">
+                  <Input
+                    type={showConfirm ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    required
+                    className="bg-zinc-900/60 border-zinc-800 text-xs pr-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-3 top-2.5 text-zinc-500 hover:text-zinc-300"
+                    tabIndex={-1}
+                  >
+                    {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Password Strength Meter */}
+            {newPassword && (
+              <div className="space-y-1.5 pt-1 max-w-sm">
+                <div className="flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-zinc-500">Password Strength:</span>
+                  <span className={strengthInfo.text}>{strengthInfo.label}</span>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5 h-1">
+                  {[1, 2, 3, 4].map((step) => (
+                    <div
+                      key={step}
+                      className={`rounded-full transition-all duration-300 ${
+                        strength >= step ? strengthInfo.color : "bg-zinc-800"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-3 border-t border-zinc-900">
+              <span className="text-[11px] text-zinc-500 font-mono">
+                Must be at least 8 characters with 1 uppercase & 1 number
+              </span>
+
+              <Button
+                type="submit"
+                variant="outline"
+                disabled={isChangingPassword || !newPassword || !currentPassword}
+                className="text-xs rounded-xl px-5 gap-1.5 hover:border-amber-500/40 hover:text-amber-400"
+              >
+                <KeyRound className="h-3.5 w-3.5" />
+                <span>{isChangingPassword ? "Updating..." : "Update Password"}</span>
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* 3. Automated WhatsApp Notification Engine */}
       <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
         <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-8">
           <div className="flex items-center justify-between pb-5 border-b border-zinc-800">
@@ -364,7 +563,7 @@ export function SettingsForm({
         </div>
       </div>
 
-      {/* 3. Pre-Flight Verification Gate Rules */}
+      {/* 4. Pre-Flight Verification Gate Rules */}
       {activeTeam && (
         <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
           <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-8">

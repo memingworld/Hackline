@@ -10,6 +10,7 @@ import { loginSchema, type LoginFormValues } from "@/lib/validations/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
+import Link from "next/link";
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -181,18 +182,12 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             />
             <span>Remember for 30 days</span>
           </label>
-          <a
-            href="#forgot-password"
-            onClick={(e) => {
-              e.preventDefault();
-              toast.info("Password Reset", {
-                description: "Password reset request flow is connected to Supabase Auth.",
-              });
-            }}
+          <Link
+            href="/forgot-password"
             className="text-zinc-400 hover:text-indigo-400 transition-colors"
           >
             Forgot password?
-          </a>
+          </Link>
         </div>
 
         <Button
