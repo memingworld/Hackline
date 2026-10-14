@@ -4,9 +4,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from .models import ScrapeRequest, HackathonMetadata
-from .scrapers import parse_with_dom, detect_platform
-from .llm_parser import parse_with_llm
+try:
+    from .models import ScrapeRequest, HackathonMetadata
+    from .scrapers import parse_with_dom, detect_platform
+    from .llm_parser import parse_with_llm
+except (ImportError, ValueError):
+    from models import ScrapeRequest, HackathonMetadata
+    from scrapers import parse_with_dom, detect_platform
+    from llm_parser import parse_with_llm
 
 load_dotenv()
 

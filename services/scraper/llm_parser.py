@@ -3,8 +3,12 @@ import json
 import httpx
 from bs4 import BeautifulSoup
 from typing import Optional
-from .models import HackathonMetadata, TimelineGate
-from .scrapers import generate_slug, detect_platform
+try:
+    from .models import HackathonMetadata, TimelineGate
+    from .scrapers import generate_slug, detect_platform
+except (ImportError, ValueError):
+    from models import HackathonMetadata, TimelineGate
+    from scrapers import generate_slug, detect_platform
 
 LLM_SYSTEM_PROMPT = """
 You are an expert AI parser extracting structured hackathon information from raw web text.

@@ -3,7 +3,10 @@ import json
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from typing import Optional, Dict, Any
-from .models import HackathonMetadata, TimelineGate
+try:
+    from .models import HackathonMetadata, TimelineGate
+except (ImportError, ValueError):
+    from models import HackathonMetadata, TimelineGate
 
 def detect_platform(url: str) -> str:
     domain = urlparse(url).netloc.lower()
