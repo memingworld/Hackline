@@ -2,14 +2,11 @@ import * as React from "react";
 import { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import { getActiveSquadRoster, getUserSavedSquads } from "@/lib/data/squads";
+import { getUserAllTeams, getUserSavedSquads } from "@/lib/data/squads";
 import { getSubmissionChecklist } from "@/lib/data/hackathons";
-import { ActiveSquadRoster } from "@/components/squads/ActiveSquadRoster";
+import { MultiSquadManager } from "@/components/squads/MultiSquadManager";
 import { SavedSquadsManager } from "@/components/squads/SavedSquadsManager";
 import { SquadPageClientHeader } from "@/components/squads/SquadPageClientHeader";
-import { PreFlightGateManager } from "@/components/squads/PreFlightGateManager";
-
-import { cookies } from "next/headers";
 
 export const metadata: Metadata = {
   title: "Squad & Roles | Hackline Command Center",
@@ -17,12 +14,10 @@ export const metadata: Metadata = {
 };
 
 export default async function SquadPage(props: {
-  searchParams?: Promise<{ action?: string; hackathon?: string }>;
+  searchParams?: Promise<{ action?: string }>;
 }) {
-  const searchParams = await props.searchParams;
+  const searchParams = props.searchParams ? await props.searchParams : {};
   const initialAction = searchParams?.action;
-  const cookieStore = await cookies();
-  const activeHackathonId = searchParams?.hackathon || cookieStore.get("active_hackathon_id")?.value;
 
   const supabase = await createClient();
   const {
@@ -40,17 +35,24 @@ export default async function SquadPage(props: {
     .eq("id", user.id)
     .single();
 
-  const [activeTeam, savedSquads] = await Promise.all([
-    getActiveSquadRoster(activeHackathonId),
+  const [allTeams, savedSquads] = await Promise.all([
+    getUserAllTeams(),
     getUserSavedSquads(),
   ]);
 
-  const checklistItems = activeTeam
-    ? await getSubmissionChecklist(activeTeam.id)
-    : [];
+  // Fetch checklist items for each team
+  const teamsWithChecklists = await Promise.all(
+    allTeams.map(async (team) => {
+      const checklistItems = await getSubmissionChecklist(team.id);
+      return {
+        ...team,
+        checklistItems,
+      };
+    })
+  );
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-8 animate-in fade-in duration-300 pb-12">
       {/* Top Header with client-triggered modals */}
       <SquadPageClientHeader
         initialAction={initialAction}
@@ -58,40 +60,19 @@ export default async function SquadPage(props: {
         currentUserName={profile?.full_name || undefined}
       />
 
-      {/* Active Squad Lineup Section */}
+      {/* Multi-Squad Active Sprint Roster & Checklist Section */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
-              Active Sprint Squad
-            </h3>
-          </div>
-          <span className="text-xs text-zinc-500 font-mono">
-            {activeTeam ? `Synced with ${activeTeam.name}` : "No active team"}
-          </span>
-        </div>
-
-        <ActiveSquadRoster
-          team={activeTeam}
+        <MultiSquadManager
+          teams={teamsWithChecklists}
           currentUserId={user.id}
         />
       </section>
 
-      {/* Pre-Flight Submission Gates Configuration */}
-      <section className="space-y-4 pt-4 border-t border-zinc-900">
-        <PreFlightGateManager
-          activeTeam={activeTeam}
-          checklistItems={checklistItems}
-          isCaptain={activeTeam?.captain_id === user.id}
-        />
-      </section>
-
       {/* Saved Squad Presets Section */}
-      <section className="space-y-4 pt-4 border-t border-zinc-900">
+      <section className="space-y-4 pt-6 border-t border-zinc-900">
         <SavedSquadsManager
           savedSquads={savedSquads}
-          activeTeam={activeTeam}
+          activeTeams={allTeams}
           currentUserEmail={user.email}
           currentUserName={profile?.full_name || undefined}
         />

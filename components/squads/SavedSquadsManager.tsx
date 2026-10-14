@@ -23,7 +23,8 @@ import { useRouter } from "next/navigation";
 
 interface SavedSquadsManagerProps {
   savedSquads: SavedSquad[];
-  activeTeam: Team | null;
+  activeTeam?: Team | null;
+  activeTeams?: Team[];
   currentUserEmail?: string;
   currentUserName?: string;
 }
@@ -31,6 +32,7 @@ interface SavedSquadsManagerProps {
 export function SavedSquadsManager({
   savedSquads,
   activeTeam,
+  activeTeams = [],
   currentUserEmail,
   currentUserName,
 }: SavedSquadsManagerProps) {
@@ -39,6 +41,14 @@ export function SavedSquadsManager({
   const [squadToEdit, setSquadToEdit] = React.useState<SavedSquad | null>(null);
   const [deployingSquadId, setDeployingSquadId] = React.useState<string | null>(null);
   const [deletingSquadId, setDeletingSquadId] = React.useState<string | null>(null);
+  const [deployTargetModalSquad, setDeployTargetModalSquad] = React.useState<SavedSquad | null>(null);
+
+  // Consolidated available teams list
+  const availableTeams = React.useMemo(() => {
+    if (activeTeams.length > 0) return activeTeams;
+    if (activeTeam) return [activeTeam];
+    return [];
+  }, [activeTeams, activeTeam]);
 
   const handleOpenCreate = () => {
     setSquadToEdit(null);
@@ -71,19 +81,13 @@ export function SavedSquadsManager({
     }
   };
 
-  const handleDeploy = async (squad: SavedSquad) => {
-    if (!activeTeam) {
-      toast.error("No active hackathon team detected to deploy preset into.", {
-        description: "Scrape or register a hackathon first from the Hackathons catalog.",
-      });
-      return;
-    }
-
-    setDeployingSquadId(squad.id);
+  const executeDeploy = async (squadId: string, targetTeamId: string, squadName: string) => {
+    setDeployingSquadId(squadId);
+    setDeployTargetModalSquad(null);
     try {
-      const res = await deploySavedSquadToActiveTeam(squad.id, activeTeam.id);
+      const res = await deploySavedSquadToActiveTeam(squadId, targetTeamId);
       if (res.success) {
-        toast.success(`Deployed "${squad.name}" to active hackathon!`, {
+        toast.success(`Deployed "${squadName}" to active sprint!`, {
           description: "Roster pre-fills and team designations have been synchronized.",
         });
         router.refresh();
@@ -95,6 +99,23 @@ export function SavedSquadsManager({
     } finally {
       setDeployingSquadId(null);
     }
+  };
+
+  const handleDeployClick = (squad: SavedSquad) => {
+    if (availableTeams.length === 0) {
+      toast.info("No active hackathon sprints yet.", {
+        description: "Scrape or register a hackathon first to deploy your dream crew into it.",
+      });
+      return;
+    }
+
+    if (availableTeams.length === 1) {
+      executeDeploy(squad.id, availableTeams[0].id, squad.name);
+      return;
+    }
+
+    // Multiple teams: open target team selection dialog
+    setDeployTargetModalSquad(squad);
   };
 
   return (
@@ -227,14 +248,18 @@ export function SavedSquadsManager({
 
                   {/* Deploy Action */}
                   <div className="pt-4 border-t border-zinc-800/80 flex items-center justify-between">
-                    <span className="text-[11px] text-zinc-500 font-mono">
-                      {activeTeam ? "Target: " + activeTeam.name : "Deploy to Active Squad"}
+                    <span className="text-[11px] text-zinc-500 font-mono truncate max-w-[170px]">
+                      {availableTeams.length === 1
+                        ? "Target: " + availableTeams[0].name
+                        : availableTeams.length > 1
+                        ? `${availableTeams.length} Active Sprints`
+                        : "No active sprint"}
                     </span>
                     <Button
                       size="sm"
                       variant="primary"
-                      onClick={() => handleDeploy(squad)}
-                      disabled={isDeploying || !activeTeam}
+                      onClick={() => handleDeployClick(squad)}
+                      disabled={isDeploying || availableTeams.length === 0}
                       className="rounded-xl text-xs gap-1.5"
                     >
                       {isDeploying ? (
@@ -257,6 +282,55 @@ export function SavedSquadsManager({
                 </div>
               );
           })}
+        </div>
+      )}
+
+      {/* Deploy Target Selection Modal (when multiple active teams exist) */}
+      {deployTargetModalSquad && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-md rounded-2xl bg-zinc-950 border border-zinc-800 p-6 shadow-2xl space-y-4">
+            <div>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Deploy &ldquo;{deployTargetModalSquad.name}&rdquo;
+              </h3>
+              <p className="text-xs text-zinc-400 mt-1">
+                Select which active sprint squad you want to synchronize with this preset.
+              </p>
+            </div>
+
+            <div className="space-y-2 py-2">
+              {availableTeams.map((team) => (
+                <button
+                  key={team.id}
+                  onClick={() =>
+                    executeDeploy(deployTargetModalSquad.id, team.id, deployTargetModalSquad.name)
+                  }
+                  className="w-full text-left p-3.5 rounded-xl border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-900 hover:border-emerald-500/40 transition-colors flex items-center justify-between group"
+                >
+                  <div>
+                    <span className="text-xs font-bold text-white block group-hover:text-emerald-300">
+                      {team.name}
+                    </span>
+                    <span className="text-[10px] font-mono text-zinc-500 block mt-0.5">
+                      {team.hackathon?.title || "Hackathon Sprint"} &bull; {team.members?.length || 1} members
+                    </span>
+                  </div>
+                  <Rocket className="h-4 w-4 text-zinc-500 group-hover:text-emerald-400" />
+                </button>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDeployTargetModalSquad(null)}
+                className="rounded-xl text-xs"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 

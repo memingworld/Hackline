@@ -117,7 +117,7 @@ export function ManualHackathonForm({ onSuccess }: { onSuccess?: () => void }) {
         onSuccess();
       }
 
-      router.push(`/dashboard?hackathon=${res.hackathonId}`);
+      router.push(`/dashboard/hackathons/${res.hackathonId}`);
       router.refresh();
     } catch (err: any) {
       toast.error("Creation failed", {

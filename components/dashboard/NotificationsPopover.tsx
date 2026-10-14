@@ -74,7 +74,7 @@ export function NotificationsPopover({
             title: `Submission Gate: ${diffHours}h remaining`,
             description: `Deadline approaching for "${activeHackathon.title}". Complete deliverable links and run pre-flight verification.`,
             timestamp: "Active Sprint",
-            href: `/dashboard?hackathon=${activeHackathon.id}`,
+            href: `/dashboard/hackathons/${activeHackathon.id}`,
             urgent: diffHours <= 24,
           });
         } else {
@@ -84,7 +84,7 @@ export function NotificationsPopover({
             title: "Sprint Concluded",
             description: `Submission window for "${activeHackathon.title}" has concluded. Review judging and results.`,
             timestamp: "Past Event",
-            href: `/dashboard?hackathon=${activeHackathon.id}`,
+            href: `/dashboard/hackathons/${activeHackathon.id}`,
           });
         }
       }
@@ -98,7 +98,7 @@ export function NotificationsPopover({
         title: "No Squad Assembled",
         description: `You are flying solo for "${activeHackathon.title}". Form a crew or deploy a squad preset.`,
         timestamp: "Action Required",
-        href: `/dashboard/squad?hackathon=${activeHackathon.id}`,
+        href: "/dashboard/squad",
         urgent: true,
       });
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Hackathon } from "@/types/database";
+import { Hackathon, SavedSquad } from "@/types/database";
 import { MagicLinkInput } from "@/components/scraper/MagicLinkInput";
 import { HackathonConfirmationModal } from "@/components/scraper/HackathonConfirmationModal";
 import { EditHackathonDialog } from "@/components/dashboard/EditHackathonDialog";
@@ -28,11 +28,13 @@ import { toast } from "sonner";
 
 interface HackathonsManagerProps {
   initialHackathons: Hackathon[];
+  savedSquadPresets?: SavedSquad[];
   activeHackathonId?: string;
 }
 
 export function HackathonsManager({
   initialHackathons,
+  savedSquadPresets = [],
   activeHackathonId,
 }: HackathonsManagerProps) {
   const router = useRouter();
@@ -48,9 +50,8 @@ export function HackathonsManager({
     setIsConfirmOpen(true);
   };
 
-  const handleSelectAndLaunch = (hackathonId: string) => {
-    document.cookie = `active_hackathon_id=${hackathonId}; path=/; max-age=31536000; SameSite=Lax`;
-    router.push(`/dashboard?hackathon=${hackathonId}`);
+  const handleOpenWorkspace = (hackathonId: string) => {
+    router.push(`/dashboard/hackathons/${hackathonId}`);
   };
 
   const handleDelete = async (e: React.MouseEvent, hackathon: Hackathon) => {
@@ -183,7 +184,7 @@ export function HackathonsManager({
               return (
                 <div
                   key={h.id}
-                  onClick={() => handleSelectAndLaunch(h.id)}
+                  onClick={() => handleOpenWorkspace(h.id)}
                   className={`rounded-2xl border p-5 transition-all flex flex-col justify-between group shadow-sm cursor-pointer relative ${
                     isActive
                       ? "border-emerald-500/50 bg-gradient-to-b from-emerald-950/20 to-zinc-950/80 shadow-md shadow-emerald-500/5 ring-1 ring-emerald-500/20"
@@ -235,15 +236,11 @@ export function HackathonsManager({
 
                     <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                       <button
-                        onClick={() => handleSelectAndLaunch(h.id)}
-                        className={`px-2.5 py-1 rounded-lg border text-[11px] font-medium flex items-center gap-1 transition-colors ${
-                          isActive
-                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
-                            : "border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white hover:border-zinc-700"
-                        }`}
-                        title="Set Active & Open Overview"
+                        onClick={() => handleOpenWorkspace(h.id)}
+                        className="px-2.5 py-1 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 text-[11px] font-medium flex items-center gap-1 transition-colors"
+                        title="Open Dedicated Workspace"
                       >
-                        <span>{isActive ? "Overview" : "Switch"}</span>
+                        <span>Workspace</span>
                         <ArrowRight className="h-3 w-3" />
                       </button>
 
@@ -428,11 +425,11 @@ export function HackathonsManager({
                   variant="primary"
                   size="sm"
                   onClick={() => {
-                    handleSelectAndLaunch(inspectingHackathon.id);
+                    handleOpenWorkspace(inspectingHackathon.id);
                   }}
                   className="text-xs rounded-xl gap-1.5"
                 >
-                  <span>Launch Command Center</span>
+                  <span>Open Dedicated Workspace</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -447,6 +444,7 @@ export function HackathonsManager({
           initialData={extractedData}
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
+          savedSquadPresets={savedSquadPresets}
         />
       )}
 

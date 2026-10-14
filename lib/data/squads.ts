@@ -96,3 +96,58 @@ export async function getTeamByInviteCode(inviteCode: string): Promise<InviteTea
 
   return data as unknown as InviteTeamDetails;
 }
+
+/**
+ * Fetch all teams where the authenticated user is a captain or enrolled member.
+ */
+export async function getUserAllTeams(): Promise<Team[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  // 1. Teams where user is captain
+  const { data: captainTeams } = await supabase
+    .from("teams")
+    .select("id")
+    .eq("captain_id", user.id);
+
+  // 2. Teams where user is member
+  const { data: memberTeams } = await supabase
+    .from("team_members")
+    .select("team_id")
+    .eq("user_id", user.id);
+
+  const teamIds = new Set<string>();
+  captainTeams?.forEach((t) => teamIds.add(t.id));
+  memberTeams?.forEach((m) => teamIds.add(m.team_id));
+
+  if (teamIds.size === 0) return [];
+
+  const { data, error } = await supabase
+    .from("teams")
+    .select(`
+      *,
+      hackathon:hackathons(*),
+      members:team_members(
+        id,
+        team_id,
+        user_id,
+        duty,
+        is_captain,
+        joined_at,
+        user:profiles(*)
+      )
+    `)
+    .in("id", Array.from(teamIds))
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching user all teams:", error.message);
+    return [];
+  }
+
+  return (data as Team[]) || [];
+}

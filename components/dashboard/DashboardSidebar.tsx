@@ -102,7 +102,7 @@ export function DashboardSidebar({
       <div>
         {/* Brand Header */}
         <Link
-          href={effectiveHackathon?.id ? `/dashboard?hackathon=${effectiveHackathon.id}` : "/dashboard"}
+          href="/dashboard"
           className="flex items-center gap-3 px-2 py-2 mb-6 rounded-2xl hover:bg-white/[0.02] transition-colors group"
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-b from-white/[0.12] to-white/[0.02] border border-white/[0.1] text-white shadow-md transition-transform group-hover:scale-105">
@@ -125,7 +125,10 @@ export function DashboardSidebar({
 
         {/* Dynamic Active Sprint Beacon */}
         {effectiveHackathon ? (
-          <div className="mx-0.5 mb-6 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-white/[0.04] to-transparent p-3.5 shadow-lg relative overflow-hidden group">
+          <Link
+            href={`/dashboard/hackathons/${effectiveHackathon.id}`}
+            className="block mx-0.5 mb-6 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-white/[0.04] to-transparent p-3.5 shadow-lg relative overflow-hidden group hover:border-white/[0.2] transition-colors"
+          >
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-semibold flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
@@ -135,13 +138,13 @@ export function DashboardSidebar({
                 {getSprintTag()}
               </span>
             </div>
-            <span className="text-xs font-semibold text-white block truncate tracking-tight">
+            <span className="text-xs font-semibold text-white block truncate tracking-tight group-hover:text-emerald-300 transition-colors">
               {effectiveHackathon.title}
             </span>
             <span className="text-[11px] text-zinc-400 block mt-1 truncate font-mono">
               {effectiveTeam ? effectiveTeam.name : "Solo Hacker"}
             </span>
-          </div>
+          </Link>
         ) : (
           <div className="mx-0.5 mb-6 rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.01] p-3.5 text-center">
             <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block mb-1">
@@ -169,9 +172,7 @@ export function DashboardSidebar({
                 ? pathname === "/dashboard"
                 : pathname.startsWith(item.href);
 
-            const targetHref = effectiveHackathon?.id
-              ? `${item.href}?hackathon=${effectiveHackathon.id}`
-              : item.href;
+            const targetHref = item.href;
 
             return (
               <Link
@@ -205,7 +206,10 @@ export function DashboardSidebar({
       {/* Dynamic Bottom Squad Badge */}
       <div className="pt-3 border-t border-white/[0.06]">
         {effectiveTeam ? (
-          <div className="flex items-center justify-between p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] shadow-sm">
+          <Link
+            href="/dashboard/squad"
+            className="flex items-center justify-between p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] shadow-sm hover:border-white/[0.2] transition-colors block"
+          >
             <div className="flex items-center gap-2.5 truncate">
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-white/[0.1] to-white/[0.02] border border-white/[0.08] font-mono text-[11px] font-bold text-zinc-200">
                 {teamInitials}
@@ -220,10 +224,10 @@ export function DashboardSidebar({
               </div>
             </div>
             <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
-          </div>
+          </Link>
         ) : (
           <Link
-            href={effectiveHackathon?.id ? `/dashboard/squad?hackathon=${effectiveHackathon.id}` : "/dashboard/squad"}
+            href="/dashboard/squad"
             className="flex items-center justify-between p-2.5 rounded-2xl bg-white/[0.02] border border-dashed border-white/[0.08] text-xs text-zinc-400 hover:text-white hover:border-white/[0.2] transition-colors"
           >
             <span>No Squad Joined</span>

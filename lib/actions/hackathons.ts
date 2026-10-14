@@ -118,6 +118,7 @@ export async function createHackathon(payload: {
   team_name?: string;
   min_team_size?: number;
   max_team_size?: number;
+  saved_squad_id?: string;
   timeline_gates?: Array<{ title: string; deadline: string; event_type?: string }>;
 }) {
   try {
@@ -166,8 +167,22 @@ export async function createHackathon(payload: {
       };
     }
 
-    // 2. Initialize Squad / Team for this hackathon
-    const squadName = payload.team_name || `${payload.title.slice(0, 15)} Squad`;
+    // 2. Resolve Squad / Team for this hackathon (Preset or Custom)
+    let savedSquad: any = null;
+    if (payload.saved_squad_id) {
+      const { data: preset } = await supabase
+        .from("saved_squads")
+        .select("*, members:saved_squad_members(*)")
+        .eq("id", payload.saved_squad_id)
+        .eq("owner_id", user.id)
+        .single();
+      savedSquad = preset;
+    }
+
+    const squadName =
+      payload.team_name?.trim() ||
+      savedSquad?.name ||
+      `${payload.title.trim().slice(0, 30)} Squad`;
     const squadSlug = `${squadName.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${Math.random().toString(36).slice(2, 6)}`;
 
     const { data: team, error: teamError } = await supabase
@@ -177,7 +192,7 @@ export async function createHackathon(payload: {
         captain_id: user.id,
         name: squadName,
         slug: squadSlug,
-        description: `Squad participating in ${payload.title}`,
+        description: savedSquad?.description || `Squad participating in ${payload.title}`,
         max_members: maxSize,
       })
       .select()
@@ -191,6 +206,23 @@ export async function createHackathon(payload: {
         duty: "Squad Lead & Full-Stack",
         is_captain: true,
       });
+
+      // If a saved preset was deployed, bind its team members
+      if (savedSquad && savedSquad.members && savedSquad.members.length > 0) {
+        let slotsAvailable = maxSize - 1;
+        for (const sm of savedSquad.members) {
+          if (slotsAvailable <= 0) break;
+          if (sm.member_user_id && sm.member_user_id !== user.id) {
+            await supabase.from("team_members").insert({
+              team_id: team.id,
+              user_id: sm.member_user_id,
+              duty: sm.default_duty || "Core Contributor",
+              is_captain: false,
+            });
+            slotsAvailable--;
+          }
+        }
+      }
 
       // Insert timeline gates (either extracted, custom, or standard defaults)
       if (payload.timeline_gates && payload.timeline_gates.length > 0) {

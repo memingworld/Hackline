@@ -65,14 +65,10 @@ export function DashboardHeader({
     return () => window.removeEventListener("open-command-palette", handleOpenCommand);
   }, []);
 
-  const handleSwitchHackathon = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newId = e.target.value;
-    if (newId) {
-      document.cookie = `active_hackathon_id=${newId}; path=/; max-age=31536000; SameSite=Lax`;
-      router.push(`${pathname}?hackathon=${newId}`);
-      router.refresh();
-    }
-  };
+  const isDedicatedWorkspace = pathname.startsWith("/dashboard/hackathons/") && pathname.split("/").length > 3;
+  const currentWorkspaceHackathon = isDedicatedWorkspace
+    ? hackathons.find((h) => h.id === pathname.split("/")[3])
+    : null;
 
   const handleSignOut = async () => {
     try {
@@ -93,29 +89,31 @@ export function DashboardHeader({
     <header className="h-14 border-b border-white/[0.06] bg-[#07080b]/90 backdrop-blur-2xl px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
       {/* Left Hackathon Switcher & Context */}
       <div className="flex items-center gap-3">
-        {hackathons.length > 0 ? (
-          <div className="flex items-center gap-2.5">
+        {currentWorkspaceHackathon ? (
+          <div className="flex items-center gap-2">
             <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-            <div className="relative flex items-center">
-              <select
-                value={currentHackathonId}
-                onChange={handleSwitchHackathon}
-                className="appearance-none bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.18] text-xs text-white font-medium pl-3 pr-8 py-1.5 rounded-xl focus:outline-none focus:border-white/30 cursor-pointer max-w-[200px] sm:max-w-xs truncate transition-colors shadow-sm"
-              >
-                {hackathons.map((h) => (
-                  <option key={h.id} value={h.id} className="bg-zinc-950 text-white">
-                    {h.title} ({h.source_platform.toUpperCase()})
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400 pointer-events-none" />
-            </div>
+            <span className="text-xs font-mono uppercase px-2 py-0.5 rounded border border-zinc-800 bg-zinc-900 text-zinc-300">
+              {currentWorkspaceHackathon.source_platform}
+            </span>
+            <span className="text-xs font-semibold text-white truncate max-w-[200px] sm:max-w-xs">
+              {currentWorkspaceHackathon.title}
+            </span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 text-xs font-mono text-zinc-500">
-            <Trophy className="h-3.5 w-3.5 text-zinc-600" />
-            <span>Command Center</span>
-          </div>
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2.5 text-xs font-mono text-zinc-300 hover:text-white transition-colors group"
+          >
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+            <span className="font-bold tracking-tight text-white group-hover:text-emerald-400 transition-colors">
+              MISSION CONTROL
+            </span>
+            {hackathons.length > 0 && (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-white/[0.08] bg-white/[0.04] text-zinc-400">
+                {hackathons.length} {hackathons.length === 1 ? "Sprint" : "Sprints"}
+              </span>
+            )}
+          </Link>
         )}
       </div>
 

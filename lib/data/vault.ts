@@ -61,3 +61,70 @@ export async function getTeamProblemStatements(teamId: string): Promise<ProblemS
 
   return enriched;
 }
+
+/**
+ * Fetch all problem statements across all user's teams with vote counts and team info.
+ */
+export async function getAllUserProblemStatements(): Promise<(ProblemStatement & { team?: any })[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data: statements, error } = await supabase
+    .from("problem_statements")
+    .select(`
+      *,
+      team:teams(
+        id,
+        name,
+        hackathon:hackathons(
+          id,
+          title,
+          source_platform
+        )
+      )
+    `)
+    .order("created_at", { ascending: false });
+
+  if (error || !statements) {
+    console.error("Error fetching all problem statements:", error?.message);
+    return [];
+  }
+
+  if (statements.length === 0) return [];
+
+  const statementIds = statements.map((s) => s.id);
+  const { data: votes } = await supabase
+    .from("problem_votes")
+    .select("problem_id, user_id")
+    .in("problem_id", statementIds);
+
+  const voteCountMap = new Map<string, number>();
+  const userVotedSet = new Set<string>();
+
+  if (votes) {
+    votes.forEach((v) => {
+      voteCountMap.set(v.problem_id, (voteCountMap.get(v.problem_id) || 0) + 1);
+      if (v.user_id === user.id) {
+        userVotedSet.add(v.problem_id);
+      }
+    });
+  }
+
+  const enriched = statements.map((s) => ({
+    ...s,
+    vote_count: voteCountMap.get(s.id) || 0,
+    has_voted: userVotedSet.has(s.id),
+  }));
+
+  enriched.sort((a, b) => {
+    if (a.is_selected && !b.is_selected) return -1;
+    if (!a.is_selected && b.is_selected) return 1;
+    return (b.vote_count || 0) - (a.vote_count || 0);
+  });
+
+  return enriched;
+}

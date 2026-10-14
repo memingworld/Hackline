@@ -2,28 +2,20 @@ import * as React from "react";
 import { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import { getUserCurrentTeam, getActiveHackathons } from "@/lib/data/hackathons";
-import { getTeamTimelineEvents } from "@/lib/data/timeline";
-import { TimelineManager } from "@/components/timeline/TimelineManager";
+import { getActiveHackathons } from "@/lib/data/hackathons";
+import { getAllUserTimelineEvents } from "@/lib/data/timeline";
+import { UnifiedCalendarView } from "@/components/timeline/UnifiedCalendarView";
 import Link from "next/link";
-import { CalendarDays, Trophy, ArrowRight } from "lucide-react";
+import { CalendarDays, Trophy, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import { cookies } from "next/headers";
-
 export const metadata: Metadata = {
-  title: "Timeline & GCal Sync | Hackline Command Center",
-  description: "Track submission deadlines, pitch rehearsals, and 1-click sync to Google Calendar.",
+  title: "Universal Sprint Calendar & GCal Sync | Hackline",
+  description:
+    "Aggregated timeline of all hackathon deadlines, submission gates, and 1-click universal Google Calendar / .ics export.",
 };
 
-export default async function CalendarPage(props: {
-  searchParams: Promise<{ hackathon?: string }>;
-}) {
-  const searchParams = await props.searchParams;
-  const cookieStore = await cookies();
-  const requestedHackathonId =
-    searchParams.hackathon || cookieStore.get("active_hackathon_id")?.value;
-
+export default async function CalendarPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -33,56 +25,48 @@ export default async function CalendarPage(props: {
     redirect("/login");
   }
 
-  const [currentTeam, hackathons] = await Promise.all([
-    getUserCurrentTeam(requestedHackathonId),
+  const [events, hackathons] = await Promise.all([
+    getAllUserTimelineEvents(),
     getActiveHackathons(),
   ]);
 
-  const activeHackathon = requestedHackathonId
-    ? hackathons.find((h) => h.id === requestedHackathonId) || hackathons[0] || currentTeam?.hackathon || null
-    : (requestedHackathonId ? hackathons.find((h) => h.id === requestedHackathonId) : null) || hackathons[0] || currentTeam?.hackathon || null;
-
-  const events = activeHackathon
-    ? await getTeamTimelineEvents(currentTeam?.id, activeHackathon.id)
-    : [];
-
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-8 animate-in fade-in duration-300 pb-12">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-900">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight text-white font-mono">
-              Sprint Timeline & Google Calendar Sync
+              Sprint Timeline & Universal Calendar
             </h1>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-md border border-zinc-800 bg-zinc-900 text-zinc-300">
-              Live Milestone Tracking
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+              Multi-Hackathon Sync
             </span>
           </div>
           <p className="mt-1 text-xs text-zinc-400 max-w-xl">
-            Never miss a submission gate. Track registration deadlines, code freezes, and demo windows with 1-click Google Calendar sync.
+            View all submission gates, registration deadlines, and pitch demos across all your sprints on an interactive calendar. Export everything at once to your preferred calendar app.
           </p>
         </div>
 
-        {activeHackathon && (
-          <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 bg-zinc-900/60 border border-zinc-800 px-3 py-1.5 rounded-xl">
-            <Trophy className="h-3.5 w-3.5 text-amber-400" />
-            <span className="text-white font-medium truncate max-w-[220px]">
-              {activeHackathon.title}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/hackathons?action=scrape">
+            <Button size="sm" variant="outline" className="gap-1.5 rounded-xl text-xs">
+              <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Import Sprint</span>
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      {/* Main Content */}
-      {!activeHackathon ? (
+      {/* Main Unified Interactive Calendar */}
+      {hackathons.length === 0 ? (
         <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-8 flex flex-col items-center justify-center text-center min-h-[300px] shadow-sm">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 mb-3">
             <CalendarDays className="h-6 w-6" />
           </div>
-          <h3 className="text-base font-bold text-white">No Active Hackathon Selected</h3>
+          <h3 className="text-base font-bold text-white">No Hackathons Enrolled</h3>
           <p className="mt-1 text-xs text-zinc-400 max-w-sm">
-            Timeline gates and deadlines are generated when you scrape or register a hackathon. Select an event from your catalog first.
+            Milestone gates and deadlines will automatically populate here when you scrape or register hackathons.
           </p>
           <div className="mt-5 flex items-center gap-3">
             <Link href="/dashboard/hackathons">
@@ -94,12 +78,7 @@ export default async function CalendarPage(props: {
           </div>
         </div>
       ) : (
-        <TimelineManager
-          events={events}
-          hackathonId={activeHackathon.id}
-          teamId={currentTeam?.id}
-          hackathonTitle={activeHackathon.title}
-        />
+        <UnifiedCalendarView events={events} hackathons={hackathons} />
       )}
     </div>
   );

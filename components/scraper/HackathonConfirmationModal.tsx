@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createHackathonFromScraper } from "@/lib/actions/hackathons";
 import { toast } from "sonner";
+import { SavedSquad } from "@/types/database";
 import {
   X,
   Sparkles,
@@ -14,26 +15,30 @@ import {
   CheckCircle2,
   ArrowRight,
   ExternalLink,
+  ShieldCheck,
 } from "lucide-react";
 
 interface ConfirmationModalProps {
   initialData: any;
   isOpen: boolean;
   onClose: () => void;
+  savedSquadPresets?: SavedSquad[];
 }
 
 export function HackathonConfirmationModal({
   initialData,
   isOpen,
   onClose,
+  savedSquadPresets = [],
 }: ConfirmationModalProps) {
   const router = useRouter();
   const [title, setTitle] = React.useState(initialData?.title || "");
   const [prizePool, setPrizePool] = React.useState(initialData?.prize_pool || "TBA");
   const [description, setDescription] = React.useState(initialData?.description || "");
   const [bannerUrl, setBannerUrl] = React.useState(initialData?.banner_url || "");
+  const [selectedPresetId, setSelectedPresetId] = React.useState<string>("");
   const [squadName, setSquadName] = React.useState(
-    initialData?.title ? `${initialData.title.slice(0, 16)} Squad` : "Alpha Squad"
+    initialData?.title ? `${initialData.title.trim().slice(0, 30)} Squad` : "Alpha Squad"
   );
   const [startsAt, setStartsAt] = React.useState(
     initialData?.starts_at
@@ -55,7 +60,7 @@ export function HackathonConfirmationModal({
       setDescription(initialData.description || "");
       setBannerUrl(initialData.banner_url || "");
       setSquadName(
-        initialData.title ? `${initialData.title.slice(0, 16)} Squad` : "Alpha Squad"
+        initialData.title ? `${initialData.title.trim().slice(0, 30)} Squad` : "Alpha Squad"
       );
       if (initialData.starts_at) {
         setStartsAt(new Date(initialData.starts_at).toISOString().slice(0, 16));
@@ -64,10 +69,25 @@ export function HackathonConfirmationModal({
         setEndsAt(new Date(initialData.ends_at).toISOString().slice(0, 16));
       }
       setMaxTeamSize(initialData.max_team_size || 4);
+      setSelectedPresetId("");
     }
   }, [initialData]);
 
   if (!isOpen || !initialData) return null;
+
+  const handlePresetChange = (presetId: string) => {
+    setSelectedPresetId(presetId);
+    if (presetId) {
+      const preset = savedSquadPresets.find((p) => p.id === presetId);
+      if (preset) {
+        setSquadName(preset.name);
+      }
+    } else {
+      setSquadName(
+        initialData?.title ? `${initialData.title.trim().slice(0, 30)} Squad` : "Alpha Squad"
+      );
+    }
+  };
 
   const handleConfirmAndSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +106,7 @@ export function HackathonConfirmationModal({
         team_name: squadName,
         min_team_size: 1,
         max_team_size: maxTeamSize,
+        saved_squad_id: selectedPresetId || undefined,
         timeline_gates: initialData.timeline_gates || [],
       });
 
@@ -94,16 +115,17 @@ export function HackathonConfirmationModal({
       }
 
       toast.success("Hackathon & Squad Initialized!", {
-        description: `Deployed "${title}" with captain squad "${squadName}".`,
+        description: `Deployed "${title}" with squad "${squadName}".`,
       });
 
       onClose();
-      // Redirect with active hackathon ID
+      // Redirect to dedicated single-hackathon workspace
       if (res.hackathonId) {
-        router.push(`/dashboard?hackathon=${res.hackathonId}`);
+        router.push(`/dashboard/hackathons/${res.hackathonId}`);
       } else {
         router.push("/dashboard");
       }
+      router.refresh();
     } catch (err: any) {
       toast.error("Save failed", {
         description: err.message,
@@ -146,18 +168,56 @@ export function HackathonConfirmationModal({
         {/* Scrollable Form Body */}
         <form onSubmit={handleConfirmAndSave} className="flex flex-col flex-1 min-h-0">
           <div className="p-5 overflow-y-auto space-y-4 flex-1">
-            {/* Banner preview if available */}
+            {/* Banner preview if available (handles both wide banners and square logos) */}
             {bannerUrl && (
-              <div className="relative w-full h-32 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900">
+              <div className="relative w-full h-36 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 flex items-center justify-center">
+                {/* Ambient blur backdrop */}
+                <img
+                  src={bannerUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-full h-full object-cover blur-xl opacity-35 scale-110 pointer-events-none"
+                />
+                <div className="absolute inset-0 bg-zinc-950/40" />
+                {/* Center contained image */}
                 <img
                   src={bannerUrl}
                   alt={title}
-                  className="w-full h-full object-cover"
+                  className="relative z-10 max-h-32 max-w-full object-contain p-2 drop-shadow-md"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent" />
-                <span className="absolute bottom-2 left-3 text-[10px] font-mono text-zinc-400 bg-zinc-950/80 px-2 py-0.5 rounded border border-zinc-800">
+                <span className="absolute bottom-2 left-3 z-20 text-[10px] font-mono text-zinc-300 bg-zinc-950/90 px-2 py-0.5 rounded border border-zinc-800">
                   Extracted Event Banner
                 </span>
+              </div>
+            )}
+
+            {/* Squad Preset Selector (if user has presets) */}
+            {savedSquadPresets.length > 0 && (
+              <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-3 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-mono font-medium text-indigo-300 tracking-wider uppercase flex items-center gap-1.5">
+                    <ShieldCheck className="h-3.5 w-3.5 text-indigo-400" />
+                    <span>Deploy Saved Squad Preset (Optional)</span>
+                  </label>
+                  <span className="text-[10px] font-mono text-indigo-400">
+                    {savedSquadPresets.length} Presets Available
+                  </span>
+                </div>
+                <select
+                  value={selectedPresetId}
+                  onChange={(e) => handlePresetChange(e.target.value)}
+                  className="w-full h-9 rounded-xl border border-indigo-500/30 bg-zinc-900/90 px-3 text-xs text-white focus:outline-none focus:border-indigo-400 font-mono"
+                >
+                  <option value="">-- No preset (Create fresh squad) --</option>
+                  {savedSquadPresets.map((preset) => (
+                    <option key={preset.id} value={preset.id}>
+                      {preset.name} ({preset.members?.length || 0} members)
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-zinc-400">
+                  Selecting a preset will automatically import your dream team roster and role assignments upon creation.
+                </p>
               </div>
             )}
 

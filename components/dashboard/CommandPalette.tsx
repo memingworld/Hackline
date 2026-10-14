@@ -123,9 +123,8 @@ export function CommandPalette({
   ].filter((a) => !q || a.label.toLowerCase().includes(q));
 
   const handleSelectHackathon = (id: string) => {
-    document.cookie = `active_hackathon_id=${id}; path=/; max-age=31536000`;
     onClose();
-    router.push(`/dashboard?hackathon=${id}`);
+    router.push(`/dashboard/hackathons/${id}`);
   };
 
   const handleNavigate = (href: string) => {

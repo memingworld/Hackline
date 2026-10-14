@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { getActiveHackathons } from "@/lib/data/hackathons";
+import { getUserSavedSquads } from "@/lib/data/squads";
 import { HackathonsManager } from "@/components/scraper/HackathonsManager";
 
 export const metadata: Metadata = {
@@ -16,12 +17,16 @@ export default async function HackathonsPage(props: {
   const activeHackathonId =
     searchParams.hackathon || cookieStore.get("active_hackathon_id")?.value;
 
-  const hackathons = await getActiveHackathons();
+  const [hackathons, savedPresets] = await Promise.all([
+    getActiveHackathons(),
+    getUserSavedSquads(),
+  ]);
 
   return (
     <div className="space-y-6 pb-12">
       <HackathonsManager
         initialHackathons={hackathons}
+        savedSquadPresets={savedPresets}
         activeHackathonId={activeHackathonId}
       />
     </div>

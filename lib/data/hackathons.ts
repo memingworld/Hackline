@@ -201,3 +201,21 @@ export async function getSubmissionChecklist(teamId: string): Promise<Submission
 
   return (data as SubmissionChecklistItem[]) || [];
 }
+
+/**
+ * Fetch a specific hackathon by ID.
+ */
+export async function getHackathonById(id: string): Promise<Hackathon | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("hackathons")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data as Hackathon;
+}
