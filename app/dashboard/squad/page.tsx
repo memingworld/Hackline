@@ -7,16 +7,20 @@ import { ActiveSquadRoster } from "@/components/squads/ActiveSquadRoster";
 import { SavedSquadsManager } from "@/components/squads/SavedSquadsManager";
 import { SquadPageClientHeader } from "@/components/squads/SquadPageClientHeader";
 
+import { cookies } from "next/headers";
+
 export const metadata: Metadata = {
   title: "Squad & Roles | Hackline Command Center",
   description: "Form dream crews, allocate duties, and manage reusable 4-person squad presets.",
 };
 
 export default async function SquadPage(props: {
-  searchParams?: Promise<{ action?: string }>;
+  searchParams?: Promise<{ action?: string; hackathon?: string }>;
 }) {
   const searchParams = await props.searchParams;
   const initialAction = searchParams?.action;
+  const cookieStore = await cookies();
+  const activeHackathonId = searchParams?.hackathon || cookieStore.get("active_hackathon_id")?.value;
 
   const supabase = await createClient();
   const {
@@ -35,7 +39,7 @@ export default async function SquadPage(props: {
     .single();
 
   const [activeTeam, savedSquads] = await Promise.all([
-    getActiveSquadRoster(),
+    getActiveSquadRoster(activeHackathonId),
     getUserSavedSquads(),
   ]);
 

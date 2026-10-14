@@ -64,10 +64,8 @@ export async function getUserCurrentTeam(hackathonId?: string): Promise<Team | n
         targetTeamId = memberTeams[0].team_id;
       }
     }
-  }
-
-  // 2. Fallback: get the user's latest team
-  if (!targetTeamId) {
+  } else {
+    // 2. Fallback: get the user's latest team only if no specific hackathon was requested
     const { data: captainTeams } = await supabase
       .from("teams")
       .select("id")

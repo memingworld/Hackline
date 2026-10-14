@@ -9,6 +9,8 @@ import Link from "next/link";
 import { FolderGit2, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { cookies } from "next/headers";
+
 export const metadata: Metadata = {
   title: "Asset Hub | Hackline Command Center",
   description: "Centralized repository for GitHub links, Figma boards, slide decks, and demo videos.",
@@ -18,7 +20,9 @@ export default async function AssetsPage(props: {
   searchParams: Promise<{ hackathon?: string }>;
 }) {
   const searchParams = await props.searchParams;
-  const requestedHackathonId = searchParams.hackathon;
+  const cookieStore = await cookies();
+  const requestedHackathonId =
+    searchParams.hackathon || cookieStore.get("active_hackathon_id")?.value;
 
   const supabase = await createClient();
   const {

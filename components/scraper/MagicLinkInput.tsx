@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles, ArrowRight, Globe } from "lucide-react";
+import { Sparkles, ArrowRight, Globe, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -87,16 +87,19 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Paste URL from Devpost, Devfolio, Unstop, Luma..."
             disabled={isLoading}
-            className="w-full h-12 pl-10 pr-36 rounded-xl bg-zinc-900/60 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 border border-zinc-800 shadow-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/30 transition-all"
+            className="w-full h-12 pl-10 pr-32 rounded-xl bg-zinc-900/60 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 border border-zinc-800 shadow-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/30 transition-all font-mono"
           />
           <Sparkles className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
 
-          {detectedPlatform && (
-            <div className="absolute right-36 top-1/2 -translate-y-1/2 hidden sm:flex items-center pointer-events-none">
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-emerald-400">
-                {detectedPlatform.name}
-              </span>
-            </div>
+          {url && !isLoading && (
+            <button
+              type="button"
+              onClick={() => setUrl("")}
+              className="absolute right-28 top-1/2 -translate-y-1/2 p-1 rounded-md text-zinc-500 hover:text-zinc-200 transition-colors"
+              title="Clear link"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
           )}
 
           <Button
@@ -110,7 +113,7 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
               !url.trim() && "opacity-50 cursor-not-allowed"
             )}
           >
-            <span>{isLoading ? "Parsing" : "Magic Import"}</span>
+            <span>{isLoading ? "Parsing" : "Import"}</span>
             {!isLoading && <ArrowRight className="h-3 w-3" />}
           </Button>
         </div>
@@ -126,15 +129,24 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
 
       {/* Supported Platforms Pills */}
       <div className="flex flex-wrap items-center gap-1.5 pt-0.5 pl-0.5 text-[11px] text-zinc-500 font-mono">
-        <span>Instant API parsing:</span>
-        {SUPPORTED_PLATFORMS.map((p) => (
-          <span
-            key={p.name}
-            className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400"
-          >
-            {p.name}
-          </span>
-        ))}
+        <span>Supported portals:</span>
+        {SUPPORTED_PLATFORMS.map((p) => {
+          const isDetected = detectedPlatform?.name === p.name;
+          return (
+            <span
+              key={p.name}
+              className={cn(
+                "px-2 py-0.5 rounded transition-all flex items-center gap-1",
+                isDetected
+                  ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-bold shadow-sm"
+                  : "bg-zinc-900 border border-zinc-800 text-zinc-400"
+              )}
+            >
+              {isDetected && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+              {p.name}
+            </span>
+          );
+        })}
       </div>
     </div>
   );

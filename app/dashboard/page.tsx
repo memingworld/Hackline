@@ -15,6 +15,8 @@ import { SubmissionChecklistWidget } from "@/components/dashboard/SubmissionChec
 import { Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { cookies } from "next/headers";
+
 export const metadata: Metadata = {
   title: "Command Center — Hackline",
   description: "Live hackathon sprint monitor, squad duties, and milestone gates.",
@@ -26,7 +28,9 @@ export default async function DashboardPage({
   searchParams?: Promise<{ hackathon?: string }>;
 }) {
   const resolvedParams = searchParams ? await searchParams : {};
-  const selectedHackathonId = resolvedParams.hackathon;
+  const cookieStore = await cookies();
+  const selectedHackathonId =
+    resolvedParams.hackathon || cookieStore.get("active_hackathon_id")?.value;
 
   const hackathons = await getActiveHackathons();
 

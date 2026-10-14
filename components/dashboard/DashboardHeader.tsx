@@ -17,7 +17,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Hackathon } from "@/types/database";
+import { Hackathon, Team } from "@/types/database";
+import { CommandPalette } from "./CommandPalette";
+import { NotificationsPopover } from "./NotificationsPopover";
 
 interface DashboardHeaderProps {
   userEmail: string;
@@ -25,6 +27,7 @@ interface DashboardHeaderProps {
   hackathons?: Hackathon[];
   activeHackathonId?: string;
   hackathonTitle?: string | null;
+  currentTeam?: Team | null;
 }
 
 export function DashboardHeader({
@@ -32,19 +35,31 @@ export function DashboardHeader({
   userName,
   hackathons = [],
   activeHackathonId,
+  currentTeam = null,
 }: DashboardHeaderProps) {
   const [showProfileMenu, setShowProfileMenu] = React.useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = React.useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = React.useState(false);
+
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const supabase = createClient();
 
   const currentHackathonId = searchParams.get("hackathon") || activeHackathonId || (hackathons[0]?.id ?? "");
+  const activeHackathon = hackathons.find((h) => h.id === currentHackathonId) || hackathons[0] || null;
+
+  React.useEffect(() => {
+    const handleOpenCommand = () => setIsCommandPaletteOpen(true);
+    window.addEventListener("open-command-palette", handleOpenCommand);
+    return () => window.removeEventListener("open-command-palette", handleOpenCommand);
+  }, []);
 
   const handleSwitchHackathon = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newId = e.target.value;
     if (newId) {
-      router.push(`/dashboard?hackathon=${newId}`);
+      document.cookie = `active_hackathon_id=${newId}; path=/; max-age=31536000`;
+      router.push(`${pathname}?hackathon=${newId}`);
     }
   };
 
@@ -64,20 +79,20 @@ export function DashboardHeader({
       : userName.toUpperCase() || "ME";
 
   return (
-    <header className="h-14 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
+    <header className="h-14 border-b border-white/[0.06] bg-[#07080b]/90 backdrop-blur-2xl px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
       {/* Left Hackathon Switcher & Context */}
       <div className="flex items-center gap-3">
         {hackathons.length > 0 ? (
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
             <div className="relative flex items-center">
               <select
                 value={currentHackathonId}
                 onChange={handleSwitchHackathon}
-                className="appearance-none bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs text-white font-medium pl-3 pr-8 py-1.5 rounded-lg focus:outline-none focus:border-zinc-500 cursor-pointer max-w-[200px] sm:max-w-xs truncate"
+                className="appearance-none bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.18] text-xs text-white font-medium pl-3 pr-8 py-1.5 rounded-xl focus:outline-none focus:border-white/30 cursor-pointer max-w-[200px] sm:max-w-xs truncate transition-colors shadow-sm"
               >
                 {hackathons.map((h) => (
-                  <option key={h.id} value={h.id}>
+                  <option key={h.id} value={h.id} className="bg-zinc-950 text-white">
                     {h.title} ({h.source_platform.toUpperCase()})
                   </option>
                 ))}
@@ -97,12 +112,12 @@ export function DashboardHeader({
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Quick Search Trigger */}
         <button
-          onClick={() => toast.info("Search index armed (Ctrl+K)")}
-          className="hidden md:flex items-center gap-2.5 h-8 px-2.5 rounded-lg border border-zinc-800 bg-zinc-900/60 text-xs text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 transition-colors"
+          onClick={() => setIsCommandPaletteOpen(true)}
+          className="hidden md:flex items-center gap-2.5 h-8 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-zinc-400 hover:text-zinc-200 hover:border-white/[0.18] transition-colors"
         >
-          <Search className="h-3 w-3 text-zinc-500" />
-          <span>Quick search...</span>
-          <kbd className="inline-flex items-center gap-0.5 rounded bg-zinc-800 px-1 py-0.2 font-mono text-[10px] text-zinc-400 border border-zinc-700">
+          <Search className="h-3 w-3 text-zinc-400" />
+          <span>Search command...</span>
+          <kbd className="inline-flex items-center gap-0.5 rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-[10px] text-zinc-300 border border-white/[0.08]">
             <Command className="h-2.5 w-2.5" /> K
           </kbd>
         </button>
@@ -112,32 +127,39 @@ export function DashboardHeader({
           <Button
             size="sm"
             variant="primary"
-            className="h-8 px-3 rounded-lg text-xs gap-1.5 font-medium"
+            className="h-8 px-3.5 rounded-xl text-xs gap-1.5 font-semibold shadow-md active:scale-[0.98]"
           >
-            <Sparkles className="h-3 w-3 text-zinc-900" />
+            <Sparkles className="h-3 w-3 text-zinc-950" />
             <span>Import Event</span>
           </Button>
         </Link>
 
-        {/* Telegram Notifications Beacon */}
-        <button
-          onClick={() =>
-            toast.info("Telegram notification dispatch armed for T-24h and T-2h milestone gates")
-          }
-          className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white transition-colors"
-          title="Notification Gates"
-        >
-          <Bell className="h-3.5 w-3.5" />
-          <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400" />
-        </button>
+        {/* System Notifications Popover */}
+        <div className="relative">
+          <button
+            onClick={() => setIsNotificationsOpen((prev) => !prev)}
+            className="relative flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white hover:border-white/[0.18] transition-colors"
+            title="System Alerts & Deadlines"
+          >
+            <Bell className="h-3.5 w-3.5" />
+            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.9)]" />
+          </button>
+
+          <NotificationsPopover
+            isOpen={isNotificationsOpen}
+            onClose={() => setIsNotificationsOpen(false)}
+            activeHackathon={activeHackathon}
+            currentTeam={currentTeam}
+          />
+        </div>
 
         {/* User Profile Dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 p-1 rounded-lg hover:bg-zinc-900 transition-colors"
+            className="flex items-center gap-2 p-0.5 rounded-xl hover:bg-white/[0.04] transition-colors"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-800 border border-zinc-700 font-mono text-[11px] font-bold text-zinc-200">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-b from-white/[0.12] to-white/[0.02] border border-white/[0.08] font-mono text-[11px] font-bold text-zinc-200 shadow-sm">
               {userInitials}
             </div>
           </button>
@@ -173,6 +195,14 @@ export function DashboardHeader({
           )}
         </div>
       </div>
+
+      {/* Global Command Palette */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        hackathons={hackathons}
+        activeHackathonId={currentHackathonId}
+      />
     </header>
   );
 }

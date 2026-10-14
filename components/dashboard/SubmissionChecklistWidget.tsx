@@ -82,23 +82,24 @@ export function SubmissionChecklistWidget({ initialItems, teamId }: ChecklistPro
   const isReady = completedCount === items.length && items.length > 0;
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-md flex flex-col justify-between h-full">
-      <div>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800 border border-zinc-700/80 text-zinc-300">
-              <ShieldCheck className="h-4 w-4" />
+    <div className="rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-[1px] shadow-xl h-full flex flex-col justify-between group">
+      <div className="rounded-[calc(1.5rem-1px)] bg-[#090a0f]/95 p-6 backdrop-blur-xl flex flex-col justify-between h-full">
+        <div>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900 border border-white/[0.08] text-zinc-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+                <ShieldCheck className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white tracking-tight">
+                  Pre-Flight Submission Checklist
+                </h3>
+                <p className="text-[11px] text-zinc-500 font-mono">
+                  Mandatory Verification Before Submission
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-white tracking-tight">
-                Pre-Flight Submission Checklist
-              </h3>
-              <p className="text-[11px] text-zinc-500 font-mono">
-                Mandatory Verification Before Submission
-              </p>
-            </div>
-          </div>
 
           <span
             className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded border ${
@@ -190,18 +191,19 @@ export function SubmissionChecklistWidget({ initialItems, teamId }: ChecklistPro
         )}
       </div>
 
-      {/* Footer info */}
-      <div className="mt-5 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500 font-mono">
-        <span>Telegram alerts at T-24h and T-2h</span>
-        {teamId && !isAdding && (
-          <button
-            onClick={() => setIsAdding(true)}
-            className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
-          >
-            <Plus className="h-3 w-3" />
-            <span>Add Custom Gate</span>
-          </button>
-        )}
+        {/* Footer info */}
+        <div className="mt-5 pt-3.5 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-500 font-mono">
+          <span>Telegram alerts at T-24h and T-2h</span>
+          {teamId && !isAdding && (
+            <button
+              onClick={() => setIsAdding(true)}
+              className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5"
+            >
+              <Plus className="h-3 w-3" />
+              <span>Add Custom Gate</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

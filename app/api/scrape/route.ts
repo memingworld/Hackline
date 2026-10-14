@@ -71,17 +71,22 @@ function extractSmartDetailsFromUrl(
       };
     }
 
-    // 3. Check path segments (e.g. /hackathons/flipkart-grid or /ethindia2024)
+    // 3. Check path segments (e.g. /hackathons/flipkart-grid-60-...-1025542)
     const pathParts = parsed.pathname.split("/").filter(Boolean);
     const lastPart = pathParts[pathParts.length - 1];
 
     if (lastPart && !["hackathons", "competitions", "events", "o", "challenges"].includes(lastPart.toLowerCase())) {
-      const formatted = lastPart
+      let cleaned = lastPart
+        .replace(/-\d{4,}$/, "") // strip trailing numerical portal ID (e.g. -1025542)
         .replace(/[-_]+/g, " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase());
+        .replace(/\b(\d{1,2})0\b/g, "$1.0 ") // e.g. 60 -> 6.0
+        .replace(/\s+/g, " ")
+        .trim();
+
+      const formatted = cleaned.replace(/\b\w/g, (c) => c.toUpperCase());
       return {
         title: formatted,
-        description: `Extracted ${formatted} challenge on ${platform}.`,
+        description: `Extracted ${formatted} challenge on ${platform}. Review squad duties and timeline gates below.`,
       };
     }
   } catch {
@@ -242,7 +247,18 @@ export async function POST(request: Request) {
       try {
         const parsed = new URL(cleanUrl);
         const pathParts = parsed.pathname.split("/").filter(Boolean);
-        const slugCandidate = pathParts[0];
+        let slugCandidate = "";
+
+        const sub = parsed.hostname.split(".")[0];
+        if (sub && sub !== "devfolio" && sub !== "www" && sub !== "api") {
+          slugCandidate = sub;
+        } else if (pathParts.length > 0) {
+          if (pathParts[0] === "hackathons" && pathParts[1]) {
+            slugCandidate = pathParts[1];
+          } else {
+            slugCandidate = pathParts[0];
+          }
+        }
 
         if (slugCandidate) {
           const devfolioRes = await fetch(
@@ -344,6 +360,34 @@ export async function POST(request: Request) {
             endsAt = parsedDate.toISOString();
           }
         }
+
+        // 6. Structured Data (JSON-LD) Extraction
+        try {
+          const jsonLdRegex = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+          let ldMatch;
+          while ((ldMatch = jsonLdRegex.exec(html)) !== null) {
+            const parsedLd = JSON.parse(ldMatch[1]);
+            const items = Array.isArray(parsedLd) ? parsedLd : (parsedLd["@graph"] || [parsedLd]);
+            for (const item of items) {
+              if (item && (item["@type"] === "Event" || item["@type"] === "Hackathon" || item.name)) {
+                if (!rawTitle || rawTitle === "Imported Hackathon") {
+                  rawTitle = cleanString(item.name);
+                }
+                if (!description && item.description) {
+                  description = cleanString(item.description);
+                }
+                if (item.startDate) {
+                  const s = new Date(item.startDate);
+                  if (!isNaN(s.getTime())) startsAt = s.toISOString();
+                }
+                if (item.endDate) {
+                  const e = new Date(item.endDate);
+                  if (!isNaN(e.getTime())) endsAt = e.toISOString();
+                }
+              }
+            }
+          }
+        } catch {}
 
         // Run smart extraction fallback if title is still generic
         const smart = extractSmartDetailsFromUrl(cleanUrl, platform, rawTitle);

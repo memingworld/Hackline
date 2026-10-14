@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -22,12 +23,16 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const [hackathons, currentTeam] = await Promise.all([
-    getActiveHackathons(),
-    getUserCurrentTeam(),
-  ]);
+  const cookieStore = await cookies();
+  const cookieHackathonId = cookieStore.get("active_hackathon_id")?.value;
 
-  const activeHackathon = hackathons.length > 0 ? hackathons[0] : null;
+  const hackathons = await getActiveHackathons();
+  const activeHackathon =
+    (cookieHackathonId && hackathons.find((h) => h.id === cookieHackathonId)) ||
+    hackathons[0] ||
+    null;
+
+  const currentTeam = await getUserCurrentTeam(activeHackathon?.id);
 
   const userEmail = user?.email || "";
   const userName =
@@ -41,6 +46,7 @@ export default async function DashboardLayout({
         activeHackathon={activeHackathon}
         currentTeam={currentTeam}
         currentUserId={user?.id}
+        hackathons={hackathons}
       />
       <div className="flex-1 flex flex-col min-w-0">
         <DashboardHeader
@@ -48,6 +54,7 @@ export default async function DashboardLayout({
           userName={userName}
           hackathons={hackathons}
           activeHackathonId={activeHackathon?.id}
+          currentTeam={currentTeam}
         />
         <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto overflow-y-auto">
           {children}

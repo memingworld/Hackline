@@ -30,29 +30,30 @@ export function TimelineMilestones({ events }: TimelineProps) {
   };
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-md flex flex-col justify-between h-full">
-      <div>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800 border border-zinc-700/80 text-zinc-300">
-              <Calendar className="h-4 w-4" />
+    <div className="rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-[1px] shadow-xl h-full flex flex-col justify-between group">
+      <div className="rounded-[calc(1.5rem-1px)] bg-[#090a0f]/95 p-6 backdrop-blur-xl flex flex-col justify-between h-full">
+        <div>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900 border border-white/[0.08] text-zinc-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+                <Calendar className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white tracking-tight">
+                  Timeline Milestone Gates
+                </h3>
+                <p className="text-[11px] text-zinc-500 font-mono">
+                  Synchronized Sprint Deadlines
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-white tracking-tight">
-                Timeline Milestone Gates
-              </h3>
-              <p className="text-[11px] text-zinc-500 font-mono">
-                Synchronized Sprint Deadlines
-              </p>
-            </div>
+            {events.length > 0 && (
+              <span className="text-[10px] font-mono font-medium text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 rounded-lg px-2.5 py-0.5">
+                {getNextGateTag()}
+              </span>
+            )}
           </div>
-          {events.length > 0 && (
-            <span className="text-[10px] font-mono text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-md px-2 py-0.5">
-              {getNextGateTag()}
-            </span>
-          )}
-        </div>
 
         {/* Stepper List */}
         {events.length > 0 ? (
@@ -140,12 +141,13 @@ export function TimelineMilestones({ events }: TimelineProps) {
         )}
       </div>
 
-      {/* Footer Meta */}
-      <div className="mt-5 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500 font-mono">
-        <span>{completedCount}/{events.length} gates cleared</span>
-        <span className="text-emerald-400 font-medium">
-          {events.length > 0 ? "Timeline armed" : "Awaiting gates"}
-        </span>
+        {/* Footer Meta */}
+        <div className="mt-5 pt-3.5 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-500 font-mono">
+          <span>{completedCount}/{events.length} gates cleared</span>
+          <span className="text-emerald-400 font-medium">
+            {events.length > 0 ? "Timeline armed" : "Awaiting gates"}
+          </span>
+        </div>
       </div>
     </div>
   );

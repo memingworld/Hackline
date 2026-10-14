@@ -9,6 +9,8 @@ import Link from "next/link";
 import { Lightbulb, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { cookies } from "next/headers";
+
 export const metadata: Metadata = {
   title: "Idea Vault | Hackline Command Center",
   description: "Track problem statements, align on hackathon tracks, and conduct team blind voting.",
@@ -18,7 +20,9 @@ export default async function IdeaVaultPage(props: {
   searchParams: Promise<{ hackathon?: string }>;
 }) {
   const searchParams = await props.searchParams;
-  const requestedHackathonId = searchParams.hackathon;
+  const cookieStore = await cookies();
+  const requestedHackathonId =
+    searchParams.hackathon || cookieStore.get("active_hackathon_id")?.value;
 
   const supabase = await createClient();
   const {

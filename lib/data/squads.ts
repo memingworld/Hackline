@@ -29,67 +29,13 @@ export async function getUserSavedSquads(): Promise<SavedSquad[]> {
   return (data as SavedSquad[]) || [];
 }
 
+import { getUserCurrentTeam } from "@/lib/data/hackathons";
+
 /**
- * Fetch the user's active team roster and duty assignments.
+ * Fetch the user's active team roster and duty assignments for a specific hackathon.
  */
-export async function getActiveSquadRoster(): Promise<Team | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return null;
-
-  // Check if user is a member of an active team
-  const { data: memberRecords } = await supabase
-    .from("team_members")
-    .select("team_id")
-    .eq("user_id", user.id)
-    .limit(1);
-
-  let targetTeamId: string | null = null;
-
-  if (memberRecords && memberRecords.length > 0) {
-    targetTeamId = memberRecords[0].team_id;
-  } else {
-    // Check if user is captain of a team
-    const { data: captainTeam } = await supabase
-      .from("teams")
-      .select("id")
-      .eq("captain_id", user.id)
-      .limit(1);
-
-    if (captainTeam && captainTeam.length > 0) {
-      targetTeamId = captainTeam[0].id;
-    }
-  }
-
-  if (!targetTeamId) return null;
-
-  const { data, error } = await supabase
-    .from("teams")
-    .select(`
-      *,
-      members:team_members(
-        id,
-        team_id,
-        user_id,
-        duty,
-        is_captain,
-        joined_at,
-        user:profiles(*)
-      ),
-      hackathon:hackathons(*)
-    `)
-    .eq("id", targetTeamId)
-    .single();
-
-  if (error) {
-    console.error("Error fetching active squad roster:", error.message);
-    return null;
-  }
-
-  return data as Team;
+export async function getActiveSquadRoster(hackathonId?: string): Promise<Team | null> {
+  return getUserCurrentTeam(hackathonId);
 }
 
 /**

@@ -9,6 +9,8 @@ import Link from "next/link";
 import { CalendarDays, Trophy, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { cookies } from "next/headers";
+
 export const metadata: Metadata = {
   title: "Timeline & GCal Sync | Hackline Command Center",
   description: "Track submission deadlines, pitch rehearsals, and 1-click sync to Google Calendar.",
@@ -18,7 +20,9 @@ export default async function CalendarPage(props: {
   searchParams: Promise<{ hackathon?: string }>;
 }) {
   const searchParams = await props.searchParams;
-  const requestedHackathonId = searchParams.hackathon;
+  const cookieStore = await cookies();
+  const requestedHackathonId =
+    searchParams.hackathon || cookieStore.get("active_hackathon_id")?.value;
 
   const supabase = await createClient();
   const {
@@ -36,7 +40,7 @@ export default async function CalendarPage(props: {
 
   const activeHackathon = requestedHackathonId
     ? hackathons.find((h) => h.id === requestedHackathonId) || hackathons[0] || currentTeam?.hackathon || null
-    : hackathons[0] || currentTeam?.hackathon || null;
+    : (requestedHackathonId ? hackathons.find((h) => h.id === requestedHackathonId) : null) || hackathons[0] || currentTeam?.hackathon || null;
 
   const events = activeHackathon
     ? await getTeamTimelineEvents(currentTeam?.id, activeHackathon.id)
