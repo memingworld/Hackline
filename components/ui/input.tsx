@@ -20,7 +20,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs font-medium text-zinc-300 tracking-wide uppercase"
+            className="block text-[11px] font-mono font-medium text-zinc-400 tracking-wider uppercase"
           >
             {label}
           </label>
@@ -31,21 +31,21 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={type}
             ref={ref}
             className={cn(
-              "w-full rounded-xl bg-zinc-900/60 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500",
-              "border border-zinc-800/80 transition-all duration-150 outline-none backdrop-blur-sm",
-              "focus:border-indigo-500/80 focus:ring-2 focus:ring-indigo-500/50 focus:bg-zinc-900/90",
-              error && "border-rose-500/80 focus:border-rose-500 focus:ring-rose-500/40 text-rose-100",
+              "w-full rounded-xl bg-zinc-900/60 px-3.5 py-2 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500",
+              "border border-zinc-800 transition-all duration-150 outline-none",
+              "focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/30 focus:bg-zinc-900",
+              error && "border-rose-500/80 focus:border-rose-500 focus:ring-rose-500/30 text-rose-100",
               className
             )}
             {...props}
           />
         </div>
         {error ? (
-          <p className="text-xs text-rose-400 font-medium tracking-tight animate-fade-in">
+          <p className="text-[11px] text-rose-400 font-mono tracking-tight animate-fade-in">
             {error}
           </p>
         ) : hint ? (
-          <p className="text-xs text-zinc-500">{hint}</p>
+          <p className="text-[11px] text-zinc-500 font-mono">{hint}</p>
         ) : null}
       </div>
     );

@@ -169,68 +169,64 @@ export function TimelineManager({
   return (
     <div className="space-y-6">
       {/* Summary progress bar */}
-      <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
-        <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1.5 flex-1 max-w-md">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-zinc-400">Sprint Milestone Execution</span>
-              <span className="text-indigo-400 font-bold">
-                {completedCount}/{events.length} Gates Cleared ({progressPercent}%)
-              </span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-zinc-900 overflow-hidden border border-zinc-800">
-              <div
-                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
+      <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div className="space-y-1.5 flex-1 max-w-md">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="text-zinc-400">Sprint Milestone Execution</span>
+            <span className="text-emerald-400 font-bold">
+              {completedCount}/{events.length} Gates Cleared ({progressPercent}%)
+            </span>
           </div>
+          <div className="h-2 w-full rounded-full bg-zinc-900 overflow-hidden border border-zinc-800">
+            <div
+              className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownloadAllIcs}
-              disabled={events.length === 0}
-              className="rounded-xl text-xs gap-1.5"
-            >
-              <Download className="h-3.5 w-3.5" />
-              <span>Export .ICS</span>
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setModalOpen(true)}
-              className="rounded-xl text-xs gap-1.5"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Add Milestone Gate</span>
-            </Button>
-          </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownloadAllIcs}
+            disabled={events.length === 0}
+            className="rounded-xl text-xs gap-1.5"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>Export .ICS</span>
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setModalOpen(true)}
+            className="rounded-xl text-xs gap-1.5"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Milestone Gate</span>
+          </Button>
         </div>
       </div>
 
       {/* Events List */}
       {events.length === 0 ? (
-        <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
-          <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-900/80 p-8 flex flex-col items-center justify-center text-center min-h-[260px]">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 mb-3">
-              <CalendarDays className="h-6 w-6" />
-            </div>
-            <h4 className="text-sm font-bold text-white">No Timeline Gates Registered</h4>
-            <p className="mt-1 text-xs text-zinc-400 max-w-sm">
-              Keep your team aligned on code freezes, pitch rehearsals, and submission deadlines.
-            </p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setModalOpen(true)}
-              className="mt-5 rounded-xl text-xs gap-1.5"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span>Create First Milestone</span>
-            </Button>
+        <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-8 flex flex-col items-center justify-center text-center min-h-[260px] shadow-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 mb-3">
+            <CalendarDays className="h-6 w-6" />
           </div>
+          <h4 className="text-sm font-bold text-white">No Timeline Gates Registered</h4>
+          <p className="mt-1 text-xs text-zinc-400 max-w-sm">
+            Keep your team aligned on code freezes, pitch rehearsals, and submission deadlines.
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setModalOpen(true)}
+            className="mt-5 rounded-xl text-xs gap-1.5"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Create First Milestone</span>
+          </Button>
         </div>
       ) : (
         <div className="space-y-3">

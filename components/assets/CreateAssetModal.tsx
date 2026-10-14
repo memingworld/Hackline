@@ -125,23 +125,22 @@ export function CreateAssetModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-2xl overflow-hidden">
-        <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-8">
-          <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                <FolderGit2 className="h-4 w-4" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-white tracking-tight">
-                  {isEditing ? "Edit Asset" : "Link Project Deliverable"}
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Connect code repos, design prototypes, pitch slides, or video demos.
-                </p>
-              </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto animate-fade-in">
+      <div className="relative w-full max-w-lg my-8 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="p-5 border-b border-zinc-800 flex items-center justify-between shrink-0 bg-zinc-950">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300">
+              <FolderGit2 className="h-4 w-4" />
             </div>
+            <div>
+              <h2 className="text-sm font-bold text-white tracking-tight">
+                {isEditing ? "Edit Asset" : "Link Project Deliverable"}
+              </h2>
+              <p className="text-xs text-zinc-400">
+                Connect code repos, design prototypes, pitch slides, or video demos.
+              </p>
+            </div>
+          </div>
             <button
               onClick={onClose}
               disabled={isSubmitting}
@@ -151,7 +150,7 @@ export function CreateAssetModal({
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
             {/* Category selection */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-zinc-300">Deliverable Category</label>
@@ -247,6 +246,5 @@ export function CreateAssetModal({
           </form>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

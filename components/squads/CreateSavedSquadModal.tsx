@@ -150,32 +150,31 @@ export function CreateSavedSquadModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-2xl overflow-hidden">
-        <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-8 max-h-[90vh] overflow-y-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between pb-5 border-b border-zinc-800">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                <Users className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">
-                  {isEditing ? "Edit Squad Preset" : "Create Reusable Squad Preset"}
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Pre-assemble your 4-person dream roster for 1-click deployment.
-                </p>
-              </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto animate-fade-in">
+      <div className="relative w-full max-w-2xl my-8 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Header */}
+        <div className="p-5 border-b border-zinc-800 flex items-center justify-between shrink-0 bg-zinc-950">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300">
+              <Users className="h-4 w-4" />
             </div>
-            <button
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/60 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <div>
+              <h2 className="text-base font-bold text-white tracking-tight">
+                {isEditing ? "Edit Squad Preset" : "Create Reusable Squad Preset"}
+              </h2>
+              <p className="text-xs text-zinc-400">
+                Pre-assemble your 4-person dream roster for 1-click deployment.
+              </p>
+            </div>
           </div>
+          <button
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-900 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-6">
             {/* Squad Info */}
@@ -298,6 +297,5 @@ export function CreateSavedSquadModal({
           </form>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

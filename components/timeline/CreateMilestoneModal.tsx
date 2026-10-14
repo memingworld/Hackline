@@ -4,7 +4,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { X, CalendarDays, Sparkles } from "lucide-react";
+import { X, CalendarDays } from "lucide-react";
 import { createTimelineEvent } from "@/lib/actions/timeline";
 import { TimelineEventType } from "@/types/database";
 
@@ -72,105 +72,91 @@ export function CreateMilestoneModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-2xl overflow-hidden">
-        <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-7">
-          <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
-                <CalendarDays className="h-4 w-4" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-white tracking-tight">
-                  Add Milestone Gate
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Track critical submission windows & team code freezes.
-                </p>
-              </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto animate-fade-in">
+      <div className="relative w-full max-w-md my-8 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="p-5 border-b border-zinc-800 flex items-center justify-between shrink-0 bg-zinc-950">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300">
+              <CalendarDays className="h-4 w-4" />
             </div>
-            <button
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+            <div>
+              <h2 className="text-sm font-bold text-white tracking-tight">
+                Add Milestone Gate
+              </h2>
+              <p className="text-xs text-zinc-400">
+                Track critical submission windows & code freezes.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <Input
+            label="Milestone Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Midnight Code Freeze / Video Export"
+            required
+            className="text-xs"
+          />
+
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-mono font-medium text-zinc-400 tracking-wider uppercase">
+              Gate Type
+            </label>
+            <select
+              value={eventType}
+              onChange={(e) => setEventType(e.target.value as TimelineEventType)}
+              className="w-full h-9 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 text-xs text-white focus:outline-none focus:border-zinc-500 font-mono"
             >
-              <X className="h-4 w-4" />
-            </button>
+              {EVENT_TYPES.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-300">Milestone Title</label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Midnight Feature Freeze / Demo Video Export"
-                required
-                className="bg-zinc-900/60 border-zinc-800 text-xs focus:border-purple-500"
-              />
-            </div>
+          <Input
+            label="Deadline Date & Time"
+            type="datetime-local"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            style={{ colorScheme: "dark" }}
+            required
+            className="text-xs font-mono"
+          />
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-300">Milestone Category</label>
-              <select
-                value={eventType}
-                onChange={(e) => setEventType(e.target.value as TimelineEventType)}
-                className="w-full h-10 rounded-xl border border-zinc-800 bg-zinc-900/80 px-3 text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-purple-500"
-              >
-                {EVENT_TYPES.map((t) => (
-                  <option key={t.id} value={t.id} className="bg-zinc-900 text-white">
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-300">Deadline (Date & Time)</label>
-              <Input
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
-                type="datetime-local"
-                required
-                className="bg-zinc-900/60 border-zinc-800 text-xs font-mono focus:border-purple-500"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-800/80">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={onClose}
-                disabled={isSubmitting}
-                className="text-xs rounded-xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={isSubmitting}
-                className="text-xs rounded-xl px-4 gap-1.5"
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="flex gap-1 items-center">
-                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-bounce" />
-                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-bounce [animation-delay:0.2s]" />
-                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-bounce [animation-delay:0.4s]" />
-                    </span>
-                    <span>Creating...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>Create Milestone</span>
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </div>
+          <div className="pt-2 flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              isLoading={isSubmitting}
+              loadingText="Creating..."
+            >
+              Add Milestone Gate
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );

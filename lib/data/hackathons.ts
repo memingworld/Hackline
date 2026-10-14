@@ -15,7 +15,7 @@ export async function getActiveHackathons(): Promise<Hackathon[]> {
   const { data, error } = await supabase
     .from("hackathons")
     .select("*")
-    .order("starts_at", { ascending: true });
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.error("Error fetching hackathons from Supabase:", error.message);
@@ -26,9 +26,9 @@ export async function getActiveHackathons(): Promise<Hackathon[]> {
 }
 
 /**
- * Fetch the authenticated user's current team and member roster.
+ * Fetch the authenticated user's current team and member roster for a specific hackathon.
  */
-export async function getUserCurrentTeam(): Promise<Team | null> {
+export async function getUserCurrentTeam(hackathonId?: string): Promise<Team | null> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -36,27 +36,57 @@ export async function getUserCurrentTeam(): Promise<Team | null> {
 
   if (!user) return null;
 
-  // Query team where user is either the captain or a squad member
-  const { data: memberRecords, error: memberError } = await supabase
-    .from("team_members")
-    .select("team_id")
-    .eq("user_id", user.id)
-    .limit(1);
-
   let targetTeamId: string | null = null;
 
-  if (memberRecords && memberRecords.length > 0) {
-    targetTeamId = memberRecords[0].team_id;
-  } else {
-    // Check if user is a captain of a team
-    const { data: captainTeam } = await supabase
+  // 1. If hackathonId is provided, first look for teams linked to that hackathon
+  if (hackathonId) {
+    // Check if captain of a team in this hackathon
+    const { data: captainTeams } = await supabase
       .from("teams")
       .select("id")
       .eq("captain_id", user.id)
+      .eq("hackathon_id", hackathonId)
+      .order("created_at", { ascending: false })
       .limit(1);
 
-    if (captainTeam && captainTeam.length > 0) {
-      targetTeamId = captainTeam[0].id;
+    if (captainTeams && captainTeams.length > 0) {
+      targetTeamId = captainTeams[0].id;
+    } else {
+      // Check team_members in this hackathon
+      const { data: memberTeams } = await supabase
+        .from("team_members")
+        .select("team_id, teams!inner(id, hackathon_id)")
+        .eq("user_id", user.id)
+        .eq("teams.hackathon_id", hackathonId)
+        .limit(1);
+
+      if (memberTeams && memberTeams.length > 0) {
+        targetTeamId = memberTeams[0].team_id;
+      }
+    }
+  }
+
+  // 2. Fallback: get the user's latest team
+  if (!targetTeamId) {
+    const { data: captainTeams } = await supabase
+      .from("teams")
+      .select("id")
+      .eq("captain_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (captainTeams && captainTeams.length > 0) {
+      targetTeamId = captainTeams[0].id;
+    } else {
+      const { data: memberRecords } = await supabase
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", user.id)
+        .limit(1);
+
+      if (memberRecords && memberRecords.length > 0) {
+        targetTeamId = memberRecords[0].team_id;
+      }
     }
   }
 

@@ -57,11 +57,10 @@ export function ActiveSquadRoster({
 
   if (!team) {
     return (
-      <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
-        <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-900/90 p-8 flex flex-col items-center justify-center text-center min-h-[320px]">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 mb-4 shadow-lg shadow-indigo-500/5">
-            <Users className="h-7 w-7" />
-          </div>
+      <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 p-8 flex flex-col items-center justify-center text-center min-h-[280px]">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300 mb-3">
+          <Users className="h-5 w-5" />
+        </div>
           <h3 className="text-lg font-bold text-white tracking-tight">
             No Active Squad Assembled
           </h3>
@@ -90,7 +89,6 @@ export function ActiveSquadRoster({
                 <span>Join with Code</span>
               </Button>
             )}
-          </div>
         </div>
       </div>
     );
@@ -207,15 +205,14 @@ export function ActiveSquadRoster({
   };
 
   return (
-    <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
-      <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-900/90 p-6 md:p-8">
-        {/* Header & Meta */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
-          <div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400">
-                <Users className="h-5 w-5" />
-              </div>
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 md:p-8 backdrop-blur-md">
+      {/* Header & Meta */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300">
+              <Users className="h-5 w-5" />
+            </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-xl font-bold text-white tracking-tight">{team.name}</h2>
@@ -456,6 +453,5 @@ export function ActiveSquadRoster({
           </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

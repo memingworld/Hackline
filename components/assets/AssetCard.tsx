@@ -122,82 +122,80 @@ export function AssetCard({ asset, onEdit, onRefresh }: AssetCardProps) {
   };
 
   return (
-    <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl hover:border-zinc-700/80 transition-all flex flex-col justify-between">
-      <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 flex flex-col justify-between h-full">
-        <div>
-          {/* Header */}
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div className="flex items-center gap-3">
-              <div
-                className={`flex h-10 w-10 items-center justify-center rounded-xl border ${config.bg} ${config.border} ${config.color}`}
-              >
-                <Icon className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">
-                  {config.label}
-                </span>
-                <h3 className="text-sm font-bold text-white tracking-tight leading-snug">
-                  {asset.title}
-                </h3>
-              </div>
+    <div className="rounded-2xl border border-zinc-850 bg-zinc-950 p-5 hover:border-zinc-750 transition-all flex flex-col justify-between shadow-sm">
+      <div>
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex h-9 w-9 items-center justify-center rounded-lg border ${config.bg} ${config.border} ${config.color}`}
+            >
+              <Icon className="h-4 w-4" />
             </div>
-
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => onEdit(asset)}
-                className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
-                title="Edit asset"
-              >
-                <Edit2 className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
-                title="Delete asset"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
+            <div>
+              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">
+                {config.label}
+              </span>
+              <h3 className="text-sm font-bold text-white tracking-tight leading-snug">
+                {asset.title}
+              </h3>
             </div>
           </div>
 
-          {asset.description && (
-            <p className="text-xs text-zinc-400 leading-relaxed mb-4 line-clamp-2">
-              {asset.description}
-            </p>
-          )}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onEdit(asset)}
+              className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+              title="Edit asset"
+            >
+              <Edit2 className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
+              title="Delete asset"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
 
-        {/* Footer actions */}
-        <div className="mt-4 pt-3.5 border-t border-zinc-900 flex items-center justify-between">
-          <div className="flex items-center gap-1 text-[11px] font-mono text-zinc-500 truncate max-w-[170px]">
-            <span>{getDomain(asset.url)}</span>
-          </div>
+        {asset.description && (
+          <p className="text-xs text-zinc-400 leading-relaxed mb-4 line-clamp-2">
+            {asset.description}
+          </p>
+        )}
+      </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleCopy}
-              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-[11px] font-mono text-zinc-300 transition-colors"
-            >
-              {copied ? (
-                <Check className="h-3 w-3 text-emerald-400" />
-              ) : (
-                <Copy className="h-3 w-3 text-zinc-400" />
-              )}
-              <span>{copied ? "Copied" : "Copy"}</span>
-            </button>
+      {/* Footer actions */}
+      <div className="mt-4 pt-3.5 border-t border-zinc-900 flex items-center justify-between">
+        <div className="flex items-center gap-1 text-[11px] font-mono text-zinc-500 truncate max-w-[170px]">
+          <span>{getDomain(asset.url)}</span>
+        </div>
 
-            <a
-              href={asset.url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-[11px] font-mono text-indigo-300 transition-colors"
-            >
-              <span>Launch</span>
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleCopy}
+            className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-[11px] font-mono text-zinc-300 transition-colors"
+          >
+            {copied ? (
+              <Check className="h-3 w-3 text-emerald-400" />
+            ) : (
+              <Copy className="h-3 w-3 text-zinc-400" />
+            )}
+            <span>{copied ? "Copied" : "Copy"}</span>
+          </button>
+
+          <a
+            href={asset.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-[11px] font-mono text-white transition-colors"
+          >
+            <span>Launch</span>
+            <ExternalLink className="h-3 w-3" />
+          </a>
         </div>
       </div>
     </div>

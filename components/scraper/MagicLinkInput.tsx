@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles, ArrowRight, Globe, Check, AlertCircle } from "lucide-react";
+import { Sparkles, ArrowRight, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -11,11 +11,11 @@ interface MagicLinkInputProps {
 }
 
 const SUPPORTED_PLATFORMS = [
-  { name: "Devfolio", domain: "devfolio.co", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-  { name: "Unstop", domain: "unstop.com", color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" },
-  { name: "Devpost", domain: "devpost.com", color: "bg-teal-500/10 text-teal-400 border-teal-500/20" },
-  { name: "Luma", domain: "lu.ma", color: "bg-rose-500/10 text-rose-400 border-rose-500/20" },
-  { name: "Hack2skill", domain: "hack2skill.com", color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
+  { name: "Devpost", domain: "devpost.com" },
+  { name: "Devfolio", domain: "devfolio.co" },
+  { name: "Unstop", domain: "unstop.com" },
+  { name: "Luma", domain: "lu.ma" },
+  { name: "Hack2skill", domain: "hack2skill.com" },
 ];
 
 export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
@@ -41,11 +41,11 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
     try {
       const stepTimer1 = setTimeout(() => {
         setLoadingStep("Parsing prize pool and schedule gates...");
-      }, 1000);
+      }, 700);
 
       const stepTimer2 = setTimeout(() => {
         setLoadingStep("Formatting squad workspace payload...");
-      }, 2000);
+      }, 1500);
 
       const res = await fetch("/api/scrape", {
         method: "POST",
@@ -63,13 +63,13 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
       }
 
       toast.success("Hackathon extracted successfully!", {
-        description: `Found "${data.title}" (${data.prize_pool || "TBA"}). Review details below.`,
+        description: `Found "${data.title}" (${data.prize_pool || "TBA"}).`,
       });
 
       onScrapeSuccess(data);
     } catch (err: any) {
-      toast.error("Extraction error", {
-        description: err.message || "Could not parse page. You can enter details manually.",
+      toast.error("Extraction notice", {
+        description: err.message || "Could not parse page. You can confirm or edit details.",
       });
     } finally {
       setIsLoading(false);
@@ -85,17 +85,15 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="Paste URL from Devfolio, Unstop, Devpost, Luma, Hack2skill..."
+            placeholder="Paste URL from Devpost, Devfolio, Unstop, Luma..."
             disabled={isLoading}
-            className="w-full h-14 pl-11 pr-44 rounded-2xl bg-zinc-900/90 text-sm text-zinc-100 placeholder:text-zinc-500 border border-zinc-800 shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/80 transition-all"
+            className="w-full h-12 pl-10 pr-36 rounded-xl bg-zinc-900/60 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 border border-zinc-800 shadow-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/30 transition-all"
           />
-          <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 pointer-events-none" />
+          <Sparkles className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
 
           {detectedPlatform && (
-            <div className="absolute right-44 top-1/2 -translate-y-1/2 hidden md:flex items-center pointer-events-none">
-              <span
-                className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded-md border ${detectedPlatform.color}`}
-              >
+            <div className="absolute right-36 top-1/2 -translate-y-1/2 hidden sm:flex items-center pointer-events-none">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-emerald-400">
                 {detectedPlatform.name}
               </span>
             </div>
@@ -108,31 +106,31 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
             isLoading={isLoading}
             disabled={!url.trim()}
             className={cn(
-              "absolute right-2 top-1/2 -translate-y-1/2 h-10 px-4 rounded-xl text-xs gap-1.5 font-medium transition-all",
-              !url.trim() && "bg-zinc-800/60 text-zinc-500 border border-zinc-800 shadow-none hover:bg-zinc-800/60 cursor-not-allowed opacity-60"
+              "absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-3.5 rounded-lg text-xs gap-1.5 font-semibold transition-all",
+              !url.trim() && "opacity-50 cursor-not-allowed"
             )}
           >
-            <span>{isLoading ? "Extracting" : "Magic Import"}</span>
-            {!isLoading && <ArrowRight className="h-3.5 w-3.5" />}
+            <span>{isLoading ? "Parsing" : "Magic Import"}</span>
+            {!isLoading && <ArrowRight className="h-3 w-3" />}
           </Button>
         </div>
       </form>
 
       {/* Loading Step Progress Indicator */}
       {isLoading && (
-        <div className="flex items-center gap-2 text-xs text-indigo-300 font-mono animate-fade-in pl-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-ping" />
+        <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono animate-fade-in pl-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
           <span>{loadingStep}</span>
         </div>
       )}
 
       {/* Supported Platforms Pills */}
-      <div className="flex flex-wrap items-center gap-1.5 pt-1 pl-1 text-[11px] text-zinc-500 font-mono">
-        <span>Instant extraction:</span>
+      <div className="flex flex-wrap items-center gap-1.5 pt-0.5 pl-0.5 text-[11px] text-zinc-500 font-mono">
+        <span>Instant API parsing:</span>
         {SUPPORTED_PLATFORMS.map((p) => (
           <span
             key={p.name}
-            className="px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800/80 text-zinc-400"
+            className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400"
           >
             {p.name}
           </span>

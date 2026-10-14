@@ -36,7 +36,7 @@ export default async function DashboardLayout({
     (user?.email ? user.email.split("@")[0] : "Builder");
 
   return (
-    <div className="flex min-h-screen bg-[#09090b] text-zinc-100 selection:bg-indigo-500/20 selection:text-indigo-200">
+    <div className="flex min-h-screen bg-[#09090b] text-zinc-100 selection:bg-zinc-700 selection:text-white">
       <DashboardSidebar
         activeHackathon={activeHackathon}
         currentTeam={currentTeam}
@@ -46,7 +46,8 @@ export default async function DashboardLayout({
         <DashboardHeader
           userEmail={userEmail}
           userName={userName}
-          hackathonTitle={activeHackathon?.title}
+          hackathons={hackathons}
+          activeHackathonId={activeHackathon?.id}
         />
         <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto overflow-y-auto">
           {children}

@@ -77,25 +77,23 @@ export function AssetsManager({ assets, teamId, hackathonId }: AssetsManagerProp
 
       {/* Grid or Empty State */}
       {filteredAssets.length === 0 ? (
-        <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
-          <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-900/80 p-8 flex flex-col items-center justify-center text-center min-h-[260px]">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 mb-3">
-              <FolderGit2 className="h-6 w-6" />
-            </div>
-            <h4 className="text-sm font-bold text-white">No Deliverables Linked Yet</h4>
-            <p className="mt-1 text-xs text-zinc-400 max-w-sm">
-              Keep your GitHub repositories, Figma files, Pitch Slides, and Loom demos organized in one central squad hub.
-            </p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleOpenCreate}
-              className="mt-5 rounded-xl text-xs gap-1.5"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span>Link First Deliverable</span>
-            </Button>
+        <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-8 flex flex-col items-center justify-center text-center min-h-[260px] shadow-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 mb-3">
+            <FolderGit2 className="h-6 w-6" />
           </div>
+          <h4 className="text-sm font-bold text-white">No Deliverables Linked Yet</h4>
+          <p className="mt-1 text-xs text-zinc-400 max-w-sm">
+            Keep your GitHub repositories, Figma files, Pitch Slides, and Loom demos organized in one central squad hub.
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleOpenCreate}
+            className="mt-5 rounded-xl text-xs gap-1.5"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Link First Deliverable</span>
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -107,33 +107,32 @@ export function CreateProblemModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-2xl overflow-hidden">
-        <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-8">
-          <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                <Lightbulb className="h-4 w-4" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-white tracking-tight">
-                  {isEditing ? "Edit Problem Statement" : "Pitch New Problem Statement"}
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Propose an idea or hackathon track for team blind voting.
-                </p>
-              </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto animate-fade-in">
+      <div className="relative w-full max-w-lg my-8 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="p-5 border-b border-zinc-800 flex items-center justify-between shrink-0 bg-zinc-950">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300">
+              <Lightbulb className="h-4 w-4" />
             </div>
-            <button
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <div>
+              <h2 className="text-sm font-bold text-white tracking-tight">
+                {isEditing ? "Edit Problem Statement" : "Pitch New Problem Statement"}
+              </h2>
+              <p className="text-xs text-zinc-400">
+                Propose an idea or hackathon track for team blind voting.
+              </p>
+            </div>
           </div>
+          <button
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-zinc-300">Problem Title / Hook</label>
               <Input
@@ -220,6 +219,5 @@ export function CreateProblemModal({
           </form>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

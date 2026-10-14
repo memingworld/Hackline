@@ -125,25 +125,23 @@ export function SavedSquadsManager({
 
       {/* Preset Cards List */}
       {savedSquads.length === 0 ? (
-        <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
-          <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-900/80 p-8 flex flex-col items-center justify-center text-center min-h-[240px]">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700 text-zinc-400 mb-3">
-              <Users className="h-6 w-6" />
-            </div>
-            <h4 className="text-sm font-bold text-white">No Saved Squad Presets Yet</h4>
-            <p className="mt-1 text-xs text-zinc-400 max-w-sm">
-              Save your recurring teammates and their default roles (Frontend, Backend, AI, Pitch) to deploy in seconds.
-            </p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleOpenCreate}
-              className="mt-5 rounded-xl text-xs gap-1.5"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span>Create First Preset</span>
-            </Button>
+        <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 p-8 flex flex-col items-center justify-center text-center min-h-[220px]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-400 mb-3">
+            <Users className="h-5 w-5" />
           </div>
+          <h4 className="text-sm font-bold text-white">No Saved Squad Presets Yet</h4>
+          <p className="mt-1 text-xs text-zinc-400 max-w-sm">
+            Save your recurring teammates and their default roles (Frontend, Backend, AI, Pitch) to deploy in seconds.
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleOpenCreate}
+            className="mt-4 gap-1.5"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Create First Preset</span>
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -155,12 +153,11 @@ export function SavedSquadsManager({
             return (
               <div
                 key={squad.id}
-                className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl flex flex-col justify-between"
+                className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 hover:border-zinc-700 transition-colors flex flex-col justify-between"
               >
-                <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-900/90 p-6 flex flex-col justify-between h-full">
-                  <div>
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-3 mb-4">
+                <div>
+                  {/* Header */}
+                  <div className="flex items-start justify-between gap-3 mb-4">
                       <div>
                         <h4 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
                           <span>{squad.name}</span>
@@ -258,8 +255,7 @@ export function SavedSquadsManager({
                     </Button>
                   </div>
                 </div>
-              </div>
-            );
+              );
           })}
         </div>
       )}

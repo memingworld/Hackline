@@ -66,27 +66,25 @@ export function CheckEmailCard({ email, onReset }: CheckEmailCardProps) {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Nested Double-Bezel Icon Container */}
-      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-indigo-500/10 p-2 ring-1 ring-indigo-500/20">
-        <div className="flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-lg shadow-indigo-500/30">
-          <Mail className="h-8 w-8 text-white animate-bounce" />
-        </div>
+      {/* Icon Container */}
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-800 text-white shadow-sm">
+        <Mail className="h-6 w-6 text-zinc-200" />
       </div>
 
       <div className="text-center space-y-2">
-        <h2 className="text-xl font-semibold text-white tracking-tight">
+        <h2 className="text-xl font-bold text-white tracking-tight">
           Verify your email address
         </h2>
         <p className="text-xs text-zinc-400 leading-relaxed max-w-sm mx-auto">
           We sent a single-use cryptographically signed activation link to:
         </p>
-        <div className="inline-block rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 font-mono text-xs font-semibold text-indigo-300">
+        <div className="inline-block rounded-md border border-zinc-800 bg-zinc-900 px-3 py-1 font-mono text-xs font-medium text-zinc-200">
           {email}
         </div>
       </div>
 
       {/* Instruction Steps */}
-      <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4 space-y-2.5 text-xs text-zinc-400">
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 space-y-2.5 text-xs text-zinc-400">
         <div className="flex items-start gap-2.5">
           <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
           <span>Click the magic confirmation link in the verification email.</span>
@@ -104,10 +102,10 @@ export function CheckEmailCard({ email, onReset }: CheckEmailCardProps) {
             href={providerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full inline-flex items-center justify-center gap-2 h-11 px-4 text-sm font-medium rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/35 hover:brightness-110 border border-indigo-400/30 transition-all duration-200"
+            className="w-full inline-flex items-center justify-center gap-2 h-10 px-4 text-xs font-semibold rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 transition-colors shadow-sm"
           >
             <span>Open Email Inbox</span>
-            <ExternalLink className="h-4 w-4" />
+            <ExternalLink className="h-3.5 w-3.5" />
           </a>
         )}
 

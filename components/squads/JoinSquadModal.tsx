@@ -4,7 +4,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { X, UserPlus, KeyRound, Sparkles } from "lucide-react";
+import { X, KeyRound, Sparkles } from "lucide-react";
 import { joinTeamByInviteCode } from "@/lib/actions/squads";
 import { useRouter } from "next/navigation";
 
@@ -38,7 +38,6 @@ export function JoinSquadModal({ isOpen, onClose, onSuccess }: JoinSquadModalPro
       return;
     }
 
-    // Clean code if full link was pasted (e.g. http://localhost:3000/join/abcdef)
     let cleanCode = inviteInput.trim();
     if (cleanCode.includes("/join/")) {
       cleanCode = cleanCode.split("/join/")[1]?.split("?")[0]?.split("/")[0] || cleanCode;
@@ -61,101 +60,88 @@ export function JoinSquadModal({ isOpen, onClose, onSuccess }: JoinSquadModalPro
         });
       }
     } catch {
-      toast.error("An unexpected error occurred while joining.");
+      toast.error("An unexpected error occurred while joining squad.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-2xl overflow-hidden">
-        <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-7">
-          <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                <KeyRound className="h-4 w-4" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-white tracking-tight">
-                  Join Squad with Code
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Enter the 6-12 character code or invite link.
-                </p>
-              </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto animate-fade-in">
+      <div className="relative w-full max-w-md my-8 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="p-5 border-b border-zinc-800 flex items-center justify-between shrink-0 bg-zinc-950">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300">
+              <KeyRound className="h-4 w-4" />
             </div>
-            <button
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+            <div>
+              <h2 className="text-sm font-bold text-white tracking-tight">
+                Join Squad with Code
+              </h2>
+              <p className="text-xs text-zinc-400">
+                Enter the invite code or link provided by your captain.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <Input
+            label="Invite Code or Link"
+            value={inviteInput}
+            onChange={(e) => setInviteInput(e.target.value)}
+            placeholder="e.g. 7f9a2b or https://.../join/7f9a2b"
+            required
+            className="font-mono text-xs"
+          />
+
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-mono font-medium text-zinc-400 tracking-wider uppercase">
+              Your Sprint Duty
+            </label>
+            <select
+              value={duty}
+              onChange={(e) => setDuty(e.target.value)}
+              className="w-full h-9 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 text-xs text-white focus:outline-none focus:border-zinc-500 font-mono"
             >
-              <X className="h-4 w-4" />
-            </button>
+              {COMMON_DUTIES.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-300">Invite Code or URL</label>
-              <Input
-                value={inviteInput}
-                onChange={(e) => setInviteInput(e.target.value)}
-                placeholder="e.g. 7f9a2b or https://hackline.dev/join/7f9a2b"
-                required
-                className="bg-zinc-900/60 border-zinc-800 font-mono text-xs focus:border-indigo-500"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-300">Your Hackathon Duty</label>
-              <select
-                value={duty}
-                onChange={(e) => setDuty(e.target.value)}
-                className="w-full h-10 rounded-xl border border-zinc-800/90 bg-zinc-900/80 px-3 text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              >
-                {COMMON_DUTIES.map((d) => (
-                  <option key={d} value={d} className="bg-zinc-900 text-white">
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-800/80">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={onClose}
-                disabled={isSubmitting}
-                className="text-xs rounded-xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={isSubmitting}
-                className="text-xs rounded-xl px-4 gap-1.5"
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="flex gap-1 items-center">
-                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-bounce" />
-                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-bounce [animation-delay:0.2s]" />
-                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-bounce [animation-delay:0.4s]" />
-                    </span>
-                    <span>Joining...</span>
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-3.5 w-3.5" />
-                    <span>Join Squad</span>
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </div>
+          <div className="pt-2 flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              isLoading={isSubmitting}
+              loadingText="Joining..."
+            >
+              Join Squad
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -265,10 +265,9 @@ export function SettingsForm({
   return (
     <div className="space-y-10 max-w-4xl">
       {/* 1. Profile Settings */}
-      <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
-        <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-8">
-          <div className="flex items-center gap-3 pb-5 border-b border-zinc-800">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+      <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-6 md:p-8">
+        <div className="flex items-center gap-3 pb-5 border-b border-zinc-800">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300">
               <User className="h-5 w-5" />
             </div>
             <div>
@@ -335,14 +334,12 @@ export function SettingsForm({
             </div>
           </form>
         </div>
-      </div>
 
       {/* 2. Security & Password Management (Logged In) */}
-      <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
-        <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-8">
-          <div className="flex items-center gap-3 pb-5 border-b border-zinc-800">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
-              <Lock className="h-5 w-5" />
+      <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-6 md:p-8">
+        <div className="flex items-center gap-3 pb-5 border-b border-zinc-800">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300">
+            <Lock className="h-5 w-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-white tracking-tight">
@@ -463,15 +460,13 @@ export function SettingsForm({
             </div>
           </form>
         </div>
-      </div>
 
       {/* 3. Personal Telegram Deadline Alert Engine */}
-      <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
-        <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-8">
-          <div className="flex items-center justify-between pb-5 border-b border-zinc-800">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400">
-                <Send className="h-5 w-5" />
+      <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-6 md:p-8">
+        <div className="flex items-center justify-between pb-5 border-b border-zinc-800">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-sky-400">
+              <Send className="h-5 w-5" />
               </div>
               <div>
                 <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
@@ -645,27 +640,25 @@ export function SettingsForm({
             </div>
           </div>
         </div>
-      </div>
 
       {/* 4. Pre-Flight Verification Gate Rules */}
       {activeTeam && (
-        <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
-          <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-8">
-            <div className="flex items-center justify-between pb-5 border-b border-zinc-800">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
-                  <ShieldCheck className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-white tracking-tight">
-                    Pre-Flight Submission Gate Configuration
-                  </h2>
-                  <p className="text-xs text-zinc-400">
-                    Mandatory checks enforced on the main dashboard for squad: {activeTeam.name}.
-                  </p>
-                </div>
+        <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-6 md:p-8">
+          <div className="flex items-center justify-between pb-5 border-b border-zinc-800">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-white tracking-tight">
+                  Pre-Flight Submission Gate Configuration
+                </h2>
+                <p className="text-xs text-zinc-400">
+                  Mandatory checks enforced on the main dashboard for squad: {activeTeam.name}.
+                </p>
               </div>
             </div>
+          </div>
 
             <div className="mt-5 space-y-2.5">
               {checklistItems.map((item) => (
@@ -707,8 +700,7 @@ export function SettingsForm({
               </Button>
             </form>
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
+        )}
+      </div>
+    );
+  }

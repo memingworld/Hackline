@@ -29,12 +29,12 @@ export function AuthLayout({
             href="/"
             className="group flex items-center gap-2.5 transition-opacity hover:opacity-90"
           >
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-md shadow-indigo-500/25 border border-indigo-400/30">
-              <Terminal className="h-5 w-5 text-white transition-transform group-hover:scale-110" />
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-white transition-colors group-hover:border-zinc-700">
+              <Terminal className="h-4 w-4" />
             </div>
             <div>
-              <span className="font-bold tracking-tight text-lg text-white font-mono">
-                HACK<span className="text-indigo-400">LINE</span>
+              <span className="font-bold tracking-tight text-base text-white font-mono">
+                HACK<span className="text-zinc-400">LINE</span>
               </span>
               <span className="block text-[10px] text-zinc-500 font-mono tracking-widest uppercase">
                 The Hackathon OS
@@ -51,8 +51,8 @@ export function AuthLayout({
         {/* Center Card */}
         <div className="my-auto py-10 w-full max-w-md mx-auto">
           <div className="mb-8">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-0.5 text-xs font-medium text-indigo-300 mb-3">
-              <Sparkles className="h-3 w-3" />
+            <div className="inline-flex items-center gap-1.5 rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-0.5 text-xs font-mono text-zinc-400 mb-3">
+              <Sparkles className="h-3 w-3 text-emerald-400" />
               <span>Production-Grade Auth</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">

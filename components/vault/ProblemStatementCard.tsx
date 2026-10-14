@@ -96,28 +96,27 @@ export function ProblemStatementCard({
 
   return (
     <div
-      className={`rounded-[2rem] p-1.5 transition-all duration-300 ${
+      className={`rounded-2xl border p-5 flex flex-col justify-between transition-all ${
         isSelected
-          ? "bg-gradient-to-br from-amber-500/20 via-indigo-500/10 to-white/5 border border-amber-500/30 ring-1 ring-amber-500/20 shadow-2xl shadow-amber-500/5"
-          : "bg-white/5 border border-white/10 ring-1 ring-white/5 hover:border-zinc-700/80 shadow-xl"
+          ? "border-amber-500/40 bg-zinc-950 shadow-md shadow-amber-500/5"
+          : "border-zinc-850 bg-zinc-950 hover:border-zinc-750"
       }`}
     >
-      <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 flex flex-col justify-between h-full">
-        <div>
-          {/* Top badges */}
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-indigo-500/20 bg-indigo-500/10 text-indigo-400">
-                {statement.track || "General Track"}
-              </span>
+      <div>
+        {/* Top badges */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-md border border-zinc-800 bg-zinc-900 text-zinc-300">
+              {statement.track || "General Track"}
+            </span>
 
-              {isSelected && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/15 text-amber-300">
-                  <Crown className="h-2.5 w-2.5 text-amber-400" />
-                  <span>Selected Sprint Topic</span>
-                </span>
-              )}
-            </div>
+            {isSelected && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-400">
+                <Crown className="h-2.5 w-2.5 text-amber-400" />
+                <span>Selected Topic</span>
+              </span>
+            )}
+          </div>
 
             <div className="flex items-center gap-1">
               <button
@@ -168,20 +167,20 @@ export function ProblemStatementCard({
         </div>
 
         {/* Voting & Selection Footer */}
-        <div className="mt-6 pt-4 border-t border-zinc-850 flex items-center justify-between">
+        <div className="mt-6 pt-4 border-t border-zinc-900 flex items-center justify-between">
           {/* Vote Counter Button */}
           <button
             onClick={handleVote}
             disabled={isVoting}
             className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-xl border text-xs font-mono font-medium transition-all ${
               statement.has_voted
-                ? "border-indigo-500/40 bg-indigo-500/20 text-indigo-300 shadow-sm shadow-indigo-500/20"
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
                 : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:text-white"
             }`}
           >
             <ThumbsUp
               className={`h-3.5 w-3.5 ${
-                statement.has_voted ? "text-indigo-400 fill-indigo-400/30" : "text-zinc-500"
+                statement.has_voted ? "text-emerald-400 fill-emerald-400/30" : "text-zinc-500"
               }`}
             />
             <span>{statement.vote_count || 0} Votes</span>
@@ -207,6 +206,5 @@ export function ProblemStatementCard({
           )}
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
