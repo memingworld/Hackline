@@ -182,7 +182,7 @@ export function ForgotPasswordForm() {
       <Input
         label="Registered email address"
         type="email"
-        placeholder="hacker@hackline.dev"
+        placeholder="john.doe@example.com"
         autoComplete="email"
         error={errors.email?.message}
         {...register("email")}

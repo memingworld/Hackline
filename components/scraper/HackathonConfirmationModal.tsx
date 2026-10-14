@@ -63,7 +63,7 @@ export function HackathonConfirmationModal({
       if (initialData.ends_at) {
         setEndsAt(new Date(initialData.ends_at).toISOString().slice(0, 16));
       }
-      setMaxTeamSize(4);
+      setMaxTeamSize(initialData.max_team_size || 4);
     }
   }, [initialData]);
 

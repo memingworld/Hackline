@@ -151,7 +151,7 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
         <Input
           label="Full Name or Squad Handle"
           type="text"
-          placeholder="Alex Vance"
+          placeholder="John Doe"
           autoComplete="name"
           error={errors.fullName?.message}
           {...register("fullName")}
@@ -160,7 +160,7 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
         <Input
           label="Work / University Email"
           type="email"
-          placeholder="alex@team.dev"
+          placeholder="john.doe@example.com"
           autoComplete="email"
           error={errors.email?.message}
           {...register("email")}

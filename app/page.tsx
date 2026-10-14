@@ -30,9 +30,9 @@ export default function LandingPage() {
 
       {/* Floating Header */}
       <header className="relative z-30 pt-6 px-4 max-w-5xl mx-auto">
-        <nav className="flex items-center justify-between rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-5 py-2.5 backdrop-blur-xl shadow-xl">
+        <nav className="flex items-center justify-between rounded-2xl border border-zinc-800/80 bg-zinc-950/80 px-5 py-3 backdrop-blur-xl shadow-xl">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-700/80 text-white transition-transform group-hover:scale-105">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-700/80 text-white transition-transform group-hover:scale-105 shadow-inner">
               <Terminal className="h-4 w-4" />
             </div>
             <div className="flex items-center gap-1.5">
@@ -45,22 +45,8 @@ export default function LandingPage() {
             </div>
           </Link>
 
-          <div className="hidden md:flex items-center gap-6 text-xs text-zinc-400 font-medium">
-            <a href="#features" className="hover:text-white transition-colors">
-              Features
-            </a>
-            <a href="#scraper" className="hover:text-white transition-colors">
-              Magic Scraper
-            </a>
-            <a href="#squads" className="hover:text-white transition-colors">
-              Squad Sync
-            </a>
-            <a href="#preflight" className="hover:text-white transition-colors">
-              Pre-Flight Gates
-            </a>
-          </div>
-
-          <div className="flex items-center gap-2.5">
+          {/* Minimal Auth Direct Nav */}
+          <div className="flex items-center gap-3">
             <Link
               href="/login"
               className="text-xs font-medium text-zinc-300 hover:text-white px-3 py-1.5 transition-colors"
@@ -69,7 +55,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/signup"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-white text-zinc-950 hover:bg-zinc-200 px-3.5 py-1.5 text-xs font-semibold shadow-sm transition-all active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 px-4 py-2 text-xs font-semibold shadow-md transition-all active:scale-[0.98]"
             >
               <span>Get Started</span>
               <ArrowRight className="h-3 w-3" />
@@ -79,7 +65,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-20 pb-20 md:pt-28 md:pb-28 px-4 max-w-4xl mx-auto text-center">
+      <section className="relative z-10 pt-20 pb-20 md:pt-28 md:pb-24 px-4 max-w-4xl mx-auto text-center">
         {/* Eyebrow Pill */}
         <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-300 backdrop-blur-md mb-6">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -94,8 +80,8 @@ export default function LandingPage() {
         </h1>
 
         {/* Hero Subtext */}
-        <p className="mt-5 text-sm sm:text-base text-zinc-400 max-w-xl mx-auto leading-relaxed">
-          From Devpost and Devfolio auto-scrapes to one-click squad assembly,
+        <p className="mt-5 text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+          From Devpost, Unstop, Devfolio, and Luma instant extractions to one-click squad assembly,
           role duty rosters, and Telegram-synchronized deadline gates.
         </p>
 
@@ -118,37 +104,52 @@ export default function LandingPage() {
           </Link>
         </div>
 
+        {/* Supported Platforms Strip */}
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 max-w-xl mx-auto">
+          <span className="text-[11px] font-mono text-zinc-500 mr-1 uppercase tracking-wider">
+            Supported Hubs:
+          </span>
+          {["Devpost", "Unstop", "Devfolio", "Luma", "Hack2skill", "Custom Events"].map((p) => (
+            <span
+              key={p}
+              className="text-[11px] font-mono px-2.5 py-1 rounded-lg border border-zinc-800/80 bg-zinc-950/80 text-zinc-300 shadow-sm"
+            >
+              {p}
+            </span>
+          ))}
+        </div>
+
         {/* Core Specs Bar */}
-        <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto pt-8 border-t border-zinc-900 text-left">
-          <div className="p-3 rounded-xl border border-zinc-800/80 bg-zinc-950/60">
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto pt-8 border-t border-zinc-900 text-left">
+          <div className="p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-950/60">
             <span className="text-[10px] text-zinc-500 uppercase font-mono tracking-wider block">
               Platforms
             </span>
-            <span className="text-base font-bold text-white font-mono mt-0.5 block">
-              Devpost & Devfolio
+            <span className="text-sm font-bold text-white font-mono mt-0.5 block truncate">
+              5+ Hubs & Custom
             </span>
           </div>
-          <div className="p-3 rounded-xl border border-zinc-800/80 bg-zinc-950/60">
+          <div className="p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-950/60">
             <span className="text-[10px] text-zinc-500 uppercase font-mono tracking-wider block">
               Squad Assembly
             </span>
-            <span className="text-base font-bold text-white font-mono mt-0.5 block">
+            <span className="text-sm font-bold text-white font-mono mt-0.5 block">
               Instant Invite
             </span>
           </div>
-          <div className="p-3 rounded-xl border border-zinc-800/80 bg-zinc-950/60">
+          <div className="p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-950/60">
             <span className="text-[10px] text-zinc-500 uppercase font-mono tracking-wider block">
               Telegram Gates
             </span>
-            <span className="text-base font-bold text-emerald-400 font-mono mt-0.5 block">
+            <span className="text-sm font-bold text-emerald-400 font-mono mt-0.5 block">
               T-24h & T-2h
             </span>
           </div>
-          <div className="p-3 rounded-xl border border-zinc-800/80 bg-zinc-950/60">
+          <div className="p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-950/60">
             <span className="text-[10px] text-zinc-500 uppercase font-mono tracking-wider block">
               Pre-Flight Safety
             </span>
-            <span className="text-base font-bold text-zinc-200 font-mono mt-0.5 block">
+            <span className="text-sm font-bold text-zinc-200 font-mono mt-0.5 block">
               100% Verified
             </span>
           </div>
@@ -156,33 +157,33 @@ export default function LandingPage() {
       </section>
 
       {/* Feature Bento Grid */}
-      <section id="features" className="relative z-10 py-16 px-4 max-w-5xl mx-auto">
+      <section className="relative z-10 py-16 px-4 max-w-5xl mx-auto">
         <div className="mb-10 text-left">
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
             Engineered for velocity and submission peace of mind
           </h2>
-          <p className="mt-1.5 text-xs text-zinc-400 max-w-md">
+          <p className="mt-2 text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed">
             Everything your 4-person crew needs to go from problem statement to winning pitch.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           {/* Bento 1: Magic Scraper */}
-          <div id="scraper" className="md:col-span-7 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 flex flex-col justify-between">
+          <div className="md:col-span-7 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300">
                   <Code2 className="h-4 w-4" />
                 </div>
-                <span className="text-[10px] font-mono text-zinc-400 border border-zinc-800 rounded px-2 py-0.5 bg-zinc-950">
-                  Devpost & Devfolio Public APIs
+                <span className="text-[10px] font-mono text-emerald-400 border border-emerald-500/20 rounded px-2 py-0.5 bg-emerald-500/10">
+                  Devpost, Unstop & Devfolio APIs
                 </span>
               </div>
               <h3 className="text-base font-bold text-white tracking-tight">
                 Magic Link Scraper
               </h3>
-              <p className="mt-1.5 text-xs text-zinc-400 leading-relaxed max-w-md">
-                Paste any URL from Devpost, Devfolio, Unstop, or Luma. Hackline auto-queries official APIs to extract prize pools, rules, and milestone gates in milliseconds.
+              <p className="mt-1.5 text-xs text-zinc-400 leading-relaxed max-w-lg">
+                Paste any URL from Devpost, Unstop, Devfolio, or Luma. Hackline auto-queries official APIs to extract prize pools, rules, and milestone gates in milliseconds.
               </p>
             </div>
 
@@ -199,7 +200,7 @@ export default function LandingPage() {
           </div>
 
           {/* Bento 2: Squad Sync */}
-          <div id="squads" className="md:col-span-5 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 flex flex-col justify-between">
+          <div className="md:col-span-5 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 flex flex-col justify-between">
             <div>
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300 mb-4">
                 <Users2 className="h-4 w-4" />
@@ -231,7 +232,7 @@ export default function LandingPage() {
           {/* Bento 3: Timeline Gates */}
           <div className="md:col-span-5 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 flex flex-col justify-between">
             <div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 mb-4">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300 mb-4">
                 <Calendar className="h-4 w-4" />
               </div>
               <h3 className="text-base font-bold text-white tracking-tight">
@@ -249,7 +250,7 @@ export default function LandingPage() {
           </div>
 
           {/* Bento 4: Pre-Flight Safety */}
-          <div id="preflight" className="md:col-span-7 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 flex flex-col justify-between">
+          <div className="md:col-span-7 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300">
