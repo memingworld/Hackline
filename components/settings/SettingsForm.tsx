@@ -64,10 +64,10 @@ export function SettingsForm({
   const [showConfirm, setShowConfirm] = React.useState(false);
   const [isChangingPassword, setIsChangingPassword] = React.useState(false);
 
-  // Telegram notification state
-  const [telegramChatId, setTelegramChatId] = React.useState(activeTeam?.telegram_chat_id || "");
-  const [enableT24, setEnableT24] = React.useState(activeTeam?.notify_t24 ?? true);
-  const [enableT2, setEnableT2] = React.useState(activeTeam?.notify_t2 ?? true);
+  // Personal Telegram notification state
+  const [telegramChatId, setTelegramChatId] = React.useState(profile?.telegram_chat_id || "");
+  const [enableT24, setEnableT24] = React.useState(profile?.notify_t24 ?? true);
+  const [enableT2, setEnableT2] = React.useState(profile?.notify_t2 ?? true);
   const [isSavingTelegram, setIsSavingTelegram] = React.useState(false);
   const [isTestingTelegram, setIsTestingTelegram] = React.useState(false);
   const [isDisconnecting, setIsDisconnecting] = React.useState(false);
@@ -163,23 +163,17 @@ export function SettingsForm({
 
   const handleSaveTelegram = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeTeam) {
-      toast.error("No active squad selected.");
-      return;
-    }
-
     setIsSavingTelegram(true);
     try {
       const res = await saveTelegramSettings({
-        teamId: activeTeam.id,
         chatId: telegramChatId.trim(),
         enableT24,
         enableT2,
       });
 
       if (res.success) {
-        toast.success("Telegram preferences saved!", {
-          description: "Automated countdown alerts will trigger at T-24h and T-2h.",
+        toast.success("Personal Telegram preferences saved!", {
+          description: "Direct countdown pings will trigger at T-24h and T-2h.",
         });
         router.refresh();
       } else {
@@ -193,12 +187,11 @@ export function SettingsForm({
   };
 
   const handleDisconnectTelegram = async () => {
-    if (!activeTeam) return;
     setIsDisconnecting(true);
     try {
-      const res = await disconnectTelegram(activeTeam.id);
+      const res = await disconnectTelegram();
       if (res.success) {
-        toast.success("Telegram alerts disconnected.");
+        toast.success("Personal Telegram alerts disconnected.");
         setTelegramChatId("");
         router.refresh();
       } else {
@@ -212,12 +205,7 @@ export function SettingsForm({
   };
 
   const handleTestTelegram = async () => {
-    if (!activeTeam) {
-      toast.error("No active squad selected.");
-      return;
-    }
-
-    const targetId = telegramChatId.trim() || activeTeam.telegram_chat_id;
+    const targetId = telegramChatId.trim() || profile?.telegram_chat_id;
     if (!targetId) {
       toast.error("Please connect via Telegram or enter a Chat ID first.");
       return;
@@ -225,7 +213,7 @@ export function SettingsForm({
 
     setIsTestingTelegram(true);
     try {
-      const res = await sendTestTelegramNotification(activeTeam.id, targetId);
+      const res = await sendTestTelegramNotification(targetId);
       if (res.success) {
         toast.success("Telegram test alert dispatched!", {
           description: res.message,
@@ -477,7 +465,7 @@ export function SettingsForm({
         </div>
       </div>
 
-      {/* 3. Telegram Deadline Alert Engine */}
+      {/* 3. Personal Telegram Deadline Alert Engine */}
       <div className="rounded-[2rem] p-1.5 bg-white/5 border border-white/10 ring-1 ring-white/5 shadow-xl">
         <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950 p-6 md:p-8">
           <div className="flex items-center justify-between pb-5 border-b border-zinc-800">
@@ -487,182 +475,174 @@ export function SettingsForm({
               </div>
               <div>
                 <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
-                  <span>Telegram Deadline Alert Engine</span>
+                  <span>Personal Telegram Deadline Alerts</span>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400">
-                    Free &bull; Unlimited Alerts
+                    Direct 1-on-1 DMs &bull; Free Forever
                   </span>
                 </h2>
                 <p className="text-xs text-zinc-400">
-                  Instant push countdown alerts broadcast to your personal Telegram or squad group chat at T-24h and T-2h.
+                  Instant push countdown warnings sent directly to your personal phone at T-24h and T-2h for all hackathons you join.
                 </p>
               </div>
             </div>
           </div>
 
           <div className="mt-6 space-y-6">
-            {activeTeam ? (
-              <div className="space-y-4">
-                {/* Connection Status Card */}
-                {activeTeam.telegram_chat_id ? (
-                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-emerald-300">
-                            Squad Telegram Connected
-                          </span>
-                          <span className="text-[10px] font-mono bg-zinc-900/80 border border-zinc-700/60 px-2 py-0.5 rounded text-zinc-300">
-                            Chat ID: {activeTeam.telegram_chat_id}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-zinc-400 mt-0.5">
-                          Squad "{activeTeam.name}" is paired. Alerts will deliver with sound and push notifications.
-                        </p>
-                      </div>
+            <div className="space-y-4">
+              {/* Connection Status Card */}
+              {profile?.telegram_chat_id ? (
+                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
                     </div>
-
-                    <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleDisconnectTelegram}
-                        disabled={isDisconnecting}
-                        className="text-xs rounded-xl h-8 px-3 text-zinc-400 hover:text-rose-400 hover:border-rose-500/30"
-                      >
-                        <Unlink className="h-3.5 w-3.5 mr-1" />
-                        <span>{isDisconnecting ? "Disconnecting..." : "Disconnect"}</span>
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                      <div>
-                        <span className="text-xs font-semibold text-white block">
-                          Connect Your Squad via Telegram
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-emerald-300">
+                          Personal Telegram Connected
                         </span>
-                        <p className="text-[11px] text-zinc-400 mt-0.5">
-                          Tap the button below to open Telegram and press <strong>Start</strong>. Your squad will be connected with 1-click.
-                        </p>
+                        <span className="text-[10px] font-mono bg-zinc-900/80 border border-zinc-700/60 px-2 py-0.5 rounded text-zinc-300">
+                          Chat ID: {profile.telegram_chat_id}
+                        </span>
                       </div>
-
-                      <a
-                        href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "HacklineAlertsBot"}?start=${activeTeam.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-400 text-black font-semibold text-xs px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-sky-500/20 shrink-0"
-                      >
-                        <Send className="h-3.5 w-3.5 fill-current" />
-                        <span>Connect via Telegram</span>
-                        <ExternalLink className="h-3 w-3 opacity-60" />
-                      </a>
-                    </div>
-
-                    {/* Manual Chat ID Fallback */}
-                    <div className="pt-3 border-t border-sky-500/10">
-                      <label className="text-[11px] font-medium text-zinc-300 block mb-1.5">
-                        Or enter Chat ID manually (Personal or Squad Group Chat ID):
-                      </label>
-                      <div className="flex items-center gap-2 max-w-md">
-                        <Input
-                          value={telegramChatId}
-                          onChange={(e) => setTelegramChatId(e.target.value)}
-                          placeholder="e.g. 123456789 or -10023456789"
-                          className="bg-zinc-900/60 border-zinc-800 text-xs font-mono h-9"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleSaveTelegram}
-                          disabled={isSavingTelegram || !telegramChatId.trim()}
-                          className="text-xs rounded-xl h-9 shrink-0"
-                        >
-                          {isSavingTelegram ? "Saving..." : "Pair Chat ID"}
-                        </Button>
-                      </div>
-                      <p className="text-[10px] text-zinc-500 font-mono mt-1">
-                        Tip: Add our bot to a squad group chat, or send a message to @userinfobot to get your ID.
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        Your account is paired. You will receive private DMs with sound and push notifications for your hackathon deadlines.
                       </p>
                     </div>
                   </div>
-                )}
 
-                {/* Form for toggling T-24h / T-2h and sending test alert */}
-                <form onSubmit={handleSaveTelegram} className="space-y-4 pt-2">
-                  <div className="space-y-2.5">
-                    <label className="flex items-start gap-3 p-3.5 rounded-xl border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={enableT24}
-                        onChange={(e) => setEnableT24(e.target.checked)}
-                        className="mt-0.5 rounded border-zinc-700 bg-zinc-950 text-sky-500 focus:ring-0"
-                      />
-                      <div>
-                        <span className="text-xs font-semibold text-white block">
-                          T-24h Emergency Warning (24 Hours Remaining)
-                        </span>
-                        <span className="text-[11px] text-zinc-400 block mt-0.5">
-                          Alerts the squad to freeze core feature branches, initiate slide deck drafts, and verify teammate registrations.
-                        </span>
-                      </div>
-                    </label>
-
-                    <label className="flex items-start gap-3 p-3.5 rounded-xl border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={enableT2}
-                        onChange={(e) => setEnableT2(e.target.checked)}
-                        className="mt-0.5 rounded border-zinc-700 bg-zinc-950 text-sky-500 focus:ring-0"
-                      />
-                      <div>
-                        <span className="text-xs font-semibold text-white block">
-                          T-2h Final Code Freeze Alert (2 Hours Remaining)
-                        </span>
-                        <span className="text-[11px] text-zinc-400 block mt-0.5">
-                          Final urgent broadcast to push main, ensure public repository permissions, upload Loom demo, and submit to portal.
-                        </span>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-zinc-850">
+                  <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={handleTestTelegram}
-                      disabled={isTestingTelegram || (!activeTeam.telegram_chat_id && !telegramChatId.trim())}
-                      className="text-xs rounded-xl gap-1.5 hover:border-sky-500/40 hover:text-sky-400"
+                      onClick={handleDisconnectTelegram}
+                      disabled={isDisconnecting}
+                      className="text-xs rounded-xl h-8 px-3 text-zinc-400 hover:text-rose-400 hover:border-rose-500/30"
                     >
-                      <Send className="h-3.5 w-3.5 text-sky-400" />
-                      <span>{isTestingTelegram ? "Dispatching..." : "Send Test Telegram Alert"}</span>
-                    </Button>
-
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      size="sm"
-                      disabled={isSavingTelegram}
-                      className="text-xs rounded-xl px-5"
-                    >
-                      {isSavingTelegram ? "Saving..." : "Save Notification Preferences"}
+                      <Unlink className="h-3.5 w-3.5 mr-1" />
+                      <span>{isDisconnecting ? "Disconnecting..." : "Disconnect"}</span>
                     </Button>
                   </div>
-                </form>
-              </div>
-            ) : (
-              <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/30 text-center">
-                <p className="text-xs text-zinc-400">
-                  Join or create a squad first to configure automated Telegram deadline notifications.
-                </p>
-              </div>
-            )}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div>
+                      <span className="text-xs font-semibold text-white block">
+                        Connect Your Telegram (1-Click)
+                      </span>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        Tap the button below to open Telegram and press <strong>Start</strong>. Your account links instantly to receive direct DMs on your phone.
+                      </p>
+                    </div>
+
+                    <a
+                      href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "HacklineAlertsBot"}?start=${profile?.id || ""}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-400 text-black font-semibold text-xs px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-sky-500/20 shrink-0"
+                    >
+                      <Send className="h-3.5 w-3.5 fill-current" />
+                      <span>Connect via Telegram</span>
+                      <ExternalLink className="h-3 w-3 opacity-60" />
+                    </a>
+                  </div>
+
+                  {/* Manual Chat ID Fallback */}
+                  <div className="pt-3 border-t border-sky-500/10">
+                    <label className="text-[11px] font-medium text-zinc-300 block mb-1.5">
+                      Or enter your Telegram Chat ID manually:
+                    </label>
+                    <div className="flex items-center gap-2 max-w-md">
+                      <Input
+                        value={telegramChatId}
+                        onChange={(e) => setTelegramChatId(e.target.value)}
+                        placeholder="e.g. 123456789"
+                        className="bg-zinc-900/60 border-zinc-800 text-xs font-mono h-9"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSaveTelegram}
+                        disabled={isSavingTelegram || !telegramChatId.trim()}
+                        className="text-xs rounded-xl h-9 shrink-0"
+                      >
+                        {isSavingTelegram ? "Saving..." : "Pair Chat ID"}
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-zinc-500 font-mono mt-1">
+                      Tip: You can get your personal Chat ID from @userinfobot on Telegram or by pressing start on our bot.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Form for toggling T-24h / T-2h and sending test alert */}
+              <form onSubmit={handleSaveTelegram} className="space-y-4 pt-2">
+                <div className="space-y-2.5">
+                  <label className="flex items-start gap-3 p-3.5 rounded-xl border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={enableT24}
+                      onChange={(e) => setEnableT24(e.target.checked)}
+                      className="mt-0.5 rounded border-zinc-700 bg-zinc-950 text-sky-500 focus:ring-0"
+                    />
+                    <div>
+                      <span className="text-xs font-semibold text-white block">
+                        T-24h Emergency Warning (24 Hours Remaining)
+                      </span>
+                      <span className="text-[11px] text-zinc-400 block mt-0.5">
+                        Direct ping to freeze feature branches, initiate slide deck drafts, and verify teammate registrations.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-3 p-3.5 rounded-xl border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={enableT2}
+                      onChange={(e) => setEnableT2(e.target.checked)}
+                      className="mt-0.5 rounded border-zinc-700 bg-zinc-950 text-sky-500 focus:ring-0"
+                    />
+                    <div>
+                      <span className="text-xs font-semibold text-white block">
+                        T-2h Final Code Freeze Alert (2 Hours Remaining)
+                      </span>
+                      <span className="text-[11px] text-zinc-400 block mt-0.5">
+                        Urgent direct DM to push main, make repo public, upload Loom demo, and complete portal submission gates.
+                      </span>
+                    </div>
+                  </label>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-zinc-850">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleTestTelegram}
+                    disabled={isTestingTelegram || (!profile?.telegram_chat_id && !telegramChatId.trim())}
+                    className="text-xs rounded-xl gap-1.5 hover:border-sky-500/40 hover:text-sky-400"
+                  >
+                    <Send className="h-3.5 w-3.5 text-sky-400" />
+                    <span>{isTestingTelegram ? "Dispatching..." : "Send Test Telegram Alert"}</span>
+                  </Button>
+
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    disabled={isSavingTelegram}
+                    className="text-xs rounded-xl px-5"
+                  >
+                    {isSavingTelegram ? "Saving..." : "Save Notification Preferences"}
+                  </Button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>

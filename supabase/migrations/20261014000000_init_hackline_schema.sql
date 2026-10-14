@@ -48,6 +48,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   phone_number TEXT,
   github_handle TEXT,
   primary_role TEXT, -- e.g. "Frontend Engineer", "Backend / AI", "Product & Pitch"
+  telegram_chat_id TEXT,
+  telegram_connected_at TIMESTAMPTZ,
+  notify_t24 BOOLEAN DEFAULT true,
+  notify_t2 BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -204,8 +208,8 @@ CREATE TABLE IF NOT EXISTS public.submission_checklists (
 -- 3.10 NOTIFICATION WEBHOOKS (Telegram T-24h & T-2h Triggers)
 CREATE TABLE IF NOT EXISTS public.telegram_notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  team_id UUID REFERENCES public.teams(id) ON DELETE CASCADE NOT NULL,
-  hackathon_id UUID REFERENCES public.hackathons(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  hackathon_id UUID REFERENCES public.hackathons(id) ON DELETE CASCADE,
   trigger_type TEXT NOT NULL, -- 'T-24h', 'T-2h', 'test'
   message_text TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'sent' CHECK (status IN ('pending', 'sent', 'failed')),
@@ -227,7 +231,7 @@ CREATE INDEX IF NOT EXISTS idx_problem_votes_problem ON public.problem_votes(pro
 CREATE INDEX IF NOT EXISTS idx_assets_team ON public.assets(team_id);
 CREATE INDEX IF NOT EXISTS idx_timeline_events_team ON public.timeline_events(team_id);
 CREATE INDEX IF NOT EXISTS idx_checklists_team ON public.submission_checklists(team_id);
-CREATE INDEX IF NOT EXISTS idx_telegram_notifs_team_trigger ON public.telegram_notifications(team_id, trigger_type);
+CREATE INDEX IF NOT EXISTS idx_telegram_notifs_user_trigger ON public.telegram_notifications(user_id, trigger_type);
 
 -- ==============================================================================
 -- 5. ROW LEVEL SECURITY (RLS) POLICIES
@@ -484,16 +488,10 @@ CREATE POLICY "Team members can view and toggle checklist items"
   );
 
 -- 5.11 NOTIFICATIONS POLICIES
-CREATE POLICY "Captains and team members can monitor their notifications"
+CREATE POLICY "Users can view their own notifications"
   ON public.telegram_notifications FOR SELECT
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.team_members
-      WHERE team_members.team_id = telegram_notifications.team_id
-      AND team_members.user_id = auth.uid()
-    )
-  );
+  USING (user_id = auth.uid());
 
 CREATE POLICY "Service or authenticated users can insert telegram notifications"
   ON public.telegram_notifications FOR INSERT

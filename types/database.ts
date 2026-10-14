@@ -22,6 +22,10 @@ export interface Profile {
   phone_number: string | null;
   github_handle: string | null;
   primary_role: string | null;
+  telegram_chat_id?: string | null;
+  telegram_connected_at?: string | null;
+  notify_t24?: boolean;
+  notify_t2?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -77,8 +81,9 @@ export interface Team {
 
 export interface TelegramNotification {
   id: string;
-  team_id: string;
-  hackathon_id: string;
+  user_id: string;
+  team_id?: string | null;
+  hackathon_id?: string | null;
   trigger_type: "T-24h" | "T-2h" | "test";
   message_text: string;
   status: "pending" | "sent" | "failed";

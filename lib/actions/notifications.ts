@@ -4,14 +4,13 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export interface TelegramSettingsPayload {
-  teamId: string;
   chatId?: string;
   enableT24: boolean;
   enableT2: boolean;
 }
 
 /**
- * Save Telegram notification settings and alert preferences for a squad.
+ * Save personal Telegram notification settings and alert preferences on user profile.
  */
 export async function saveTelegramSettings(payload: TelegramSettingsPayload) {
   try {
@@ -22,10 +21,6 @@ export async function saveTelegramSettings(payload: TelegramSettingsPayload) {
 
     if (!user) {
       return { success: false, error: "Unauthorized: Please sign in." };
-    }
-
-    if (!payload.teamId) {
-      return { success: false, error: "Active squad not found." };
     }
 
     const cleanChatId = payload.chatId?.trim() || null;
@@ -42,9 +37,9 @@ export async function saveTelegramSettings(payload: TelegramSettingsPayload) {
     }
 
     const { error } = await supabase
-      .from("teams")
+      .from("profiles")
       .update(updatePayload)
-      .eq("id", payload.teamId);
+      .eq("id", user.id);
 
     if (error) {
       return { success: false, error: error.message };
@@ -58,9 +53,9 @@ export async function saveTelegramSettings(payload: TelegramSettingsPayload) {
 }
 
 /**
- * Disconnect Telegram notifications from a squad.
+ * Disconnect personal Telegram notifications from user profile.
  */
-export async function disconnectTelegram(teamId: string) {
+export async function disconnectTelegram() {
   try {
     const supabase = await createClient();
     const {
@@ -72,13 +67,13 @@ export async function disconnectTelegram(teamId: string) {
     }
 
     const { error } = await supabase
-      .from("teams")
+      .from("profiles")
       .update({
         telegram_chat_id: null,
         telegram_connected_at: null,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", teamId);
+      .eq("id", user.id);
 
     if (error) {
       return { success: false, error: error.message };
@@ -94,7 +89,7 @@ export async function disconnectTelegram(teamId: string) {
 /**
  * Dispatch an instant test Telegram notification to verify connectivity.
  */
-export async function sendTestTelegramNotification(teamId: string, customChatId?: string) {
+export async function sendTestTelegramNotification(customChatId?: string) {
   try {
     const supabase = await createClient();
     const {
@@ -105,18 +100,18 @@ export async function sendTestTelegramNotification(teamId: string, customChatId?
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
-    // Fetch team info
-    const { data: team, error: teamError } = await supabase
-      .from("teams")
-      .select("id, name, telegram_chat_id, hackathon:hackathons(id, title)")
-      .eq("id", teamId)
+    // Fetch user profile
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, full_name, telegram_chat_id")
+      .eq("id", user.id)
       .single();
 
-    if (teamError || !team) {
-      return { success: false, error: "Squad not found." };
+    if (profileError || !profile) {
+      return { success: false, error: "Profile not found." };
     }
 
-    const targetChatId = customChatId?.trim() || team.telegram_chat_id;
+    const targetChatId = customChatId?.trim() || profile.telegram_chat_id;
 
     if (!targetChatId) {
       return {
@@ -133,10 +128,9 @@ export async function sendTestTelegramNotification(teamId: string, customChatId?
       };
     }
 
-    const teamName = team.name || "Your Squad";
-    const hackathonTitle = (team.hackathon as any)?.title || "Upcoming Hackathon";
+    const userName = profile.full_name || "Developer";
 
-    const message = `🚨 *Hackline Alert [TEST DISPATCH]* 🚨\n\nSquad: *${teamName}*\nEvent: *${hackathonTitle}*\n\n✅ Your Telegram notification channel is active! Your squad will receive automated T-24h and T-2h alerts before portal submission closes.`;
+    const message = `🚨 *Hackline Alert [TEST DISPATCH]* 🚨\n\nHey *${userName}*!\n\n✅ Your personal Telegram notification pipeline is active! You will receive high-priority direct alerts on your phone at T-24h and T-2h before any of your hackathon submission gates close.`;
 
     const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
@@ -157,21 +151,18 @@ export async function sendTestTelegramNotification(teamId: string, customChatId?
       };
     }
 
-    // Log the successful notification in database if table exists
-    if ((team.hackathon as any)?.id) {
-      await supabase.from("telegram_notifications").insert({
-        team_id: team.id,
-        hackathon_id: (team.hackathon as any).id,
-        trigger_type: "test",
-        message_text: message,
-        status: "sent",
-        telegram_message_id: data?.result?.message_id ? String(data.result.message_id) : null,
-      });
-    }
+    // Log the successful notification in database
+    await supabase.from("telegram_notifications").insert({
+      user_id: user.id,
+      trigger_type: "test",
+      message_text: message,
+      status: "sent",
+      telegram_message_id: data?.result?.message_id ? String(data.result.message_id) : null,
+    });
 
     return {
       success: true,
-      message: `Test alert dispatched to Telegram chat (${targetChatId})!`,
+      message: `Test alert dispatched to your Telegram chat (${targetChatId})!`,
     };
   } catch (err: any) {
     return {

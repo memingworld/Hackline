@@ -14,68 +14,102 @@ export async function POST(req: NextRequest) {
     const supabase = createAdminClient();
     const now = new Date();
 
-    // Query teams that have connected a Telegram chat and have an associated hackathon
-    const { data: teams, error } = await supabase
-      .from("teams")
-      .select(`
-        id,
-        name,
-        telegram_chat_id,
-        notify_t24,
-        notify_t2,
-        hackathon:hackathons(
-          id,
-          title,
-          ends_at
-        )
-      `)
-      .not("telegram_chat_id", "is", null);
+    // Query active hackathons that haven't ended yet
+    const { data: hackathons, error: hackathonsError } = await supabase
+      .from("hackathons")
+      .select("id, title, ends_at")
+      .gt("ends_at", now.toISOString());
 
-    if (error) {
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    if (hackathonsError) {
+      return NextResponse.json({ success: false, error: hackathonsError.message }, { status: 500 });
     }
 
-    if (!teams || teams.length === 0) {
+    if (!hackathons || hackathons.length === 0) {
       return NextResponse.json({
         success: true,
-        message: "No squads with connected Telegram chats found.",
+        message: "No active hackathons found.",
         dispatched: 0,
       });
     }
 
     let dispatchedCount = 0;
 
-    for (const team of teams) {
-      const hackathon = team.hackathon as any;
-      if (!hackathon || !hackathon.ends_at) continue;
+    for (const hackathon of hackathons) {
+      if (!hackathon.ends_at) continue;
 
       const endsAt = new Date(hackathon.ends_at).getTime();
       const nowTime = now.getTime();
-
-      // Only check hackathons that haven't expired yet
-      if (nowTime > endsAt) continue;
-
       const hoursRemaining = (endsAt - nowTime) / (1000 * 60 * 60);
 
-      // Check T-24h trigger (between 2h and 24h remaining)
-      if (team.notify_t24 !== false && hoursRemaining <= 24 && hoursRemaining > 2) {
-        // Check if already dispatched
-        const { data: existing } = await supabase
-          .from("telegram_notifications")
-          .select("id")
-          .eq("team_id", team.id)
-          .eq("hackathon_id", hackathon.id)
-          .eq("trigger_type", "T-24h")
-          .limit(1);
+      const isT24Window = hoursRemaining <= 24 && hoursRemaining > 2;
+      const isT2Window = hoursRemaining <= 2 && hoursRemaining > 0;
 
-        if (!existing || existing.length === 0) {
-          const message = `⚠️ *Hackline Urgent Alert [T-24h Remaining]*\n\nSquad: *${team.name}*\nEvent: *${hackathon.title}*\n\n24 hours remain until submission portal closes!\n• Finalize core features\n• Begin presentation deck & architecture diagram\n• Verify teammate registrations in portal`;
+      if (!isT24Window && !isT2Window) continue;
 
+      const triggerType = isT2Window ? "T-2h" : "T-24h";
+
+      // Fetch all participating team members for this hackathon
+      const { data: teams } = await supabase
+        .from("teams")
+        .select(`
+          id,
+          name,
+          members:team_members(
+            user:profiles(
+              id,
+              full_name,
+              telegram_chat_id,
+              notify_t24,
+              notify_t2
+            )
+          )
+        `)
+        .eq("hackathon_id", hackathon.id);
+
+      if (!teams || teams.length === 0) continue;
+
+      // Collect all unique users in these teams
+      const processedUserIds = new Set<string>();
+
+      for (const team of teams) {
+        const members = (team.members as any[]) || [];
+
+        for (const member of members) {
+          const profile = member.user;
+          if (!profile || !profile.telegram_chat_id) continue;
+          if (processedUserIds.has(profile.id)) continue; // Avoid duplicate DMs if user in multiple contexts
+          processedUserIds.add(profile.id);
+
+          // Check user preference
+          if (triggerType === "T-24h" && profile.notify_t24 === false) continue;
+          if (triggerType === "T-2h" && profile.notify_t2 === false) continue;
+
+          // Check if notification already dispatched to this user for this hackathon & trigger
+          const { data: existing } = await supabase
+            .from("telegram_notifications")
+            .select("id")
+            .eq("user_id", profile.id)
+            .eq("hackathon_id", hackathon.id)
+            .eq("trigger_type", triggerType)
+            .limit(1);
+
+          if (existing && existing.length > 0) continue;
+
+          const userName = profile.full_name || "Developer";
+
+          let message = "";
+          if (triggerType === "T-24h") {
+            message = `⚠️ *Hackline Urgent Alert [T-24h Remaining]*\n\nHey *${userName}*!\n\n24 hours remain until submission portal closes for *${hackathon.title}* (Squad: *${team.name}*)!\n\n• Finalize core feature branches\n• Prepare demo video link & pitch deck\n• Verify all team members are registered in portal`;
+          } else {
+            message = `🚨 *Hackline Code Freeze Warning [T-2h Remaining]*\n\nHey *${userName}*!\n\nFINAL 2 HOURS for *${hackathon.title}*!\n\n1️⃣ Push main branch & make GitHub repo public\n2️⃣ Upload Loom/YouTube demo & test permissions\n3️⃣ Complete pre-flight checklist gates & submit before portal closes!`;
+          }
+
+          // Direct private DM to user's Telegram
           const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              chat_id: team.telegram_chat_id,
+              chat_id: profile.telegram_chat_id,
               text: message,
               parse_mode: "Markdown",
             }),
@@ -84,48 +118,9 @@ export async function POST(req: NextRequest) {
           const resData = await res.json();
 
           await supabase.from("telegram_notifications").insert({
-            team_id: team.id,
+            user_id: profile.id,
             hackathon_id: hackathon.id,
-            trigger_type: "T-24h",
-            message_text: message,
-            status: res.ok ? "sent" : "failed",
-            telegram_message_id: resData?.result?.message_id ? String(resData.result.message_id) : null,
-            error_message: res.ok ? null : resData?.description || "Dispatch failed",
-          });
-
-          if (res.ok) dispatchedCount++;
-        }
-      }
-
-      // Check T-2h trigger (within final 2 hours)
-      if (team.notify_t2 !== false && hoursRemaining <= 2 && hoursRemaining > 0) {
-        const { data: existing } = await supabase
-          .from("telegram_notifications")
-          .select("id")
-          .eq("team_id", team.id)
-          .eq("hackathon_id", hackathon.id)
-          .eq("trigger_type", "T-2h")
-          .limit(1);
-
-        if (!existing || existing.length === 0) {
-          const message = `🚨 *Hackline Code Freeze Warning [T-2h Remaining]*\n\nSquad: *${team.name}*\nEvent: *${hackathon.title}*\n\nFINAL 2 HOURS! Portal closing imminently:\n1️⃣ Push main branch & make GitHub repo public\n2️⃣ Upload Loom demo video & verify permissions\n3️⃣ Complete pre-flight checklist gates & submit early!`;
-
-          const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chat_id: team.telegram_chat_id,
-              text: message,
-              parse_mode: "Markdown",
-            }),
-          });
-
-          const resData = await res.json();
-
-          await supabase.from("telegram_notifications").insert({
-            team_id: team.id,
-            hackathon_id: hackathon.id,
-            trigger_type: "T-2h",
+            trigger_type: triggerType,
             message_text: message,
             status: res.ok ? "sent" : "failed",
             telegram_message_id: resData?.result?.message_id ? String(resData.result.message_id) : null,
@@ -140,7 +135,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       dispatched: dispatchedCount,
-      evaluated_teams: teams.length,
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {

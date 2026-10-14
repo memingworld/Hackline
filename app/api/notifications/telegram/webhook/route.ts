@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     if (!botToken) {
       console.warn("[Telegram Webhook] TELEGRAM_BOT_TOKEN is not configured.");
-      return NextResponse.json({ ok: true }); // Always return 200 to Telegram
+      return NextResponse.json({ ok: true });
     }
 
     const body: TelegramUpdate = await req.json();
@@ -54,84 +54,78 @@ export async function POST(req: NextRequest) {
     const rawText = message.text.trim();
     const supabase = createAdminClient();
 
-    // 1. Handle 1-Click Squad Connect: /start <team_id>
+    // 1. Handle 1-Click User Profile Connect: /start <user_id>
     if (rawText.startsWith("/start")) {
       const parts = rawText.split(" ");
-      const teamId = parts.length > 1 ? parts[1].trim() : null;
+      const userId = parts.length > 1 ? parts[1].trim() : null;
 
-      if (teamId) {
-        // Query team from Supabase
-        const { data: team, error: teamError } = await supabase
-          .from("teams")
-          .select("id, name, hackathon:hackathons(title, ends_at)")
-          .eq("id", teamId)
+      if (userId) {
+        // Query user profile from Supabase
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .eq("id", userId)
           .single();
 
-        if (teamError || !team) {
+        if (profileError || !profile) {
           await sendTelegramMessage(
             botToken,
             chatId,
-            `⚠️ *Squad Not Found*\n\nCould not find a squad with ID \`${teamId}\`. Please check your team link in the Hackline dashboard.`
+            `⚠️ *Account Not Found*\n\nCould not find a user profile with ID \`${userId}\`. Please verify your connection link in the Hackline dashboard.`
           );
           return NextResponse.json({ ok: true });
         }
 
-        // Link team to this Telegram chat
+        // Link profile to this Telegram chat
         await supabase
-          .from("teams")
+          .from("profiles")
           .update({
             telegram_chat_id: String(chatId),
             telegram_connected_at: new Date().toISOString(),
           })
-          .eq("id", team.id);
+          .eq("id", profile.id);
 
-        const hackathonTitle = (team.hackathon as any)?.title || "your active hackathon";
+        const userName = profile.full_name || "Developer";
 
         await sendTelegramMessage(
           botToken,
           chatId,
-          `🚀 *Hackline Command Center Linked!*\n\nSquad: *${team.name}*\nEvent: *${hackathonTitle}*\n\n✅ This chat is now connected to your Hackline workspace. Automated *T-24h* and *T-2h* submission deadline alerts will be dispatched here for your entire squad.\n\nKeep building and stay locked in!`
+          `🚀 *Hackline Connected!*\n\nHey *${userName}*! Your personal Telegram account is now linked to Hackline.\n\nWhenever any hackathon you participate in approaches its submission deadline (*T-24h* and *T-2h*), you will receive a direct 1-on-1 private alert right here on your phone.\n\nKeep building and stay locked in! 🔥`
         );
 
         return NextResponse.json({ ok: true });
       }
 
-      // /start without team ID
+      // /start without user ID
       await sendTelegramMessage(
         botToken,
         chatId,
-        `👋 *Welcome to Hackline Alert Bot!*\n\nTo link your hackathon squad for automated deadline countdown warnings:\n\n1️⃣ Open your **Hackline Dashboard** $\\rightarrow$ **Settings & Alerts**.\n2️⃣ Click **"Connect via Telegram"** with 1-click.\n\nYour Telegram Chat ID: \`${chatId}\``
+        `👋 *Welcome to Hackline Alert Bot!*\n\nTo link your personal account for automated deadline countdown warnings:\n\n1️⃣ Open your **Hackline Dashboard** $\\rightarrow$ **Settings & Alerts**.\n2️⃣ Click **"Connect via Telegram"** with 1-click.\n\nYour Telegram Chat ID: \`${chatId}\``
       );
       return NextResponse.json({ ok: true });
     }
 
     // 2. Handle /status command
     if (rawText === "/status") {
-      const { data: teams } = await supabase
-        .from("teams")
-        .select("id, name, telegram_connected_at, hackathon:hackathons(title, ends_at)")
-        .eq("telegram_chat_id", String(chatId));
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, telegram_connected_at")
+        .eq("telegram_chat_id", String(chatId))
+        .single();
 
-      if (!teams || teams.length === 0) {
+      if (!profile) {
         await sendTelegramMessage(
           botToken,
           chatId,
-          `ℹ️ No Hackline squads are currently linked to this chat.\n\nChat ID: \`${chatId}\`\nLink your squad via the Hackline Settings dashboard.`
+          `ℹ️ No Hackline account is currently linked to this Telegram chat.\n\nChat ID: \`${chatId}\`\nLink your account via Hackline Settings & Alerts.`
         );
         return NextResponse.json({ ok: true });
       }
 
-      const teamList = teams
-        .map((t) => {
-          const title = (t.hackathon as any)?.title || "Hackathon";
-          return `• *${t.name}* (${title})`;
-        })
-        .join("\n");
-
       await sendTelegramMessage(
         botToken,
         chatId,
-        `🟢 *Hackline Squad Status: Connected*\n\nLinked Squads:\n${teamList}\n\nAutomated T-24h and T-2h alert pipelines are active.`
+        `🟢 *Hackline Status: Connected*\n\nAccount: *${profile.full_name || profile.email}*\n\nYour personal 1-on-1 deadline alerts (T-24h and T-2h) are active.`
       );
       return NextResponse.json({ ok: true });
     }
@@ -139,7 +133,7 @@ export async function POST(req: NextRequest) {
     // 3. Handle /disconnect command
     if (rawText === "/disconnect") {
       await supabase
-        .from("teams")
+        .from("profiles")
         .update({
           telegram_chat_id: null,
           telegram_connected_at: null,
@@ -149,7 +143,7 @@ export async function POST(req: NextRequest) {
       await sendTelegramMessage(
         botToken,
         chatId,
-        `🔌 Squad disconnected from this Telegram chat. You will no longer receive Hackline deadline alerts here.`
+        `🔌 Your Hackline account has been disconnected from this Telegram chat. You will no longer receive deadline alerts here.`
       );
       return NextResponse.json({ ok: true });
     }
@@ -157,14 +151,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err: any) {
     console.error("[Telegram Webhook] Error processing update:", err);
-    return NextResponse.json({ ok: true }); // Always 200 so Telegram doesn't retry infinitely on error
+    return NextResponse.json({ ok: true });
   }
 }
 
 export async function GET() {
   return NextResponse.json({
     status: "online",
-    service: "Hackline Telegram Webhook Receiver",
+    service: "Hackline Telegram User Webhook Receiver",
     timestamp: new Date().toISOString(),
   });
 }
