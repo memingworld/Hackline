@@ -292,17 +292,42 @@ CREATE POLICY "Hackathon creators can delete their entries"
   TO authenticated
   USING (auth.uid() = created_by);
 
+-- Helper functions to prevent RLS infinite recursion
+CREATE OR REPLACE FUNCTION public.is_team_member(check_team_id UUID, check_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.team_members
+    WHERE team_id = check_team_id
+    AND user_id = check_user_id
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_team_captain(check_team_id UUID, check_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.teams
+    WHERE id = check_team_id
+    AND captain_id = check_user_id
+  );
+$$;
+
 -- 5.3 TEAMS POLICIES
-CREATE POLICY "Users can read teams they belong to or are public"
+CREATE POLICY "Users can read teams they belong to"
   ON public.teams FOR SELECT
   TO authenticated
   USING (
     captain_id = auth.uid() OR
-    EXISTS (
-      SELECT 1 FROM public.team_members
-      WHERE team_members.team_id = teams.id
-      AND team_members.user_id = auth.uid()
-    )
+    public.is_team_member(id, auth.uid())
   );
 
 CREATE POLICY "Authenticated users can create teams"
@@ -315,46 +340,43 @@ CREATE POLICY "Captains can update their team"
   TO authenticated
   USING (auth.uid() = captain_id);
 
+CREATE POLICY "Captains can delete their team"
+  ON public.teams FOR DELETE
+  TO authenticated
+  USING (auth.uid() = captain_id);
+
 -- 5.4 TEAM MEMBERS POLICIES
 CREATE POLICY "Team members can view squad members"
   ON public.team_members FOR SELECT
   TO authenticated
   USING (
-    EXISTS (
-      SELECT 1 FROM public.teams
-      WHERE teams.id = team_members.team_id
-      AND (
-        teams.captain_id = auth.uid() OR
-        EXISTS (
-          SELECT 1 FROM public.team_members tm2
-          WHERE tm2.team_id = teams.id
-          AND tm2.user_id = auth.uid()
-        )
-      )
-    )
+    user_id = auth.uid() OR
+    public.is_team_captain(team_id, auth.uid()) OR
+    public.is_team_member(team_id, auth.uid())
   );
 
-CREATE POLICY "Captains can manage squad roster"
+CREATE POLICY "Captains or self can insert team members"
   ON public.team_members FOR INSERT
   TO authenticated
   WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.teams
-      WHERE teams.id = team_members.team_id
-      AND teams.captain_id = auth.uid()
-    ) OR user_id = auth.uid() -- Allows user joining via invite code
+    user_id = auth.uid() OR
+    public.is_team_captain(team_id, auth.uid())
   );
 
-CREATE POLICY "Captains can remove members"
+CREATE POLICY "Captains or self can update team members"
+  ON public.team_members FOR UPDATE
+  TO authenticated
+  USING (
+    user_id = auth.uid() OR
+    public.is_team_captain(team_id, auth.uid())
+  );
+
+CREATE POLICY "Captains or self can remove members"
   ON public.team_members FOR DELETE
   TO authenticated
   USING (
     user_id = auth.uid() OR
-    EXISTS (
-      SELECT 1 FROM public.teams
-      WHERE teams.id = team_members.team_id
-      AND teams.captain_id = auth.uid()
-    )
+    public.is_team_captain(team_id, auth.uid())
   );
 
 -- 5.5 SAVED SQUADS POLICIES
