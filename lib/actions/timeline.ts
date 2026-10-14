@@ -3,6 +3,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { TimelineEventType } from "@/types/database";
+import { sanitizePlainText } from "@/lib/security";
 
 export interface CreateTimelineEventPayload {
   hackathonId: string;
@@ -26,7 +27,8 @@ export async function createTimelineEvent(payload: CreateTimelineEventPayload) {
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
-    if (!payload.title.trim() || !payload.deadline) {
+    const cleanTitle = sanitizePlainText(payload.title);
+    if (!cleanTitle || !payload.deadline) {
       return { success: false, error: "Title and deadline are required." };
     }
 
@@ -35,7 +37,7 @@ export async function createTimelineEvent(payload: CreateTimelineEventPayload) {
       .insert({
         hackathon_id: payload.hackathonId,
         team_id: payload.teamId || null,
-        title: payload.title.trim(),
+        title: cleanTitle,
         event_type: payload.eventType || "custom",
         deadline: new Date(payload.deadline).toISOString(),
         is_completed: false,

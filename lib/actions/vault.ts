@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { sanitizeSafeUrl, sanitizePlainText } from "@/lib/security";
 
 export interface CreateProblemPayload {
   teamId: string;
@@ -26,7 +27,8 @@ export async function createProblemStatement(payload: CreateProblemPayload) {
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
-    if (!payload.title.trim()) {
+    const cleanTitle = sanitizePlainText(payload.title);
+    if (!cleanTitle) {
       return { success: false, error: "Title is required." };
     }
 
@@ -35,10 +37,10 @@ export async function createProblemStatement(payload: CreateProblemPayload) {
       .insert({
         team_id: payload.teamId,
         hackathon_id: payload.hackathonId,
-        title: payload.title.trim(),
-        description: payload.description?.trim() || null,
-        track: payload.track?.trim() || "General / Open",
-        source_url: payload.sourceUrl?.trim() || null,
+        title: cleanTitle,
+        description: sanitizePlainText(payload.description) || null,
+        track: sanitizePlainText(payload.track) || "General / Open",
+        source_url: sanitizeSafeUrl(payload.sourceUrl) || null,
         created_by: user.id,
       })
       .select()
@@ -77,13 +79,18 @@ export async function updateProblemStatement(
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
+    const cleanTitle = sanitizePlainText(payload.title);
+    if (!cleanTitle) {
+      return { success: false, error: "Title is required." };
+    }
+
     const { error } = await supabase
       .from("problem_statements")
       .update({
-        title: payload.title.trim(),
-        description: payload.description?.trim() || null,
-        track: payload.track?.trim() || null,
-        source_url: payload.sourceUrl?.trim() || null,
+        title: cleanTitle,
+        description: sanitizePlainText(payload.description) || null,
+        track: sanitizePlainText(payload.track) || null,
+        source_url: sanitizeSafeUrl(payload.sourceUrl) || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);

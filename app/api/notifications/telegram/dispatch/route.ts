@@ -3,6 +3,18 @@ import { createAdminClient } from "@/utils/supabase/admin";
 
 export async function POST(req: NextRequest) {
   try {
+    // Verify CRON authorization to prevent spamming notification dispatch
+    const cronSecret = process.env.CRON_SECRET;
+    if (cronSecret) {
+      const authHeader = req.headers.get("authorization");
+      if (authHeader !== `Bearer ${cronSecret}`) {
+        return NextResponse.json(
+          { success: false, error: "Unauthorized: Missing or invalid authorization token." },
+          { status: 401 }
+        );
+      }
+    }
+
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     if (!botToken) {
       return NextResponse.json(

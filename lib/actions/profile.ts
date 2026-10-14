@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { sanitizePlainText } from "@/lib/security";
 
 export interface UpdateProfilePayload {
   fullName: string;
@@ -27,17 +28,18 @@ export async function updateUserProfile(payload: UpdateProfilePayload) {
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
-    if (!payload.fullName?.trim()) {
+    const cleanFullName = sanitizePlainText(payload.fullName);
+    if (!cleanFullName) {
       return { success: false, error: "Full name is required." };
     }
 
     const { error } = await supabase
       .from("profiles")
       .update({
-        full_name: payload.fullName.trim(),
-        github_handle: payload.githubHandle?.trim() || null,
-        primary_role: payload.primaryRole?.trim() || null,
-        phone_number: payload.phoneNumber?.trim() || null,
+        full_name: cleanFullName,
+        github_handle: sanitizePlainText(payload.githubHandle) || null,
+        primary_role: sanitizePlainText(payload.primaryRole) || null,
+        phone_number: sanitizePlainText(payload.phoneNumber) || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);

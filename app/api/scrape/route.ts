@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
+import { isValidPublicHttpUrl, sanitizePlainText } from "@/lib/security";
 
 function cleanString(str?: string | null): string {
   if (!str) return "";
@@ -102,11 +104,35 @@ function extractSmartDetailsFromUrl(
 
 export async function POST(request: Request) {
   try {
+    // 1. Enforce Authentication (Defense-in-depth: Prevent open unauthenticated scraping / abuse)
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Unauthorized: Please sign in to import hackathons." },
+        { status: 401 }
+      );
+    }
+
     const { url } = await request.json();
 
     if (!url || typeof url !== "string") {
       return NextResponse.json(
         { error: "A valid hackathon URL is required." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Anti-SSRF Validation (Prevent fetching localhost, cloud metadata, or private subnets)
+    if (!isValidPublicHttpUrl(url)) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid or prohibited URL. Only public HTTP/HTTPS hackathon URLs are allowed.",
+        },
         { status: 400 }
       );
     }

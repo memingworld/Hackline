@@ -3,6 +3,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { AssetCategory } from "@/types/database";
+import { sanitizeSafeUrl, sanitizePlainText } from "@/lib/security";
 
 export interface CreateAssetPayload {
   teamId: string;
@@ -27,14 +28,11 @@ export async function createAsset(payload: CreateAssetPayload) {
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
-    if (!payload.title.trim() || !payload.url.trim()) {
-      return { success: false, error: "Title and URL are required." };
-    }
+    const cleanTitle = sanitizePlainText(payload.title);
+    const cleanUrl = sanitizeSafeUrl(payload.url);
 
-    // Validate URL format
-    let formattedUrl = payload.url.trim();
-    if (!/^https?:\/\//i.test(formattedUrl)) {
-      formattedUrl = `https://${formattedUrl}`;
+    if (!cleanTitle || !cleanUrl) {
+      return { success: false, error: "Valid Title and HTTP/HTTPS URL are required." };
     }
 
     const { data, error } = await supabase
@@ -43,9 +41,9 @@ export async function createAsset(payload: CreateAssetPayload) {
         team_id: payload.teamId,
         hackathon_id: payload.hackathonId,
         category: payload.category || "other",
-        title: payload.title.trim(),
-        url: formattedUrl,
-        description: payload.description?.trim() || null,
+        title: cleanTitle,
+        url: cleanUrl,
+        description: sanitizePlainText(payload.description) || null,
         created_by: user.id,
       })
       .select()
@@ -84,18 +82,20 @@ export async function updateAsset(
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
-    let formattedUrl = payload.url.trim();
-    if (!/^https?:\/\//i.test(formattedUrl)) {
-      formattedUrl = `https://${formattedUrl}`;
+    const cleanTitle = sanitizePlainText(payload.title);
+    const cleanUrl = sanitizeSafeUrl(payload.url);
+
+    if (!cleanTitle || !cleanUrl) {
+      return { success: false, error: "Valid Title and HTTP/HTTPS URL are required." };
     }
 
     const { error } = await supabase
       .from("assets")
       .update({
         category: payload.category,
-        title: payload.title.trim(),
-        url: formattedUrl,
-        description: payload.description?.trim() || null,
+        title: cleanTitle,
+        url: cleanUrl,
+        description: sanitizePlainText(payload.description) || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);

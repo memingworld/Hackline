@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { sanitizePlainText, sanitizeSafeUrl } from "@/lib/security";
 
 export async function updateHackathon(
   id: string,
@@ -24,15 +25,30 @@ export async function updateHackathon(
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
+    // Verify creator ownership (defense-in-depth against IDOR)
+    const { data: hackathon, error: fetchErr } = await supabase
+      .from("hackathons")
+      .select("created_by")
+      .eq("id", id)
+      .single();
+
+    if (fetchErr || !hackathon) {
+      return { success: false, error: "Hackathon not found." };
+    }
+
+    if (hackathon.created_by && hackathon.created_by !== user.id) {
+      return { success: false, error: "Forbidden: Only the hackathon creator can modify this event." };
+    }
+
     const { error } = await supabase
       .from("hackathons")
       .update({
-        title: payload.title,
-        prize_pool: payload.prize_pool,
-        description: payload.description,
+        title: sanitizePlainText(payload.title),
+        prize_pool: sanitizePlainText(payload.prize_pool) || "TBA",
+        description: sanitizePlainText(payload.description) || null,
         starts_at: payload.starts_at,
         ends_at: payload.ends_at,
-        banner_url: payload.banner_url,
+        banner_url: sanitizeSafeUrl(payload.banner_url) || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
@@ -58,6 +74,21 @@ export async function deleteHackathon(id: string) {
 
     if (!user) {
       return { success: false, error: "Unauthorized: Please sign in." };
+    }
+
+    // Verify creator ownership (defense-in-depth against IDOR)
+    const { data: hackathon, error: fetchErr } = await supabase
+      .from("hackathons")
+      .select("created_by")
+      .eq("id", id)
+      .single();
+
+    if (fetchErr || !hackathon) {
+      return { success: false, error: "Hackathon not found." };
+    }
+
+    if (hackathon.created_by && hackathon.created_by !== user.id) {
+      return { success: false, error: "Forbidden: Only the hackathon creator can delete this event." };
     }
 
     const { error } = await supabase.from("hackathons").delete().eq("id", id);
@@ -110,13 +141,13 @@ export async function createHackathon(payload: {
     const { data: hackathon, error: hackError } = await supabase
       .from("hackathons")
       .insert({
-        title: payload.title,
+        title: sanitizePlainText(payload.title),
         slug: uniqueSlug,
         source_platform: payload.source_platform || "custom",
-        source_url: payload.source_url || null,
-        banner_url: payload.banner_url || null,
-        prize_pool: payload.prize_pool || "TBA",
-        description: payload.description || null,
+        source_url: sanitizeSafeUrl(payload.source_url) || null,
+        banner_url: sanitizeSafeUrl(payload.banner_url) || null,
+        prize_pool: sanitizePlainText(payload.prize_pool) || "TBA",
+        description: sanitizePlainText(payload.description) || null,
         starts_at: payload.starts_at || new Date().toISOString(),
         ends_at:
           payload.ends_at ||
