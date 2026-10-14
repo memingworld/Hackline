@@ -165,7 +165,7 @@ export function ActiveSquadRoster({
     if (!selectedDuty.trim()) return;
     setIsUpdatingDuty(true);
     try {
-      const res = await updateMemberDuty(memberId, selectedDuty);
+      const res = await updateMemberDuty(memberId, selectedDuty, team.id);
       if (res.success) {
         toast.success("Duty assignment updated");
         setEditingMemberId(null);
@@ -185,7 +185,7 @@ export function ActiveSquadRoster({
     }
     setRemovingMemberId(memberId);
     try {
-      const res = await removeMemberFromTeam(memberId);
+      const res = await removeMemberFromTeam(memberId, team.id);
       if (res.success) {
         toast.success(`${memberName} removed from squad roster.`);
       } else {
@@ -309,23 +309,37 @@ export function ActiveSquadRoster({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {/* Active Members */}
+            {/* Active and Reserved Members */}
             {members.map((member) => {
               const isLead = member.is_captain;
-              const isCurrentMember = member.user_id === currentUserId;
+              const isReserved = !!member.is_reserved;
+              const isCurrentMember = !isReserved && member.user_id === currentUserId;
               const canEditThisMember = isCaptain || isCurrentMember;
               const isCurrentlyEditing = editingMemberId === member.id;
+              const displayName = member.placeholder_name || member.user?.full_name || "Teammate";
+              const displayEmail = member.placeholder_email || member.user?.email || "Pending Authentication";
+              const initials = displayName.substring(0, 2).toUpperCase() || "MB";
 
               return (
                 <div
                   key={member.id}
-                  className="p-4 rounded-2xl border border-zinc-800/90 bg-zinc-950/60 hover:border-zinc-700/80 transition-all flex flex-col justify-between min-h-[110px]"
+                  className={`p-4 rounded-2xl border transition-all flex flex-col justify-between min-h-[110px] ${
+                    isReserved
+                      ? "border-amber-500/30 bg-amber-950/10 hover:border-amber-500/50"
+                      : "border-zinc-800/90 bg-zinc-950/60 hover:border-zinc-700/80"
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="relative">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700 font-mono text-sm font-bold text-white shadow-sm">
-                          {member.user?.full_name?.substring(0, 2).toUpperCase() || "MB"}
+                        <div
+                          className={`flex h-11 w-11 items-center justify-center rounded-xl font-mono text-sm font-bold shadow-sm ${
+                            isReserved
+                              ? "bg-amber-950/40 border border-amber-500/40 text-amber-300"
+                              : "bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700 text-white"
+                          }`}
+                        >
+                          {initials}
                         </div>
                         {isLead && (
                           <div className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-black shadow-md">
@@ -337,22 +351,39 @@ export function ActiveSquadRoster({
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold text-white">
-                            {member.user?.full_name || "Teammate"}
+                            {displayName}
                           </span>
                           {isLead && (
                             <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.2 rounded">
                               Captain
                             </span>
                           )}
+                          {isReserved && (
+                            <span className="text-[10px] font-mono text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                              Reserved Seat
+                            </span>
+                          )}
                         </div>
                         <span className="text-xs text-zinc-500 font-mono block">
-                          {member.user?.email || "Authenticated Member"}
+                          {displayEmail} {isReserved ? "(Unclaimed)" : ""}
                         </span>
                       </div>
                     </div>
 
                     {/* Member action icons */}
                     <div className="flex items-center gap-1">
+                      {isReserved && (
+                        <button
+                          onClick={() => {
+                            handleCopyInvite();
+                            toast.info(`Invite link copied! Share this with ${displayName} to claim their reserved seat.`);
+                          }}
+                          className="p-1.5 rounded-lg text-amber-400 hover:text-amber-300 hover:bg-amber-950/40 transition-colors"
+                          title={`Copy invite link for ${displayName}`}
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                       {canEditThisMember && !isCurrentlyEditing && (
                         <button
                           onClick={() => {
@@ -370,12 +401,12 @@ export function ActiveSquadRoster({
                           onClick={() =>
                             handleRemoveMember(
                               member.id,
-                              member.user?.full_name || "this teammate"
+                              displayName
                             )
                           }
                           disabled={removingMemberId === member.id}
                           className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
-                          title="Remove from squad"
+                          title={isReserved ? "Release reserved seat" : "Remove from squad"}
                         >
                           <UserMinus className="h-3.5 w-3.5" />
                         </button>

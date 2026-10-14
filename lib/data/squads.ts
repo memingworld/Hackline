@@ -1,5 +1,101 @@
 import { createClient } from "@/utils/supabase/server";
-import { SavedSquad, Team, InviteTeamDetails } from "@/types/database";
+import { SavedSquad, Team, InviteTeamDetails, TeamMember } from "@/types/database";
+
+export interface ReservedMember {
+  id?: string;
+  name: string;
+  email: string;
+  duty: string;
+}
+
+/**
+ * Extract reserved/placeholder members stored as structured metadata in team descriptions.
+ */
+export function extractReservedMembers(rawDescription?: string | null): {
+  cleanDescription: string;
+  reservedMembers: ReservedMember[];
+} {
+  if (!rawDescription) {
+    return { cleanDescription: "", reservedMembers: [] };
+  }
+
+  const regex = /<!--\s*HACKLINE_RESERVED:\s*([\s\S]*?)\s*-->/;
+  const match = rawDescription.match(regex);
+
+  if (!match) {
+    return { cleanDescription: rawDescription.trim(), reservedMembers: [] };
+  }
+
+  try {
+    const parsed = JSON.parse(match[1]);
+    const cleanDescription = rawDescription.replace(regex, "").trim();
+    if (Array.isArray(parsed)) {
+      return { cleanDescription, reservedMembers: parsed };
+    }
+  } catch (e) {
+    console.error("Failed to parse reserved members metadata:", e);
+  }
+
+  return { cleanDescription: rawDescription.trim(), reservedMembers: [] };
+}
+
+/**
+ * Encode reserved squad members into team description as invisible metadata comment.
+ */
+export function encodeReservedMembers(
+  description: string | null | undefined,
+  reservedMembers: ReservedMember[]
+): string {
+  const { cleanDescription } = extractReservedMembers(description);
+  if (!reservedMembers || reservedMembers.length === 0) {
+    return cleanDescription;
+  }
+
+  const payload = JSON.stringify(reservedMembers);
+  if (!cleanDescription) {
+    return `<!-- HACKLINE_RESERVED: ${payload} -->`;
+  }
+
+  return `${cleanDescription}\n\n<!-- HACKLINE_RESERVED: ${payload} -->`;
+}
+
+/**
+ * Convert a reserved member into a synthetic TeamMember for consistent UI rendering.
+ */
+export function toReservedTeamMember(
+  teamId: string,
+  reserved: ReservedMember,
+  index: number
+): TeamMember {
+  const memberId =
+    reserved.id || `reserved-${index}-${encodeURIComponent(reserved.email || String(index))}`;
+  return {
+    id: memberId,
+    team_id: teamId,
+    user_id: null,
+    duty: reserved.duty || "Core Contributor",
+    is_captain: false,
+    joined_at: new Date().toISOString(),
+    is_reserved: true,
+    placeholder_name: reserved.name,
+    placeholder_email: reserved.email,
+    user: {
+      id: `reserved-profile-${index}`,
+      full_name: reserved.name,
+      email: reserved.email,
+      avatar_url: null,
+      phone_number: null,
+      github_handle: null,
+      primary_role: reserved.duty || "Core Contributor",
+      telegram_chat_id: null,
+      telegram_connected_at: null,
+      notify_t24: false,
+      notify_t2: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+  };
+}
 
 /**
  * Fetch all saved squads owned by the authenticated user with their pre-assigned member templates.
@@ -45,56 +141,69 @@ export async function getActiveSquadRoster(hackathonId?: string): Promise<Team |
 export async function getTeamByInviteCode(inviteCode: string): Promise<InviteTeamDetails | null> {
   const supabase = await createClient();
 
+  let teamDetails: any = null;
+
   // First attempt via RPC
   const { data: rpcData, error: rpcError } = await supabase.rpc("get_team_by_invite", {
     invite_code_input: inviteCode,
   });
 
   if (!rpcError && rpcData && rpcData.id) {
-    return rpcData as InviteTeamDetails;
-  }
-
-  // Fallback: Direct select query with relations
-  const { data, error } = await supabase
-    .from("teams")
-    .select(`
-      id,
-      name,
-      description,
-      invite_code,
-      captain_id,
-      max_members,
-      hackathon:hackathons(
+    teamDetails = rpcData;
+  } else {
+    // Fallback: Direct select query with relations
+    const { data, error } = await supabase
+      .from("teams")
+      .select(`
         id,
-        title,
-        source_platform,
-        banner_url,
-        prize_pool,
-        starts_at,
-        ends_at,
-        min_team_size,
-        max_team_size
-      ),
-      members:team_members(
-        id,
-        user_id,
-        duty,
-        is_captain,
-        user:profiles(
+        name,
+        description,
+        invite_code,
+        captain_id,
+        max_members,
+        hackathon:hackathons(
           id,
-          full_name,
-          avatar_url
+          title,
+          source_platform,
+          banner_url,
+          prize_pool,
+          starts_at,
+          ends_at,
+          min_team_size,
+          max_team_size
+        ),
+        members:team_members(
+          id,
+          user_id,
+          duty,
+          is_captain,
+          user:profiles(
+            id,
+            full_name,
+            avatar_url
+          )
         )
-      )
-    `)
-    .eq("invite_code", inviteCode)
-    .single();
+      `)
+      .eq("invite_code", inviteCode)
+      .single();
 
-  if (error || !data) {
-    return null;
+    if (error || !data) {
+      return null;
+    }
+    teamDetails = data;
   }
 
-  return data as unknown as InviteTeamDetails;
+  if (teamDetails) {
+    const { cleanDescription, reservedMembers } = extractReservedMembers(teamDetails.description);
+    teamDetails.description = cleanDescription;
+    const existingMembers = teamDetails.members || [];
+    const syntheticMembers = reservedMembers.map((rm, idx) =>
+      toReservedTeamMember(teamDetails.id, rm, existingMembers.length + idx)
+    );
+    teamDetails.members = [...existingMembers, ...syntheticMembers];
+  }
+
+  return teamDetails as unknown as InviteTeamDetails;
 }
 
 /**
@@ -149,5 +258,15 @@ export async function getUserAllTeams(): Promise<Team[]> {
     return [];
   }
 
-  return (data as Team[]) || [];
+  const teams = (data as Team[]) || [];
+  return teams.map((team) => {
+    const { cleanDescription, reservedMembers } = extractReservedMembers(team.description);
+    team.description = cleanDescription;
+    const existingMembers = team.members || [];
+    const syntheticMembers = reservedMembers.map((rm, idx) =>
+      toReservedTeamMember(team.id, rm, existingMembers.length + idx)
+    );
+    team.members = [...existingMembers, ...syntheticMembers];
+    return team;
+  });
 }

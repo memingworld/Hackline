@@ -2,6 +2,12 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import {
+  extractReservedMembers,
+  encodeReservedMembers,
+  ReservedMember,
+} from "@/lib/data/squads";
+import { notifySquadDeployment } from "@/lib/actions/notifications";
 
 export interface SavedSquadMemberInput {
   name: string;
@@ -194,7 +200,7 @@ export async function deleteSavedSquad(squadId: string) {
 /**
  * Update a member's duty/role in an active team.
  */
-export async function updateMemberDuty(memberId: string, duty: string) {
+export async function updateMemberDuty(memberId: string, duty: string, teamId?: string) {
   try {
     const supabase = await createClient();
     const {
@@ -203,6 +209,37 @@ export async function updateMemberDuty(memberId: string, duty: string) {
 
     if (!user) {
       return { success: false, error: "Unauthorized: Please sign in." };
+    }
+
+    // Handle reserved member duty update
+    if (memberId.startsWith("reserved-") && teamId) {
+      const { data: team } = await supabase
+        .from("teams")
+        .select("id, captain_id, description")
+        .eq("id", teamId)
+        .single();
+
+      if (team) {
+        const { cleanDescription, reservedMembers } = extractReservedMembers(team.description);
+        const updatedReserved = reservedMembers.map((rm, idx) => {
+          const expectedId =
+            rm.id || `reserved-${idx}-${encodeURIComponent(rm.email || String(idx))}`;
+          if (expectedId === memberId || rm.id === memberId) {
+            return { ...rm, duty: duty.trim() };
+          }
+          return rm;
+        });
+
+        const newDescription = encodeReservedMembers(cleanDescription, updatedReserved);
+        await supabase
+          .from("teams")
+          .update({ description: newDescription, updated_at: new Date().toISOString() })
+          .eq("id", teamId);
+
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/squad");
+        return { success: true };
+      }
     }
 
     const { error } = await supabase
@@ -225,7 +262,7 @@ export async function updateMemberDuty(memberId: string, duty: string) {
 /**
  * Remove a member from an active squad.
  */
-export async function removeMemberFromTeam(memberId: string) {
+export async function removeMemberFromTeam(memberId: string, teamId?: string) {
   try {
     const supabase = await createClient();
     const {
@@ -234,6 +271,34 @@ export async function removeMemberFromTeam(memberId: string) {
 
     if (!user) {
       return { success: false, error: "Unauthorized: Please sign in." };
+    }
+
+    // Handle reserved member removal
+    if (memberId.startsWith("reserved-") && teamId) {
+      const { data: team } = await supabase
+        .from("teams")
+        .select("id, captain_id, description")
+        .eq("id", teamId)
+        .single();
+
+      if (team) {
+        const { cleanDescription, reservedMembers } = extractReservedMembers(team.description);
+        const filtered = reservedMembers.filter((rm, idx) => {
+          const expectedId =
+            rm.id || `reserved-${idx}-${encodeURIComponent(rm.email || String(idx))}`;
+          return expectedId !== memberId && rm.id !== memberId;
+        });
+
+        const newDescription = encodeReservedMembers(cleanDescription, filtered);
+        await supabase
+          .from("teams")
+          .update({ description: newDescription, updated_at: new Date().toISOString() })
+          .eq("id", teamId);
+
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/squad");
+        return { success: true };
+      }
     }
 
     const { error } = await supabase
@@ -301,7 +366,11 @@ export async function regenerateInviteCode(teamId: string) {
 /**
  * Deploy a saved squad profile into an active hackathon team.
  */
-export async function deploySavedSquadToActiveTeam(savedSquadId: string, teamId: string) {
+export async function deploySavedSquadToActiveTeam(
+  savedSquadId: string,
+  teamId: string,
+  notifyTelegram: boolean = true
+) {
   try {
     const supabase = await createClient();
     const {
@@ -323,10 +392,10 @@ export async function deploySavedSquadToActiveTeam(savedSquadId: string, teamId:
       return { success: false, error: "Saved squad not found." };
     }
 
-    // 2. Fetch active team and current members
+    // 2. Fetch active team and current members and hackathon
     const { data: team, error: teamErr } = await supabase
       .from("teams")
-      .select("*, members:team_members(*)")
+      .select("*, members:team_members(*), hackathon:hackathons(*)")
       .eq("id", teamId)
       .single();
 
@@ -339,33 +408,111 @@ export async function deploySavedSquadToActiveTeam(savedSquadId: string, teamId:
       return { success: false, error: "Only the squad captain can deploy squad presets." };
     }
 
-    // 3. Update team name to match saved squad name
-    await supabase
-      .from("teams")
-      .update({ name: savedSquad.name, updated_at: new Date().toISOString() })
-      .eq("id", teamId);
-
-    // 4. For each saved squad member with a matched profile user ID, add if not already present
     const currentMemberUserIds = new Set(
       (team.members || []).map((m: any) => m.user_id)
     );
 
     const teamCap = team.max_members || 4;
-    let slotsAvailable = teamCap - (team.members?.length || 0);
+    const { cleanDescription, reservedMembers: existingReserved } = extractReservedMembers(
+      team.description
+    );
 
-    if (savedSquad.members && savedSquad.members.length > 0 && slotsAvailable > 0) {
+    let slotsAvailable = teamCap - (team.members?.length || 0) - existingReserved.length;
+
+    const registeredToInsert: Array<{ userId: string; name: string; email: string; duty: string }> = [];
+    const newReservedMembers: ReservedMember[] = [...existingReserved];
+
+    if (savedSquad.members && savedSquad.members.length > 0) {
+      const missingProfileEmails = savedSquad.members
+        .filter((sm: any) => !sm.member_user_id && sm.member_email)
+        .map((sm: any) => sm.member_email.trim().toLowerCase());
+
+      const emailToProfileMap = new Map<string, string>();
+      if (missingProfileEmails.length > 0) {
+        const { data: matchedProfiles } = await supabase
+          .from("profiles")
+          .select("id, email")
+          .in("email", missingProfileEmails);
+
+        matchedProfiles?.forEach((p) => {
+          emailToProfileMap.set(p.email.toLowerCase(), p.id);
+        });
+      }
+
       for (const sm of savedSquad.members) {
         if (slotsAvailable <= 0) break;
-        if (sm.member_user_id && !currentMemberUserIds.has(sm.member_user_id)) {
-          await supabase.from("team_members").insert({
-            team_id: teamId,
-            user_id: sm.member_user_id,
-            duty: sm.default_duty || "Full-Stack Developer",
-            is_captain: false,
-          });
-          slotsAvailable--;
+        const normalizedEmail = (sm.member_email || "").trim().toLowerCase();
+        const resolvedUserId = sm.member_user_id || emailToProfileMap.get(normalizedEmail) || null;
+
+        if (resolvedUserId === user.id) continue;
+
+        if (resolvedUserId) {
+          if (!currentMemberUserIds.has(resolvedUserId)) {
+            await supabase.from("team_members").insert({
+              team_id: teamId,
+              user_id: resolvedUserId,
+              duty: sm.default_duty || "Core Contributor",
+              is_captain: false,
+            });
+            registeredToInsert.push({
+              userId: resolvedUserId,
+              name: sm.member_name,
+              email: sm.member_email,
+              duty: sm.default_duty || "Core Contributor",
+            });
+            currentMemberUserIds.add(resolvedUserId);
+            slotsAvailable--;
+          }
+        } else {
+          const alreadyReserved = newReservedMembers.some(
+            (r) => r.email?.toLowerCase() === normalizedEmail
+          );
+          if (!alreadyReserved) {
+            newReservedMembers.push({
+              id: sm.id,
+              name: sm.member_name || "Teammate",
+              email: sm.member_email || "",
+              duty: sm.default_duty || "Core Contributor",
+            });
+            slotsAvailable--;
+          }
         }
       }
+    }
+
+    const updatedDescription = encodeReservedMembers(
+      cleanDescription || savedSquad.description,
+      newReservedMembers
+    );
+
+    await supabase
+      .from("teams")
+      .update({
+        name: savedSquad.name,
+        description: updatedDescription,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", teamId);
+
+    // Dispatch Telegram DMs to registered members if not opted out
+    if (notifyTelegram && registeredToInsert.length > 0 && team.hackathon) {
+      const { data: captainProfile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      await notifySquadDeployment({
+        teamId: team.id,
+        hackathonId: team.hackathon.id,
+        hackathonTitle: team.hackathon.title,
+        sourcePlatform: team.hackathon.source_platform,
+        sourceUrl: team.hackathon.source_url,
+        endsAt: team.hackathon.ends_at,
+        captainName: captainProfile?.full_name || user.user_metadata?.full_name || "Captain",
+        squadName: savedSquad.name,
+        deployedMembers: registeredToInsert,
+      });
     }
 
     revalidatePath("/dashboard");
@@ -444,26 +591,10 @@ export async function joinTeamByInviteCode(inviteCode: string, duty?: string) {
       return { success: false, error: "Please sign in or create an account to join this squad." };
     }
 
-    // Try RPC first
-    const { data: rpcRes, error: rpcErr } = await supabase.rpc("join_team_with_invite", {
-      invite_code_input: inviteCode,
-      member_duty: duty?.trim() || "Full-Stack Developer",
-    });
-
-    if (!rpcErr && rpcRes) {
-      const res = rpcRes as { success: boolean; error?: string; message?: string; team_id?: string };
-      if (!res.success) {
-        return { success: false, error: res.error || "Failed to join team." };
-      }
-      revalidatePath("/dashboard");
-      revalidatePath("/dashboard/squad");
-      return { success: true, teamId: res.team_id };
-    }
-
-    // Fallback: Direct select & insert
+    // Direct lookup with description for reserved seat reconciliation
     const { data: team, error: teamErr } = await supabase
       .from("teams")
-      .select("id, captain_id, max_members")
+      .select("id, captain_id, max_members, description")
       .eq("invite_code", inviteCode)
       .single();
 
@@ -477,27 +608,57 @@ export async function joinTeamByInviteCode(inviteCode: string, duty?: string) {
       .select("id")
       .eq("team_id", team.id)
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       return { success: true, message: "Already a member of this squad.", teamId: team.id };
     }
 
-    // Check dynamic team count < max_members
-    const teamCap = team.max_members || 4;
-    const { count } = await supabase
-      .from("team_members")
-      .select("id", { count: "exact", head: true })
-      .eq("team_id", team.id);
+    const { cleanDescription, reservedMembers } = extractReservedMembers(team.description);
 
-    if (count !== null && count >= teamCap) {
-      return { success: false, error: `This squad is already full (maximum ${teamCap} members reached).` };
+    // Check if user's email claims one of the reserved seats
+    const userEmail = (user.email || "").trim().toLowerCase();
+    const reservedIndex = reservedMembers.findIndex(
+      (r) => r.email && r.email.trim().toLowerCase() === userEmail
+    );
+
+    let assignedDuty = duty?.trim() || "Full-Stack Developer";
+
+    if (reservedIndex !== -1) {
+      // Teammate is claiming their pre-assigned seat
+      const claimedSeat = reservedMembers[reservedIndex];
+      if (!duty || duty.trim() === "Full-Stack Developer") {
+        assignedDuty = claimedSeat.duty || assignedDuty;
+      }
+      // Remove claimed seat from reserved list and update description
+      reservedMembers.splice(reservedIndex, 1);
+      const updatedDescription = encodeReservedMembers(cleanDescription, reservedMembers);
+
+      await supabase
+        .from("teams")
+        .update({ description: updatedDescription, updated_at: new Date().toISOString() })
+        .eq("id", team.id);
+    } else {
+      // General invite join: verify capacity including reserved seats
+      const teamCap = team.max_members || 4;
+      const { count } = await supabase
+        .from("team_members")
+        .select("id", { count: "exact", head: true })
+        .eq("team_id", team.id);
+
+      const currentTotal = (count || 0) + reservedMembers.length;
+      if (currentTotal >= teamCap) {
+        return {
+          success: false,
+          error: `This squad is currently full (${currentTotal}/${teamCap} seats filled or reserved).`,
+        };
+      }
     }
 
     const { error: insertErr } = await supabase.from("team_members").insert({
       team_id: team.id,
       user_id: user.id,
-      duty: duty?.trim() || "Full-Stack Developer",
+      duty: assignedDuty,
       is_captain: false,
     });
 

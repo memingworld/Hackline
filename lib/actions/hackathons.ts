@@ -3,6 +3,8 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sanitizePlainText, sanitizeSafeUrl } from "@/lib/security";
+import { encodeReservedMembers, ReservedMember } from "@/lib/data/squads";
+import { notifySquadDeployment } from "@/lib/actions/notifications";
 
 export async function updateHackathon(
   id: string,
@@ -119,6 +121,7 @@ export async function createHackathon(payload: {
   min_team_size?: number;
   max_team_size?: number;
   saved_squad_id?: string;
+  notify_telegram?: boolean;
   timeline_gates?: Array<{ title: string; deadline: string; event_type?: string }>;
 }) {
   try {
@@ -185,6 +188,65 @@ export async function createHackathon(payload: {
       `${payload.title.trim().slice(0, 30)} Squad`;
     const squadSlug = `${squadName.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${Math.random().toString(36).slice(2, 6)}`;
 
+    // Partition preset squad members into registered users vs placeholder/reserved seats
+    const registeredSquadMembers: Array<{
+      userId: string;
+      name: string;
+      email: string;
+      duty: string;
+    }> = [];
+    const reservedSquadMembers: ReservedMember[] = [];
+
+    if (savedSquad && savedSquad.members && savedSquad.members.length > 0) {
+      const missingProfileEmails = savedSquad.members
+        .filter((sm: any) => !sm.member_user_id && sm.member_email)
+        .map((sm: any) => sm.member_email.trim().toLowerCase());
+
+      const emailToProfileMap = new Map<string, string>();
+      if (missingProfileEmails.length > 0) {
+        const { data: matchedProfiles } = await supabase
+          .from("profiles")
+          .select("id, email")
+          .in("email", missingProfileEmails);
+
+        matchedProfiles?.forEach((p) => {
+          emailToProfileMap.set(p.email.toLowerCase(), p.id);
+        });
+      }
+
+      let slotsAvailable = maxSize - 1; // 1 slot for captain
+
+      for (const sm of savedSquad.members) {
+        if (slotsAvailable <= 0) break;
+        const normalizedEmail = (sm.member_email || "").trim().toLowerCase();
+        const resolvedUserId = sm.member_user_id || emailToProfileMap.get(normalizedEmail) || null;
+
+        // Skip if preset member is the creator themselves
+        if (resolvedUserId === user.id) continue;
+
+        if (resolvedUserId) {
+          registeredSquadMembers.push({
+            userId: resolvedUserId,
+            name: sm.member_name,
+            email: sm.member_email,
+            duty: sm.default_duty || "Core Contributor",
+          });
+          slotsAvailable--;
+        } else {
+          reservedSquadMembers.push({
+            id: sm.id,
+            name: sm.member_name || "Teammate",
+            email: sm.member_email || "",
+            duty: sm.default_duty || "Core Contributor",
+          });
+          slotsAvailable--;
+        }
+      }
+    }
+
+    const baseTeamDescription = savedSquad?.description || `Squad participating in ${payload.title}`;
+    const encodedTeamDescription = encodeReservedMembers(baseTeamDescription, reservedSquadMembers);
+
     const { data: team, error: teamError } = await supabase
       .from("teams")
       .insert({
@@ -192,7 +254,7 @@ export async function createHackathon(payload: {
         captain_id: user.id,
         name: squadName,
         slug: squadSlug,
-        description: savedSquad?.description || `Squad participating in ${payload.title}`,
+        description: encodedTeamDescription,
         max_members: maxSize,
       })
       .select()
@@ -207,21 +269,35 @@ export async function createHackathon(payload: {
         is_captain: true,
       });
 
-      // If a saved preset was deployed, bind its team members
-      if (savedSquad && savedSquad.members && savedSquad.members.length > 0) {
-        let slotsAvailable = maxSize - 1;
-        for (const sm of savedSquad.members) {
-          if (slotsAvailable <= 0) break;
-          if (sm.member_user_id && sm.member_user_id !== user.id) {
-            await supabase.from("team_members").insert({
-              team_id: team.id,
-              user_id: sm.member_user_id,
-              duty: sm.default_duty || "Core Contributor",
-              is_captain: false,
-            });
-            slotsAvailable--;
-          }
-        }
+      // Bind registered preset members to active squad
+      for (const rm of registeredSquadMembers) {
+        await supabase.from("team_members").insert({
+          team_id: team.id,
+          user_id: rm.userId,
+          duty: rm.duty,
+          is_captain: false,
+        });
+      }
+
+      // Dispatch Telegram DMs to verified squad members if not opted out
+      if (payload.notify_telegram !== false && registeredSquadMembers.length > 0) {
+        const { data: captainProfile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        await notifySquadDeployment({
+          teamId: team.id,
+          hackathonId: hackathon.id,
+          hackathonTitle: hackathon.title,
+          sourcePlatform: hackathon.source_platform,
+          sourceUrl: hackathon.source_url,
+          endsAt: hackathon.ends_at,
+          captainName: captainProfile?.full_name || user.user_metadata?.full_name || "Captain",
+          squadName: team.name,
+          deployedMembers: registeredSquadMembers,
+        });
       }
 
       // Insert timeline gates (either extracted, custom, or standard defaults)

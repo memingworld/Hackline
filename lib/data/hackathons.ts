@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { Hackathon, Team, TimelineEvent, SubmissionChecklistItem } from "@/types/database";
+import { extractReservedMembers, toReservedTeamMember } from "@/lib/data/squads";
 
 /**
  * Fetch all active hackathons associated with the authenticated user directly from the Supabase database.
@@ -156,7 +157,16 @@ export async function getUserCurrentTeam(hackathonId?: string): Promise<Team | n
     return null;
   }
 
-  return data as Team;
+  const team = data as Team;
+  const { cleanDescription, reservedMembers } = extractReservedMembers(team.description);
+  team.description = cleanDescription;
+  const existingMembers = team.members || [];
+  const syntheticMembers = reservedMembers.map((rm, idx) =>
+    toReservedTeamMember(team.id, rm, existingMembers.length + idx)
+  );
+  team.members = [...existingMembers, ...syntheticMembers];
+
+  return team;
 }
 
 /**

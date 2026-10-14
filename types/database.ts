@@ -53,11 +53,14 @@ export interface Hackathon {
 export interface TeamMember {
   id: string;
   team_id: string;
-  user_id: string;
+  user_id: string | null;
   duty: string; // e.g. "Next.js Frontend", "FastAPI Backend", "Pitch Deck"
   is_captain: boolean;
   joined_at: string;
-  user?: Profile;
+  is_reserved?: boolean;
+  placeholder_name?: string | null;
+  placeholder_email?: string | null;
+  user?: Profile | null;
 }
 
 export interface Team {

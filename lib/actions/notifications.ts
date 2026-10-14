@@ -171,3 +171,152 @@ export async function sendTestTelegramNotification(customChatId?: string) {
     };
   }
 }
+
+/**
+ * Dispatch rich instant Telegram DMs to verified squad members upon hackathon deployment.
+ * Never throws errors or breaks execution if bot token is missing or if members lack accounts.
+ */
+export async function notifySquadDeployment(params: {
+  teamId: string;
+  hackathonId: string;
+  hackathonTitle: string;
+  sourcePlatform?: string;
+  sourceUrl?: string | null;
+  endsAt: string;
+  captainName: string;
+  squadName: string;
+  deployedMembers: Array<{
+    userId?: string | null;
+    name: string;
+    email: string;
+    duty: string;
+  }>;
+}) {
+  try {
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    if (!botToken) {
+      console.log("[Telegram Dispatch] No TELEGRAM_BOT_TOKEN found, skipping teammate bot DM dispatch.");
+      return { success: true, notifiedCount: 0 };
+    }
+
+    const supabase = await createClient();
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser();
+
+    // Only target registered members who are not the captain themselves
+    const candidateUserIds = params.deployedMembers
+      .filter((m) => m.userId && m.userId !== currentUser?.id)
+      .map((m) => m.userId as string);
+
+    if (candidateUserIds.length === 0) {
+      return { success: true, notifiedCount: 0 };
+    }
+
+    // Fetch teammate profiles to get telegram_chat_id
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, telegram_chat_id")
+      .in("id", candidateUserIds);
+
+    if (!profiles || profiles.length === 0) {
+      return { success: true, notifiedCount: 0 };
+    }
+
+    const appBaseUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://hackline.dev");
+
+    const endsTime = new Date(params.endsAt).getTime();
+    const diffHours = !isNaN(endsTime)
+      ? Math.round((endsTime - Date.now()) / (1000 * 60 * 60))
+      : 48;
+
+    const formattedDeadline = !isNaN(endsTime)
+      ? new Date(params.endsAt).toLocaleString([], {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "In 48 Hours";
+
+    const countdownTag = diffHours > 0 ? `T-${diffHours}h left` : "Sprint Active";
+    let notifiedCount = 0;
+
+    for (const profile of profiles) {
+      if (!profile.telegram_chat_id) continue;
+
+      const memberDuty =
+        params.deployedMembers.find((m) => m.userId === profile.id)?.duty ||
+        "Core Contributor";
+
+      const message =
+        `🚀 *Hackline Sprint Deployment!* 🚀\n\n` +
+        `Hey *${profile.full_name || "Builder"}*!\n\n` +
+        `*[Captain ${params.captainName}]* has deployed your squad (*${params.squadName}*) to:\n` +
+        `🏆 *${params.hackathonTitle}* (${(params.sourcePlatform || "Sprint").toUpperCase()})\n\n` +
+        `🎯 *Your Assigned Role:* \`${memberDuty}\`\n` +
+        `⏳ *Submission Deadline:* ${formattedDeadline} (${countdownTag})\n\n` +
+        `Your workspace, deliverables tracker, and pre-flight checklist are live. Tap below to inspect!`;
+
+      const inlineKeyboard: any[] = [
+        [
+          {
+            text: "🌐 Open Sprint Workspace",
+            url: `${appBaseUrl}/dashboard/hackathons/${params.hackathonId}`,
+          },
+        ],
+      ];
+
+      if (params.sourceUrl) {
+        inlineKeyboard.push([
+          {
+            text: "📋 Official Event Portal",
+            url: params.sourceUrl,
+          },
+        ]);
+      }
+
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: profile.telegram_chat_id,
+            text: message,
+            parse_mode: "Markdown",
+            reply_markup: {
+              inline_keyboard: inlineKeyboard,
+            },
+          }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          notifiedCount++;
+          // Log notification in database
+          await supabase.from("telegram_notifications").insert({
+            user_id: profile.id,
+            team_id: params.teamId,
+            hackathon_id: params.hackathonId,
+            trigger_type: "deployment",
+            message_text: message,
+            status: "sent",
+            telegram_message_id: data?.result?.message_id
+              ? String(data.result.message_id)
+              : null,
+          });
+        }
+      } catch (sendErr) {
+        console.error(`[Telegram Dispatch] Error pinging user ${profile.id}:`, sendErr);
+      }
+    }
+
+    return { success: true, notifiedCount };
+  } catch (err: any) {
+    console.error("[Telegram Dispatch] Error in notifySquadDeployment:", err);
+    return { success: false, error: err.message, notifiedCount: 0 };
+  }
+}
+

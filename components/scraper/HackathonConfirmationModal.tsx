@@ -51,6 +51,7 @@ export function HackathonConfirmationModal({
       : new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString().slice(0, 16)
   );
   const [maxTeamSize, setMaxTeamSize] = React.useState(4);
+  const [notifyTelegram, setNotifyTelegram] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
 
   React.useEffect(() => {
@@ -70,6 +71,7 @@ export function HackathonConfirmationModal({
       }
       setMaxTeamSize(initialData.max_team_size || 4);
       setSelectedPresetId("");
+      setNotifyTelegram(true);
     }
   }, [initialData]);
 
@@ -107,6 +109,7 @@ export function HackathonConfirmationModal({
         min_team_size: 1,
         max_team_size: maxTeamSize,
         saved_squad_id: selectedPresetId || undefined,
+        notify_telegram: notifyTelegram,
         timeline_gates: initialData.timeline_gates || [],
       });
 
@@ -278,6 +281,30 @@ export function HackathonConfirmationModal({
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {/* Telegram Notification Toggle */}
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-3.5 flex items-center justify-between">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="notifyTelegram"
+                  checked={notifyTelegram}
+                  onChange={(e) => setNotifyTelegram(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-zinc-700 bg-zinc-900 text-indigo-500 focus:ring-indigo-500/20 focus:ring-offset-0 cursor-pointer"
+                />
+                <label
+                  htmlFor="notifyTelegram"
+                  className="text-xs text-zinc-200 select-none cursor-pointer flex flex-col"
+                >
+                  <span className="font-semibold text-white">
+                    Ping squad members via Telegram upon deployment
+                  </span>
+                  <span className="text-[11px] text-zinc-400 mt-0.5">
+                    Sends direct workspace links and assigned roles so teammates know they were added.
+                  </span>
+                </label>
               </div>
             </div>
 
