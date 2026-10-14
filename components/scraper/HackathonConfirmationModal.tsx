@@ -46,6 +46,7 @@ export function HackathonConfirmationModal({
       ? new Date(initialData.ends_at).toISOString().slice(0, 16)
       : new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString().slice(0, 16)
   );
+  const [maxTeamSize, setMaxTeamSize] = React.useState(4);
 
   const [isSaving, setIsSaving] = React.useState(false);
 
@@ -58,6 +59,7 @@ export function HackathonConfirmationModal({
       setSquadName(
         initialData.title ? `${initialData.title.slice(0, 16)} Squad` : "Alpha Squad"
       );
+      setMaxTeamSize(4);
     }
   }, [initialData]);
 
@@ -78,6 +80,8 @@ export function HackathonConfirmationModal({
         starts_at: new Date(startsAt).toISOString(),
         ends_at: new Date(endsAt).toISOString(),
         team_name: squadName,
+        min_team_size: 1,
+        max_team_size: maxTeamSize,
         timeline_gates: initialData.timeline_gates || [],
       });
 
@@ -165,14 +169,31 @@ export function HackathonConfirmationModal({
               />
             </div>
 
-            <Input
-              label="Default Squad Name"
-              value={squadName}
-              onChange={(e) => setSquadName(e.target.value)}
-              placeholder="e.g. Vanguard Alpha"
-              hint="You will be set as captain with 1-click invite link generation."
-              required
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Default Squad Name"
+                value={squadName}
+                onChange={(e) => setSquadName(e.target.value)}
+                placeholder="e.g. Vanguard Alpha"
+                required
+              />
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-zinc-300 uppercase tracking-wide">
+                  Max Team Capacity
+                </label>
+                <select
+                  value={maxTeamSize}
+                  onChange={(e) => setMaxTeamSize(Number(e.target.value))}
+                  className="w-full h-10 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono"
+                >
+                  {[1, 2, 3, 4, 5, 6].map((size) => (
+                    <option key={size} value={size}>
+                      {size === 1 ? "Solo Hacker (1 member)" : `Up to ${size} Teammates`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-zinc-300 uppercase tracking-wide">

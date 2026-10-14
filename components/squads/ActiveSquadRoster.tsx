@@ -15,6 +15,8 @@ import {
   ExternalLink,
   Shield,
   Plus,
+  Minus,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -22,6 +24,7 @@ import {
   updateMemberDuty,
   removeMemberFromTeam,
   regenerateInviteCode,
+  updateTeamCapacity,
 } from "@/lib/actions/squads";
 
 interface ActiveSquadRosterProps {
@@ -97,8 +100,36 @@ export function ActiveSquadRoster({
   const isCaptain = team.captain_id === currentUserId;
   const members = team.members || [];
   const membersCount = members.length;
-  const maxSlots = 4;
+  const minAllowed = team.hackathon?.min_team_size || 1;
+  const maxAllowed = team.hackathon?.max_team_size || 6;
+  const maxSlots = team.max_members || team.hackathon?.max_team_size || 4;
   const openSlotsCount = Math.max(0, maxSlots - membersCount);
+  const [isUpdatingCapacity, setIsUpdatingCapacity] = React.useState(false);
+
+  const handleAdjustCapacity = async (delta: number) => {
+    const newCap = maxSlots + delta;
+    if (newCap < membersCount) {
+      toast.error(`Cannot reduce squad capacity below current member count (${membersCount}).`);
+      return;
+    }
+    if (newCap < minAllowed || newCap > maxAllowed) {
+      toast.error(`Team size must be between ${minAllowed} and ${maxAllowed} members for this hackathon.`);
+      return;
+    }
+    setIsUpdatingCapacity(true);
+    try {
+      const res = await updateTeamCapacity(team.id, newCap);
+      if (res.success) {
+        toast.success(`Squad capacity updated to ${newCap} members.`);
+      } else {
+        toast.error(res.error || "Failed to update capacity");
+      }
+    } catch {
+      toast.error("Error updating capacity");
+    } finally {
+      setIsUpdatingCapacity(false);
+    }
+  };
 
   const getInviteUrl = () => {
     if (typeof window === "undefined") return `/join/${team.invite_code}`;
@@ -194,11 +225,37 @@ export function ActiveSquadRoster({
                 <Users className="h-5 w-5" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-xl font-bold text-white tracking-tight">{team.name}</h2>
                   <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-                    {membersCount}/4 {membersCount >= 4 ? "Full Roster" : "Recruiting"}
+                    {membersCount}/{maxSlots} {membersCount >= maxSlots ? "Full Roster" : "Recruiting"}
                   </span>
+
+                  {isCaptain && (
+                    <div className="flex items-center gap-1 bg-zinc-950/80 border border-zinc-800 rounded-lg p-0.5 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => handleAdjustCapacity(-1)}
+                        disabled={isUpdatingCapacity || maxSlots <= minAllowed || maxSlots <= membersCount}
+                        className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Reduce squad capacity"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </button>
+                      <span className="px-1.5 font-mono text-[11px] text-zinc-300">
+                        Cap: {maxSlots}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleAdjustCapacity(1)}
+                        disabled={isUpdatingCapacity || maxSlots >= maxAllowed}
+                        className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Increase squad capacity"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-zinc-400 mt-0.5">
                   Assigned Hackathon:{" "}

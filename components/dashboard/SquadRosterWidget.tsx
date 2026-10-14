@@ -63,6 +63,7 @@ export function SquadRosterWidget({ team }: SquadProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const maxSlots = team.max_members || team.hackathon?.max_team_size || 4;
   const membersCount = team.members?.length || 0;
 
   return (
@@ -79,7 +80,7 @@ export function SquadRosterWidget({ team }: SquadProps) {
                 <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
                   <span>{team.name}</span>
                   <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.2 rounded-full">
-                    {membersCount}/4 {membersCount >= 4 ? "Locked" : "Slots Available"}
+                    {membersCount}/{maxSlots} {membersCount >= maxSlots ? "Locked" : "Slots Available"}
                   </span>
                 </h3>
                 <p className="text-[11px] text-zinc-500 font-mono">

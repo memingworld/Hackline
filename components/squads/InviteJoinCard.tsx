@@ -48,7 +48,8 @@ export function InviteJoinCard({
 
   const members = team.members || [];
   const membersCount = members.length;
-  const isFull = membersCount >= 4;
+  const maxSlots = team.max_members || team.hackathon?.max_team_size || 4;
+  const isFull = membersCount >= maxSlots;
   const isAlreadyMember = Boolean(
     currentUserId && members.some((m) => m.user_id === currentUserId)
   );
@@ -123,10 +124,10 @@ export function InviteJoinCard({
           )}
         </div>
 
-        {/* 4-Slot Roster Status */}
+        {/* Dynamic Roster Status */}
         <div className="mt-6 p-4 rounded-2xl border border-zinc-800 bg-zinc-900/40">
           <div className="flex items-center justify-between text-xs mb-3 font-mono">
-            <span className="text-zinc-400">Squad Roster ({membersCount}/4)</span>
+            <span className="text-zinc-400">Squad Roster ({membersCount}/{maxSlots})</span>
             <span
               className={
                 isFull
@@ -134,7 +135,7 @@ export function InviteJoinCard({
                   : "text-emerald-400 font-medium"
               }
             >
-              {isFull ? "Roster Full" : `${4 - membersCount} Spot(s) Open`}
+              {isFull ? "Roster Full" : `${maxSlots - membersCount} Spot(s) Open`}
             </span>
           </div>
 
@@ -167,7 +168,7 @@ export function InviteJoinCard({
               </div>
             ))}
 
-            {Array.from({ length: Math.max(0, 4 - membersCount) }).map((_, i) => (
+            {Array.from({ length: Math.max(0, maxSlots - membersCount) }).map((_, i) => (
               <div
                 key={i}
                 className="flex items-center justify-center p-2 rounded-xl border border-dashed border-zinc-800/80 bg-zinc-950/20 text-xs text-zinc-500 font-mono"
