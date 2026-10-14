@@ -85,6 +85,8 @@ export async function createHackathonFromScraper(payload: {
   starts_at?: string | null;
   ends_at?: string | null;
   team_name?: string;
+  min_team_size?: number;
+  max_team_size?: number;
   timeline_gates?: Array<{ title: string; deadline: string; event_type?: string }>;
 }) {
   try {
@@ -101,6 +103,9 @@ export async function createHackathonFromScraper(payload: {
       payload.slug ||
       `${payload.title.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${Date.now().toString().slice(-4)}`;
 
+    const minSize = Math.max(1, payload.min_team_size || 1);
+    const maxSize = Math.max(minSize, payload.max_team_size || 4);
+
     // 1. Insert Hackathon
     const { data: hackathon, error: hackError } = await supabase
       .from("hackathons")
@@ -116,6 +121,8 @@ export async function createHackathonFromScraper(payload: {
         ends_at:
           payload.ends_at ||
           new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString(),
+        min_team_size: minSize,
+        max_team_size: maxSize,
         created_by: user.id,
       })
       .select()
@@ -140,6 +147,7 @@ export async function createHackathonFromScraper(payload: {
         name: squadName,
         slug: squadSlug,
         description: `Squad participating in ${payload.title}`,
+        max_members: maxSize,
       })
       .select()
       .single();

@@ -37,6 +37,8 @@ export interface Hackathon {
   description: string | null;
   starts_at: string;
   ends_at: string;
+  min_team_size?: number;
+  max_team_size?: number;
   created_by?: string | null;
   created_at: string;
   updated_at: string;
@@ -62,6 +64,7 @@ export interface Team {
   slug: string;
   description: string | null;
   invite_code: string;
+  max_members?: number;
   created_at: string;
   updated_at: string;
   members?: TeamMember[];
@@ -141,6 +144,7 @@ export interface InviteTeamDetails {
   description: string | null;
   invite_code: string;
   captain_id: string;
+  max_members?: number;
   hackathon: {
     id: string;
     title: string;
@@ -149,6 +153,8 @@ export interface InviteTeamDetails {
     prize_pool: string | null;
     starts_at: string;
     ends_at: string;
+    min_team_size?: number;
+    max_team_size?: number;
   };
   members: Array<{
     id: string;

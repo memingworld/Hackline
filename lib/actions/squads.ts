@@ -350,7 +350,8 @@ export async function deploySavedSquadToActiveTeam(savedSquadId: string, teamId:
       (team.members || []).map((m: any) => m.user_id)
     );
 
-    let slotsAvailable = 4 - (team.members?.length || 0);
+    const teamCap = team.max_members || 4;
+    let slotsAvailable = teamCap - (team.members?.length || 0);
 
     if (savedSquad.members && savedSquad.members.length > 0 && slotsAvailable > 0) {
       for (const sm of savedSquad.members) {
@@ -372,6 +373,60 @@ export async function deploySavedSquadToActiveTeam(savedSquadId: string, teamId:
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to deploy saved squad." };
+  }
+}
+
+/**
+ * Update team max capacity (Captain only, bounded by hackathon rules).
+ */
+export async function updateTeamCapacity(teamId: string, maxMembers: number) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: "Unauthorized: Please sign in." };
+    }
+
+    const { data: team } = await supabase
+      .from("teams")
+      .select("captain_id, hackathon:hackathons(min_team_size, max_team_size)")
+      .eq("id", teamId)
+      .single();
+
+    if (!team || team.captain_id !== user.id) {
+      return { success: false, error: "Only the squad captain can adjust team capacity." };
+    }
+
+    // Verify current count doesn't exceed requested new cap
+    const { count } = await supabase
+      .from("team_members")
+      .select("id", { count: "exact", head: true })
+      .eq("team_id", teamId);
+
+    if (count !== null && maxMembers < count) {
+      return {
+        success: false,
+        error: `Cannot reduce squad capacity below current member count (${count} members).`,
+      };
+    }
+
+    const { error } = await supabase
+      .from("teams")
+      .update({ max_members: maxMembers, updated_at: new Date().toISOString() })
+      .eq("id", teamId);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/squad");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to update team capacity." };
   }
 }
 
@@ -408,7 +463,7 @@ export async function joinTeamByInviteCode(inviteCode: string, duty?: string) {
     // Fallback: Direct select & insert
     const { data: team, error: teamErr } = await supabase
       .from("teams")
-      .select("id, captain_id")
+      .select("id, captain_id, max_members")
       .eq("invite_code", inviteCode)
       .single();
 
@@ -428,14 +483,15 @@ export async function joinTeamByInviteCode(inviteCode: string, duty?: string) {
       return { success: true, message: "Already a member of this squad.", teamId: team.id };
     }
 
-    // Check team count < 4
+    // Check dynamic team count < max_members
+    const teamCap = team.max_members || 4;
     const { count } = await supabase
       .from("team_members")
       .select("id", { count: "exact", head: true })
       .eq("team_id", team.id);
 
-    if (count !== null && count >= 4) {
-      return { success: false, error: "This squad is already full (maximum 4 members reached)." };
+    if (count !== null && count >= teamCap) {
+      return { success: false, error: `This squad is already full (maximum ${teamCap} members reached).` };
     }
 
     const { error: insertErr } = await supabase.from("team_members").insert({
@@ -456,3 +512,4 @@ export async function joinTeamByInviteCode(inviteCode: string, duty?: string) {
     return { success: false, error: err.message || "Failed to join squad." };
   }
 }
+

@@ -117,6 +117,7 @@ export async function getTeamByInviteCode(inviteCode: string): Promise<InviteTea
       description,
       invite_code,
       captain_id,
+      max_members,
       hackathon:hackathons(
         id,
         title,
@@ -124,7 +125,9 @@ export async function getTeamByInviteCode(inviteCode: string): Promise<InviteTea
         banner_url,
         prize_pool,
         starts_at,
-        ends_at
+        ends_at,
+        min_team_size,
+        max_team_size
       ),
       members:team_members(
         id,
@@ -134,8 +137,7 @@ export async function getTeamByInviteCode(inviteCode: string): Promise<InviteTea
         user:profiles(
           id,
           full_name,
-          avatar_url,
-          email
+          avatar_url
         )
       )
     `)
