@@ -3,8 +3,8 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sanitizePlainText, sanitizeSafeUrl } from "@/lib/security";
-import { encodeReservedMembers, ReservedMember } from "@/lib/data/squads";
-import { notifySquadDeployment } from "@/lib/actions/notifications";
+import { encodeReservedMembers, ReservedMember } from "@/lib/data/reserved-members";
+import { notifySquadDeployment, notifyTeammateAssignment } from "@/lib/actions/notifications";
 
 export async function updateHackathon(
   id: string,
@@ -15,6 +15,14 @@ export async function updateHackathon(
     starts_at?: string;
     ends_at?: string;
     banner_url?: string;
+    rounds?: Array<{
+      id?: string;
+      title: string;
+      deadline: string;
+      event_type?: string;
+      assigned_member_id?: string | null;
+      assigned_member_name?: string | null;
+    }>;
   }
 ) {
   try {
@@ -59,8 +67,85 @@ export async function updateHackathon(
       return { success: false, error: error.message };
     }
 
+    // Synchronize multi-rounds and internal team work deadlines
+    if (payload.rounds) {
+      const { data: existingEvents } = await supabase
+        .from("timeline_events")
+        .select("id, team_id, title, deadline")
+        .eq("hackathon_id", id);
+
+      const existingMap = new Map((existingEvents || []).map((ev) => [ev.id, ev]));
+      const submittedIds = new Set(payload.rounds.filter((r) => r.id).map((r) => r.id as string));
+
+      // Delete removed rounds
+      const eventsToDelete = (existingEvents || []).filter((ev) => !submittedIds.has(ev.id));
+      if (eventsToDelete.length > 0) {
+        await supabase
+          .from("timeline_events")
+          .delete()
+          .in("id", eventsToDelete.map((ev) => ev.id));
+      }
+
+      // Find user team ID for this hackathon
+      const defaultTeamId = existingEvents?.[0]?.team_id || null;
+
+      // Insert or update submitted rounds
+      for (const round of payload.rounds) {
+        const cleanTitle = sanitizePlainText(round.title);
+        if (!cleanTitle || !round.deadline) continue;
+
+        let finalTitle = cleanTitle;
+        if (round.assigned_member_name && !finalTitle.includes(`[@`)) {
+          finalTitle = `${cleanTitle} [@${round.assigned_member_name}]`;
+        }
+
+        if (round.id && existingMap.has(round.id)) {
+          await supabase
+            .from("timeline_events")
+            .update({
+              title: finalTitle,
+              deadline: new Date(round.deadline).toISOString(),
+              event_type: (round.event_type as any) || "custom",
+            })
+            .eq("id", round.id);
+        } else {
+          await supabase
+            .from("timeline_events")
+            .insert({
+              hackathon_id: id,
+              team_id: defaultTeamId,
+              title: finalTitle,
+              deadline: new Date(round.deadline).toISOString(),
+              event_type: (round.event_type as any) || "custom",
+              is_completed: false,
+            });
+        }
+
+        // Notify tagged teammate if they have a real profile ID
+        if (round.assigned_member_id && !round.assigned_member_id.startsWith("reserved-")) {
+          const { data: captainProfile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", user.id)
+            .maybeSingle();
+
+          await notifyTeammateAssignment({
+            hackathonId: id,
+            hackathonTitle: payload.title,
+            taskTitle: cleanTitle,
+            deadline: round.deadline,
+            captainName: captainProfile?.full_name || "Captain",
+            assignedUserId: round.assigned_member_id,
+            assignedName: round.assigned_member_name || "Teammate",
+          });
+        }
+      }
+    }
+
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/hackathons");
+    revalidatePath(`/dashboard/hackathons/${id}`);
+    revalidatePath("/dashboard/calendar");
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to update hackathon" };

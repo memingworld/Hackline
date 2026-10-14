@@ -170,7 +170,7 @@ export function HackathonsManager({
               Tracked Hackathons ({initialHackathons.length})
             </h3>
             <p className="text-xs text-zinc-500 font-mono">
-              Click any hackathon to inspect details or set as your active sprint command center.
+              Click any hackathon to open its dedicated sprint workspace.
             </p>
           </div>
         </div>
@@ -178,18 +178,13 @@ export function HackathonsManager({
         {initialHackathons.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {initialHackathons.map((h) => {
-              const isActive = h.id === activeHackathonId;
               const remaining = getRemainingTime(h.ends_at);
 
               return (
                 <div
                   key={h.id}
                   onClick={() => handleOpenWorkspace(h.id)}
-                  className={`rounded-2xl border p-5 transition-all flex flex-col justify-between group shadow-sm cursor-pointer relative ${
-                    isActive
-                      ? "border-emerald-500/50 bg-gradient-to-b from-emerald-950/20 to-zinc-950/80 shadow-md shadow-emerald-500/5 ring-1 ring-emerald-500/20"
-                      : "border-white/[0.08] bg-zinc-950/60 hover:border-white/[0.2] hover:bg-zinc-900/60"
-                  }`}
+                  className="rounded-2xl border border-white/[0.08] bg-zinc-950/60 hover:border-white/[0.2] hover:bg-zinc-900/60 p-5 transition-all flex flex-col justify-between group shadow-sm cursor-pointer relative"
                 >
                   <div>
                     {/* Top Row Badges */}
@@ -199,12 +194,31 @@ export function HackathonsManager({
                           {h.source_platform}
                         </span>
 
-                        {isActive && (
-                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center gap-1">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                            Active Sprint
-                          </span>
-                        )}
+                        {(() => {
+                          const now = Date.now();
+                          const starts = new Date(h.starts_at).getTime();
+                          const ends = new Date(h.ends_at).getTime();
+                          if (!isNaN(starts) && !isNaN(ends) && starts <= now && now <= ends) {
+                            return (
+                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center gap-1">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                Live Sprint
+                              </span>
+                            );
+                          }
+                          if (!isNaN(starts) && starts > now) {
+                            return (
+                              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded border border-sky-500/30 bg-sky-500/10 text-sky-400">
+                                Upcoming
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-800 bg-zinc-900 text-zinc-400">
+                              Concluded
+                            </span>
+                          );
+                        })()}
                       </div>
 
                       {h.prize_pool && (

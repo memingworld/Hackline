@@ -13,6 +13,7 @@ import {
   Clock,
   Sparkles,
   ExternalLink,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -265,14 +266,29 @@ export function TimelineManager({
                   </button>
 
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-sm font-bold tracking-tight ${
-                          event.is_completed ? "line-through text-zinc-500" : "text-white"
-                        }`}
-                      >
-                        {event.title}
-                      </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {(() => {
+                        const tagMatch = event.title.match(/\[@(.*?)\]/);
+                        const assignedTag = event.assigned_member_name || (tagMatch ? tagMatch[1] : null);
+                        const displayTitle = event.title.replace(/\[@.*?\]/, "").trim();
+                        return (
+                          <>
+                            <span
+                              className={`text-sm font-bold tracking-tight ${
+                                event.is_completed ? "line-through text-zinc-500" : "text-white"
+                              }`}
+                            >
+                              {displayTitle}
+                            </span>
+                            {assignedTag && (
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 flex items-center gap-1">
+                                <Users className="h-3 w-3 text-indigo-400" />
+                                <span>{assignedTag}</span>
+                              </span>
+                            )}
+                          </>
+                        );
+                      })()}
                       <span
                         className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${status.color}`}
                       >

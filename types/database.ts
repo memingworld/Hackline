@@ -104,6 +104,8 @@ export interface TimelineEvent {
   deadline: string;
   google_calendar_event_id: string | null;
   is_completed: boolean;
+  assigned_member_id?: string | null;
+  assigned_member_name?: string | null;
   created_at: string;
 }
 

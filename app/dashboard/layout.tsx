@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { getActiveHackathons, getUserCurrentTeam } from "@/lib/data/hackathons";
+import { getAllUserTimelineEvents } from "@/lib/data/timeline";
 
 export default async function DashboardLayout({
   children,
@@ -23,15 +24,12 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const cookieStore = await cookies();
-  const cookieHackathonId = cookieStore.get("active_hackathon_id")?.value;
+  const [hackathons, allTimelineEvents] = await Promise.all([
+    getActiveHackathons(),
+    getAllUserTimelineEvents(),
+  ]);
 
-  const hackathons = await getActiveHackathons();
-  const activeHackathon =
-    (cookieHackathonId && hackathons.find((h) => h.id === cookieHackathonId)) ||
-    hackathons[0] ||
-    null;
-
+  const activeHackathon = hackathons[0] || null;
   const currentTeam = await getUserCurrentTeam(activeHackathon?.id);
 
   const userEmail = user?.email || "";
@@ -43,10 +41,11 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-[#09090b] text-zinc-100 selection:bg-zinc-700 selection:text-white">
       <DashboardSidebar
-        activeHackathon={activeHackathon}
-        currentTeam={currentTeam}
         currentUserId={user?.id}
+        userEmail={userEmail}
+        userName={userName}
         hackathons={hackathons}
+        timelineEvents={allTimelineEvents}
       />
       <div className="flex-1 flex flex-col min-w-0">
         <DashboardHeader

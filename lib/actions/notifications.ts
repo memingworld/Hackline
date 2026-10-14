@@ -320,3 +320,107 @@ export async function notifySquadDeployment(params: {
   }
 }
 
+/**
+ * Dispatch Telegram Bot DM when a teammate is assigned to a specific round / deadline.
+ */
+export async function notifyTeammateAssignment(params: {
+  hackathonId: string;
+  hackathonTitle: string;
+  taskTitle: string;
+  deadline: string;
+  captainName: string;
+  assignedUserId?: string | null;
+  assignedName: string;
+}) {
+  try {
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    if (!botToken || !params.assignedUserId) {
+      return { success: true, notified: false };
+    }
+
+    const supabase = await createClient();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, full_name, telegram_chat_id")
+      .eq("id", params.assignedUserId)
+      .maybeSingle();
+
+    if (!profile || !profile.telegram_chat_id) {
+      return { success: true, notified: false };
+    }
+
+    const appBaseUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://hackline.dev");
+
+    const endsTime = new Date(params.deadline).getTime();
+    const diffHours = !isNaN(endsTime)
+      ? Math.round((endsTime - Date.now()) / (1000 * 60 * 60))
+      : null;
+
+    const formattedDeadline = !isNaN(endsTime)
+      ? new Date(params.deadline).toLocaleString([], {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : params.deadline;
+
+    const countdownText = diffHours !== null && diffHours > 0 ? ` (T-${diffHours}h left)` : "";
+
+    const message =
+      `🎯 *Hackline Milestone Assigned!* 🎯\n\n` +
+      `Hey *${profile.full_name || params.assignedName}*!\n\n` +
+      `*[Captain ${params.captainName}]* assigned you to an upcoming sprint milestone in:\n` +
+      `🏆 *${params.hackathonTitle}*\n\n` +
+      `📌 *Milestone:* \`${params.taskTitle}\`\n` +
+      `⏳ *Target Deadline:* ${formattedDeadline}${countdownText}\n\n` +
+      `Tap below to open your sprint workspace and track deliverables:`;
+
+    const inlineKeyboard = [
+      [
+        {
+          text: "🌐 Open Sprint Workspace",
+          url: `${appBaseUrl}/dashboard/hackathons/${params.hackathonId}`,
+        },
+      ],
+    ];
+
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: profile.telegram_chat_id,
+        text: message,
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: inlineKeyboard,
+        },
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      try {
+        await supabase.from("telegram_notifications").insert({
+          user_id: profile.id,
+          hackathon_id: params.hackathonId,
+          trigger_type: "task_assignment",
+          message_text: message,
+          status: "sent",
+          telegram_message_id: data?.result?.message_id ? String(data.result.message_id) : null,
+        });
+      } catch {
+        // Safe if table not yet migrated
+      }
+      return { success: true, notified: true };
+    }
+
+    return { success: true, notified: false };
+  } catch (err: any) {
+    console.error("[Telegram Dispatch] Error in notifyTeammateAssignment:", err);
+    return { success: false, error: err.message, notified: false };
+  }
+}
+
