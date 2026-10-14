@@ -1,12 +1,34 @@
 import re
 import json
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 from typing import Optional, Dict, Any
 try:
     from .models import HackathonMetadata, TimelineGate
 except (ImportError, ValueError):
     from models import HackathonMetadata, TimelineGate
+
+def extract_smart_title_from_url(url: str, platform: str) -> str:
+    parsed = urlparse(url)
+    qs = parse_qs(parsed.query)
+
+    # 1. Check query parameters
+    candidate = qs.get("utm_source", [""])[0] or qs.get("utm_campaign", [""])[0] or qs.get("challenge", [""])[0]
+    if candidate and candidate.lower() not in ["logged_out_user", "share", "referral"]:
+        formatted = re.sub(r"[_-]+", " ", candidate).title()
+        return f"{formatted} ({platform.upper()})"
+
+    # 2. Check path segments
+    path_parts = [p for p in parsed.path.split("/") if p]
+    if path_parts:
+        last = path_parts[-1]
+        if last not in ["hackathons", "competitions", "events"]:
+            if "-" in last:
+                return re.sub(r"-+", " ", last).title()
+            elif len(last) >= 4:
+                return f"{platform.upper()} Sprint #{last.upper()}"
+
+    return f"{platform.upper()} Hackathon"
 
 def detect_platform(url: str) -> str:
     domain = urlparse(url).netloc.lower()
@@ -75,6 +97,10 @@ def parse_with_dom(html: str, url: str) -> Optional[HackathonMetadata]:
         h1 = soup.find("h1")
         if h1:
             title = h1.get_text(strip=True)
+
+    GENERIC_TITLES = {"unstop", "devfolio", "devpost", "luma", "hack2skill", "competitions", "hackathons", "home", "untitled", "403 forbidden"}
+    if not title or title.lower() in GENERIC_TITLES:
+        title = extract_smart_title_from_url(url, platform)
 
     if not title:
         return None

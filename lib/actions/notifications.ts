@@ -90,6 +90,23 @@ export async function saveNotificationSettings(payload: NotificationSettingsPayl
 }
 
 /**
+ * Normalize raw input into clean international E.164 format.
+ * Strips whitespace, brackets, hyphens, and prepends country code if missing.
+ */
+function normalizePhoneNumber(rawPhone: string): string {
+  let cleaned = rawPhone.trim().replace(/[^\d+]/g, "");
+  if (!cleaned.startsWith("+")) {
+    if (/^\d{10}$/.test(cleaned)) {
+      // Default standard 10-digit mobile number to Indian country code (+91)
+      cleaned = `+91${cleaned}`;
+    } else {
+      cleaned = `+${cleaned}`;
+    }
+  }
+  return cleaned;
+}
+
+/**
  * Dispatch a live or simulated test WhatsApp alert to verify connectivity.
  */
 export async function sendTestWhatsAppNotification(
@@ -111,6 +128,7 @@ export async function sendTestWhatsAppNotification(
       return { success: false, error: "Please enter a valid phone number with country code." };
     }
 
+    const normalizedPhone = normalizePhoneNumber(phone);
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const fromWhatsAppNumber = process.env.TWILIO_WHATSAPP_NUMBER || "whatsapp:+14155238886";
@@ -120,7 +138,7 @@ export async function sendTestWhatsAppNotification(
     if (accountSid && authToken && !accountSid.startsWith("placeholder")) {
       // Dispatches real WhatsApp message via Twilio API
       const authHeader = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
-      const formattedTo = phone.startsWith("whatsapp:") ? phone : `whatsapp:${phone.trim()}`;
+      const formattedTo = `whatsapp:${normalizedPhone}`;
 
       const params = new URLSearchParams();
       params.append("To", formattedTo);
@@ -152,12 +170,12 @@ export async function sendTestWhatsAppNotification(
         success: true,
         mode: "live",
         sid: twilioData.sid,
-        message: `Live WhatsApp message sent to ${phone}!`,
+        message: `Live WhatsApp message dispatched to ${normalizedPhone}!`,
       };
     } else {
-      // High-fidelity sandbox / simulated mode for local testing without paid Twilio keys
+      // Informative simulated mode for environments without paid Twilio keys
       console.log("[Hackline Notification Engine] Simulated WhatsApp Dispatch:", {
-        to: phone,
+        to: normalizedPhone,
         body: messageBody,
         timestamp: new Date().toISOString(),
       });
@@ -165,7 +183,8 @@ export async function sendTestWhatsAppNotification(
       return {
         success: true,
         mode: "simulated",
-        message: `Test alert simulated for ${phone}. Live webhook dispatcher is configured.`,
+        normalizedPhone,
+        message: `Dispatched in simulation mode for ${normalizedPhone}. To receive real WhatsApp messages on your mobile, add TWILIO_ACCOUNT_SID & TWILIO_AUTH_TOKEN to Vercel and join the Twilio Sandbox.`,
       };
     }
   } catch (err: any) {

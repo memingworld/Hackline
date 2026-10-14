@@ -4,6 +4,7 @@ import * as React from "react";
 import { Sparkles, ArrowRight, Globe, Check, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface MagicLinkInputProps {
   onScrapeSuccess: (data: any) => void;
@@ -78,20 +79,20 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
 
   return (
     <div className="w-full space-y-3">
-      <form onSubmit={handleScrape} className="relative flex items-center">
-        <div className="relative flex-1">
+      <form onSubmit={handleScrape} className="w-full">
+        <div className="relative flex items-center w-full">
           <input
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Paste URL from Devfolio, Unstop, Devpost, Luma, Hack2skill..."
             disabled={isLoading}
-            className="w-full h-13 pl-11 pr-32 rounded-2xl bg-zinc-900/90 text-sm text-zinc-100 placeholder:text-zinc-500 border border-zinc-800 shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/80 transition-all"
+            className="w-full h-14 pl-11 pr-44 rounded-2xl bg-zinc-900/90 text-sm text-zinc-100 placeholder:text-zinc-500 border border-zinc-800 shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/80 transition-all"
           />
-          <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400" />
-          
+          <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 pointer-events-none" />
+
           {detectedPlatform && (
-            <div className="absolute right-32 top-1/2 -translate-y-1/2 hidden sm:flex items-center">
+            <div className="absolute right-44 top-1/2 -translate-y-1/2 hidden md:flex items-center pointer-events-none">
               <span
                 className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded-md border ${detectedPlatform.color}`}
               >
@@ -99,19 +100,22 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
               </span>
             </div>
           )}
-        </div>
 
-        <Button
-          type="submit"
-          variant="primary"
-          size="md"
-          isLoading={isLoading}
-          disabled={!url.trim()}
-          className="absolute right-1.5 h-10 px-4 rounded-xl text-xs gap-1.5 font-medium"
-        >
-          <span>{isLoading ? "Extracting" : "Magic Import"}</span>
-          {!isLoading && <ArrowRight className="h-3.5 w-3.5" />}
-        </Button>
+          <Button
+            type="submit"
+            variant={url.trim() ? "primary" : "secondary"}
+            size="sm"
+            isLoading={isLoading}
+            disabled={!url.trim()}
+            className={cn(
+              "absolute right-2 top-1/2 -translate-y-1/2 h-10 px-4 rounded-xl text-xs gap-1.5 font-medium transition-all",
+              !url.trim() && "bg-zinc-800/60 text-zinc-500 border border-zinc-800 shadow-none hover:bg-zinc-800/60 cursor-not-allowed opacity-60"
+            )}
+          >
+            <span>{isLoading ? "Extracting" : "Magic Import"}</span>
+            {!isLoading && <ArrowRight className="h-3.5 w-3.5" />}
+          </Button>
+        </div>
       </form>
 
       {/* Loading Step Progress Indicator */}
