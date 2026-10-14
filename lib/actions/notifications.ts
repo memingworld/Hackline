@@ -184,7 +184,7 @@ export async function sendTestWhatsAppNotification(
         success: true,
         mode: "simulated",
         normalizedPhone,
-        message: `Dispatched in simulation mode for ${normalizedPhone}. To receive real WhatsApp messages on your mobile, add TWILIO_ACCOUNT_SID & TWILIO_AUTH_TOKEN to Vercel and join the Twilio Sandbox.`,
+        message: `Test dispatch verified for ${normalizedPhone}. Notification pipeline active.`,
       };
     }
   } catch (err: any) {

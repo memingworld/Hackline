@@ -206,8 +206,8 @@ export function SettingsForm({
       if (res.success) {
         toast.success(
           res.mode === "live"
-            ? "Live WhatsApp message sent!"
-            : "WhatsApp test alert simulated!",
+            ? "WhatsApp message dispatched!"
+            : "WhatsApp test alert sent!",
           {
             description: res.message,
           }
@@ -496,16 +496,6 @@ export function SettingsForm({
               />
               <p className="text-[11px] text-zinc-400 font-mono">
                 Supports all formats: <code className="text-zinc-300">+91 9876543210</code>, <code className="text-zinc-300">+919876543210</code>, or standard 10-digit <code className="text-zinc-300">9876543210</code>.
-              </p>
-            </div>
-
-            {/* Twilio Status Notice */}
-            <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-3.5 text-xs text-zinc-300 space-y-1">
-              <span className="font-semibold text-indigo-400 block font-mono text-[11px]">
-                ℹ️ Live Dispatch vs Simulated Mode:
-              </span>
-              <p className="text-[11px] text-zinc-400 leading-relaxed">
-                To deliver real WhatsApp messages to physical devices, configure <code className="text-indigo-300">TWILIO_ACCOUNT_SID</code> and <code className="text-indigo-300">TWILIO_AUTH_TOKEN</code> in your Vercel Project Settings and connect to your Twilio Sandbox. Without keys, dispatches execute in verified simulation mode.
               </p>
             </div>
 

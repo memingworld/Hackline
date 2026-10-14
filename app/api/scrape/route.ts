@@ -79,8 +79,7 @@ export async function POST(request: Request) {
     }
 
     const cleanUrl = url.trim().startsWith("http") ? url.trim() : `https://${url.trim()}`;
-    const scraperServiceUrl =
-      process.env.SCRAPER_SERVICE_URL || "http://127.0.0.1:8000";
+    const scraperServiceUrl = process.env.SCRAPER_SERVICE_URL;
 
     // Detect Platform
     let platform = "custom";
@@ -92,36 +91,38 @@ export async function POST(request: Request) {
     else if (cleanUrl.includes("hackculture.com")) platform = "hackculture";
     else if (cleanUrl.includes("hackbriven.com")) platform = "hackbriven";
 
-    // 1. Attempt to call FastAPI microservice
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+    // 1. Only query external microservice if an explicit, non-local URL is configured
+    if (scraperServiceUrl && !scraperServiceUrl.includes("127.0.0.1") && !scraperServiceUrl.includes("localhost")) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-      const serviceRes = await fetch(`${scraperServiceUrl}/api/scrape`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: cleanUrl }),
-        signal: controller.signal,
-      });
+        const serviceRes = await fetch(`${scraperServiceUrl}/api/scrape`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: cleanUrl }),
+          signal: controller.signal,
+        });
 
-      clearTimeout(timeoutId);
+        clearTimeout(timeoutId);
 
-      if (serviceRes.ok) {
-        const data = await serviceRes.json();
-        const smart = extractSmartDetailsFromUrl(cleanUrl, data.source_platform || platform, data.title);
-        if (smart.title && smart.title !== data.title) {
-          data.title = smart.title;
-          if (!data.description || data.description.length < 25) {
-            data.description = smart.description;
+        if (serviceRes.ok) {
+          const data = await serviceRes.json();
+          const smart = extractSmartDetailsFromUrl(cleanUrl, data.source_platform || platform, data.title);
+          if (smart.title && smart.title !== data.title) {
+            data.title = smart.title;
+            if (!data.description || data.description.length < 25) {
+              data.description = smart.description;
+            }
           }
+          return NextResponse.json(data);
         }
-        return NextResponse.json(data);
+      } catch {
+        // Microservice not reached; smoothly proceed to direct Next.js extractor
       }
-    } catch {
-      // Microservice not reached; gracefully continue to direct Next.js HTML extractor
     }
 
-    // 2. Direct server-side HTML extraction fallback
+    // 2. Direct server-side HTML extraction fallback (runs natively with 0 external service needed)
     const res = await fetch(cleanUrl, {
       headers: {
         "User-Agent":
