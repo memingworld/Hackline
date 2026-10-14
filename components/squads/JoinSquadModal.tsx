@@ -67,8 +67,9 @@ export function JoinSquadModal({ isOpen, onClose, onSuccess }: JoinSquadModalPro
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto animate-fade-in">
-      <div className="relative w-full max-w-md my-8 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm animate-fade-in">
+      <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
+      <div className="relative w-full max-w-md max-h-[86vh] rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl overflow-hidden flex flex-col z-10">
         {/* Header */}
         <div className="p-5 border-b border-zinc-800 flex items-center justify-between shrink-0 bg-zinc-950">
           <div className="flex items-center gap-2.5">

@@ -313,8 +313,9 @@ export function HackathonsManager({
 
       {/* Inspect Hackathon Details Modal */}
       {inspectingHackathon && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto animate-fade-in">
-          <div className="relative w-full max-w-lg my-8 rounded-3xl bg-[#0a0b10]/95 border border-white/[0.1] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] backdrop-blur-2xl ring-1 ring-white/[0.05]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="fixed inset-0" onClick={() => setInspectingHackathon(null)} aria-hidden="true" />
+          <div className="relative w-full max-w-lg max-h-[86vh] rounded-3xl bg-[#0a0b10]/95 border border-white/[0.1] shadow-2xl overflow-hidden flex flex-col backdrop-blur-2xl ring-1 ring-white/[0.05] z-10">
             {/* Modal Header */}
             <div className="p-5 border-b border-white/[0.06] flex items-center justify-between shrink-0 bg-zinc-950/60">
               <div className="flex items-center gap-2.5">
