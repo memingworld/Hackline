@@ -74,11 +74,11 @@ export async function deleteHackathon(id: string) {
   }
 }
 
-export async function createHackathonFromScraper(payload: {
+export async function createHackathon(payload: {
   title: string;
   slug?: string;
-  source_platform: string;
-  source_url: string;
+  source_platform?: string;
+  source_url?: string | null;
   banner_url?: string | null;
   prize_pool?: string | null;
   description?: string | null;
@@ -112,8 +112,8 @@ export async function createHackathonFromScraper(payload: {
       .insert({
         title: payload.title,
         slug: uniqueSlug,
-        source_platform: payload.source_platform,
-        source_url: payload.source_url,
+        source_platform: payload.source_platform || "custom",
+        source_url: payload.source_url || null,
         banner_url: payload.banner_url || null,
         prize_pool: payload.prize_pool || "TBA",
         description: payload.description || null,
@@ -161,7 +161,7 @@ export async function createHackathonFromScraper(payload: {
         is_captain: true,
       });
 
-      // Insert timeline gates if extracted
+      // Insert timeline gates (either extracted, custom, or standard defaults)
       if (payload.timeline_gates && payload.timeline_gates.length > 0) {
         const gatesToInsert = payload.timeline_gates.map((g) => ({
           hackathon_id: hackathon.id,
@@ -172,6 +172,28 @@ export async function createHackathonFromScraper(payload: {
           is_completed: false,
         }));
         await supabase.from("timeline_events").insert(gatesToInsert);
+      } else {
+        const defaultGates = [
+          {
+            hackathon_id: hackathon.id,
+            team_id: team.id,
+            title: "Sprint Kickoff",
+            deadline: payload.starts_at || new Date().toISOString(),
+            event_type: "registration_deadline" as const,
+            is_completed: false,
+          },
+          {
+            hackathon_id: hackathon.id,
+            team_id: team.id,
+            title: "Submission Gate",
+            deadline:
+              payload.ends_at ||
+              new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString(),
+            event_type: "submission_deadline" as const,
+            is_completed: false,
+          },
+        ];
+        await supabase.from("timeline_events").insert(defaultGates);
       }
 
       // Initialize default submission checklist
@@ -210,4 +232,6 @@ export async function createHackathonFromScraper(payload: {
     };
   }
 }
+
+export const createHackathonFromScraper = createHackathon;
 

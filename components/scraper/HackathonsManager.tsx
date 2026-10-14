@@ -5,6 +5,7 @@ import { Hackathon } from "@/types/database";
 import { MagicLinkInput } from "@/components/scraper/MagicLinkInput";
 import { HackathonConfirmationModal } from "@/components/scraper/HackathonConfirmationModal";
 import { EditHackathonDialog } from "@/components/dashboard/EditHackathonDialog";
+import { ManualHackathonForm } from "@/components/scraper/ManualHackathonForm";
 import { deleteHackathon } from "@/lib/actions/hackathons";
 import {
   Trophy,
@@ -19,6 +20,7 @@ import {
   X,
   CheckCircle2,
   Users,
+  PlusCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -34,6 +36,7 @@ export function HackathonsManager({
   activeHackathonId,
 }: HackathonsManagerProps) {
   const router = useRouter();
+  const [activeTab, setActiveTab] = React.useState<"magic" | "manual">("magic");
   const [extractedData, setExtractedData] = React.useState<any>(null);
   const [isConfirmOpen, setIsConfirmOpen] = React.useState(false);
   const [editingHackathon, setEditingHackathon] = React.useState<Hackathon | null>(null);
@@ -91,26 +94,69 @@ export function HackathonsManager({
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Magic Link Scraper Box with Doppelrand */}
+      {/* Hackathon Onboarding Card with Doppelrand and Tab Switcher */}
       <div className="rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-[1px] shadow-2xl">
-        <div className="rounded-[calc(1.5rem-1px)] bg-[#090a0f]/95 p-6 sm:p-8 space-y-4 backdrop-blur-xl relative overflow-hidden">
+        <div className="rounded-[calc(1.5rem-1px)] bg-[#090a0f]/95 p-6 sm:p-8 space-y-6 backdrop-blur-xl relative overflow-hidden">
           <div className="absolute top-0 right-10 -translate-y-1/2 w-80 h-32 bg-emerald-500/[0.06] blur-[90px] pointer-events-none rounded-full" />
-          <div className="flex items-center gap-3 relative z-10">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-zinc-900 border border-white/[0.08] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
-              <Sparkles className="h-4 w-4 text-emerald-400" />
+          
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 border border-white/[0.08] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+                {activeTab === "magic" ? (
+                  <Sparkles className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <PlusCircle className="h-4 w-4 text-emerald-400" />
+                )}
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-white tracking-tight">
+                  {activeTab === "magic"
+                    ? "Magic Link Scraper"
+                    : "Manual Hackathon Creation"}
+                </h2>
+                <p className="text-xs text-zinc-400">
+                  {activeTab === "magic"
+                    ? "Paste any URL from Devpost, Devfolio, Unstop, or Luma to extract prizes and deadlines."
+                    : "Initialize custom, in-person, university, or private sprint workspaces without a URL."}
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-base font-bold text-white tracking-tight">
-                Magic Link Scraper
-              </h2>
-              <p className="text-xs text-zinc-400">
-                Paste any URL from Devpost, Devfolio, Unstop, or Luma to extract prizes, deadlines, and deploy your workspace.
-              </p>
+
+            {/* Tab Switcher Pills */}
+            <div className="flex items-center bg-zinc-900/90 border border-white/[0.08] p-1 rounded-2xl shrink-0 self-start sm:self-auto shadow-inner">
+              <button
+                type="button"
+                onClick={() => setActiveTab("magic")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium transition-all ${
+                  activeTab === "magic"
+                    ? "bg-white/10 text-white shadow-sm border border-white/10 font-semibold"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
+                }`}
+              >
+                <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+                <span>Magic Scraper</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("manual")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium transition-all ${
+                  activeTab === "manual"
+                    ? "bg-white/10 text-white shadow-sm border border-white/10 font-semibold"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
+                }`}
+              >
+                <PlusCircle className="h-3.5 w-3.5 text-emerald-400" />
+                <span>Manual Entry</span>
+              </button>
             </div>
           </div>
 
-          <div className="relative z-10">
-            <MagicLinkInput onScrapeSuccess={handleScrapeSuccess} />
+          <div className="relative z-10 pt-1">
+            {activeTab === "magic" ? (
+              <MagicLinkInput onScrapeSuccess={handleScrapeSuccess} />
+            ) : (
+              <ManualHackathonForm onSuccess={() => router.refresh()} />
+            )}
           </div>
         </div>
       </div>
