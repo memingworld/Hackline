@@ -49,7 +49,7 @@ export function HackathonsManager({
   };
 
   const handleSelectAndLaunch = (hackathonId: string) => {
-    document.cookie = `active_hackathon_id=${hackathonId}; path=/; max-age=31536000`;
+    document.cookie = `active_hackathon_id=${hackathonId}; path=/; max-age=31536000; SameSite=Lax`;
     router.push(`/dashboard?hackathon=${hackathonId}`);
   };
 

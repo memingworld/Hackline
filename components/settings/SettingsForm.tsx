@@ -1,16 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Profile, Team, SubmissionChecklistItem } from "@/types/database";
+import { Profile } from "@/types/database";
 import {
   User,
   Bell,
-  ShieldCheck,
   Send,
   Sparkles,
   Code2,
-  Trash2,
-  Plus,
   Lock,
   KeyRound,
   Eye,
@@ -30,21 +27,16 @@ import {
   disconnectTelegram,
   sendTestTelegramNotification,
 } from "@/lib/actions/notifications";
-import { createChecklistItem, deleteChecklistItem } from "@/lib/actions/checklist";
 import { updateUserProfile, changeUserPassword } from "@/lib/actions/profile";
 import { useRouter } from "next/navigation";
 
 interface SettingsFormProps {
   profile: Profile | null;
-  activeTeam: Team | null;
-  checklistItems: SubmissionChecklistItem[];
   userEmail: string;
 }
 
 export function SettingsForm({
   profile,
-  activeTeam,
-  checklistItems,
   userEmail,
 }: SettingsFormProps) {
   const router = useRouter();
@@ -72,9 +64,6 @@ export function SettingsForm({
   const [isTestingTelegram, setIsTestingTelegram] = React.useState(false);
   const [isDisconnecting, setIsDisconnecting] = React.useState(false);
 
-  // Custom check state
-  const [newGateTitle, setNewGateTitle] = React.useState("");
-  const [isAddingGate, setIsAddingGate] = React.useState(false);
 
   // Calculate password strength
   const getPasswordStrength = (pwd: string) => {
@@ -228,39 +217,6 @@ export function SettingsForm({
     }
   };
 
-  const handleAddGate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newGateTitle.trim() || !activeTeam) return;
-    setIsAddingGate(true);
-    try {
-      const res = await createChecklistItem(activeTeam.id, newGateTitle.trim());
-      if (res.success) {
-        toast.success("Custom verification gate added");
-        setNewGateTitle("");
-        router.refresh();
-      } else {
-        toast.error("Failed to add gate", { description: res.error });
-      }
-    } catch {
-      toast.error("Error adding gate");
-    } finally {
-      setIsAddingGate(false);
-    }
-  };
-
-  const handleDeleteGate = async (itemId: string, itemTitle: string) => {
-    try {
-      const res = await deleteChecklistItem(itemId);
-      if (res.success) {
-        toast.success(`Gate "${itemTitle}" removed`);
-        router.refresh();
-      } else {
-        toast.error("Failed to delete gate");
-      }
-    } catch {
-      toast.error("Error removing gate");
-    }
-  };
 
   return (
     <div className="space-y-10 max-w-4xl">
@@ -640,67 +596,6 @@ export function SettingsForm({
             </div>
           </div>
         </div>
-
-      {/* 4. Pre-Flight Verification Gate Rules */}
-      {activeTeam && (
-        <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-6 md:p-8">
-          <div className="flex items-center justify-between pb-5 border-b border-zinc-800">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-white tracking-tight">
-                  Pre-Flight Submission Gate Configuration
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Mandatory checks enforced on the main dashboard for squad: {activeTeam.name}.
-                </p>
-              </div>
-            </div>
-          </div>
-
-            <div className="mt-5 space-y-2.5">
-              {checklistItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-3 rounded-xl border border-zinc-800/80 bg-zinc-900/40 text-xs"
-                >
-                  <span className="text-zinc-300 font-medium">{item.title}</span>
-                  {item.item_key.startsWith("custom_") && (
-                    <button
-                      onClick={() => handleDeleteGate(item.id, item.title)}
-                      className="p-1 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
-                      title="Delete checkpoint"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Add new gate */}
-            <form onSubmit={handleAddGate} className="mt-4 flex items-center gap-2">
-              <Input
-                value={newGateTitle}
-                onChange={(e) => setNewGateTitle(e.target.value)}
-                placeholder="Add custom pre-flight checkpoint..."
-                className="bg-zinc-900/60 border-zinc-800 text-xs"
-              />
-              <Button
-                type="submit"
-                variant="outline"
-                size="sm"
-                disabled={isAddingGate || !newGateTitle.trim()}
-                className="text-xs rounded-xl shrink-0 gap-1.5"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                <span>Add Gate</span>
-              </Button>
-            </form>
-          </div>
-        )}
       </div>
     );
   }

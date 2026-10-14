@@ -3,9 +3,11 @@ import { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { getActiveSquadRoster, getUserSavedSquads } from "@/lib/data/squads";
+import { getSubmissionChecklist } from "@/lib/data/hackathons";
 import { ActiveSquadRoster } from "@/components/squads/ActiveSquadRoster";
 import { SavedSquadsManager } from "@/components/squads/SavedSquadsManager";
 import { SquadPageClientHeader } from "@/components/squads/SquadPageClientHeader";
+import { PreFlightGateManager } from "@/components/squads/PreFlightGateManager";
 
 import { cookies } from "next/headers";
 
@@ -43,6 +45,10 @@ export default async function SquadPage(props: {
     getUserSavedSquads(),
   ]);
 
+  const checklistItems = activeTeam
+    ? await getSubmissionChecklist(activeTeam.id)
+    : [];
+
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Top Header with client-triggered modals */}
@@ -62,13 +68,22 @@ export default async function SquadPage(props: {
             </h3>
           </div>
           <span className="text-xs text-zinc-500 font-mono">
-            {activeTeam ? "Synced with Supabase" : "No active team"}
+            {activeTeam ? `Synced with ${activeTeam.name}` : "No active team"}
           </span>
         </div>
 
         <ActiveSquadRoster
           team={activeTeam}
           currentUserId={user.id}
+        />
+      </section>
+
+      {/* Pre-Flight Submission Gates Configuration */}
+      <section className="space-y-4 pt-4 border-t border-zinc-900">
+        <PreFlightGateManager
+          activeTeam={activeTeam}
+          checklistItems={checklistItems}
+          isCaptain={activeTeam?.captain_id === user.id}
         />
       </section>
 

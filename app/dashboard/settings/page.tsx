@@ -2,12 +2,11 @@ import * as React from "react";
 import { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import { getUserCurrentTeam, getSubmissionChecklist } from "@/lib/data/hackathons";
 import { SettingsForm } from "@/components/settings/SettingsForm";
 
 export const metadata: Metadata = {
   title: "Settings & Alerts | Hackline Command Center",
-  description: "Configure profile credentials, Telegram automated notifications, and submission gates.",
+  description: "Configure profile credentials and Telegram automated notifications.",
 };
 
 export default async function SettingsPage() {
@@ -26,12 +25,6 @@ export default async function SettingsPage() {
     .eq("id", user.id)
     .single();
 
-  const currentTeam = await getUserCurrentTeam();
-
-  const checklistItems = currentTeam
-    ? await getSubmissionChecklist(currentTeam.id)
-    : [];
-
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Header */}
@@ -46,7 +39,7 @@ export default async function SettingsPage() {
             </span>
           </div>
           <p className="mt-1 text-xs text-zinc-400 max-w-xl">
-            Manage your developer profile, configure Telegram automated deadline warnings, and customize pre-flight submission gates.
+            Manage your developer profile credentials and configure Telegram automated deadline warnings.
           </p>
         </div>
       </div>
@@ -54,8 +47,6 @@ export default async function SettingsPage() {
       {/* Main Settings Form */}
       <SettingsForm
         profile={profile}
-        activeTeam={currentTeam}
-        checklistItems={checklistItems}
         userEmail={user.email || ""}
       />
     </div>

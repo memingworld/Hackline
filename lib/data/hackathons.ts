@@ -2,7 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { Hackathon, Team, TimelineEvent, SubmissionChecklistItem } from "@/types/database";
 
 /**
- * Fetch all active hackathons directly from the Supabase database.
+ * Fetch all active hackathons associated with the authenticated user directly from the Supabase database.
  */
 export async function getActiveHackathons(): Promise<Hackathon[]> {
   const supabase = await createClient();
@@ -12,9 +12,52 @@ export async function getActiveHackathons(): Promise<Hackathon[]> {
 
   if (!user) return [];
 
+  // Query 1: Hackathons created by this user
+  const { data: createdHacks, error: createdErr } = await supabase
+    .from("hackathons")
+    .select("id")
+    .eq("created_by", user.id);
+
+  if (createdErr) {
+    console.error("Error fetching user created hackathons:", createdErr.message);
+  }
+
+  // Query 2: Teams where user is captain
+  const { data: captainTeams, error: capErr } = await supabase
+    .from("teams")
+    .select("hackathon_id")
+    .eq("captain_id", user.id);
+
+  if (capErr) {
+    console.error("Error fetching captain teams:", capErr.message);
+  }
+
+  // Query 3: Teams where user is a member
+  const { data: memberTeams, error: memErr } = await supabase
+    .from("team_members")
+    .select("teams!inner(hackathon_id)")
+    .eq("user_id", user.id);
+
+  if (memErr) {
+    console.error("Error fetching member teams:", memErr.message);
+  }
+
+  const hackathonIds = new Set<string>();
+  createdHacks?.forEach((h) => hackathonIds.add(h.id));
+  captainTeams?.forEach((t) => t.hackathon_id && hackathonIds.add(t.hackathon_id));
+  memberTeams?.forEach((m: any) => {
+    const hid = m.teams?.hackathon_id;
+    if (hid) hackathonIds.add(hid);
+  });
+
+  if (hackathonIds.size === 0) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from("hackathons")
     .select("*")
+    .in("id", Array.from(hackathonIds))
     .order("created_at", { ascending: false });
 
   if (error) {

@@ -49,6 +49,16 @@ export function DashboardHeader({
   const currentHackathonId = searchParams.get("hackathon") || activeHackathonId || (hackathons[0]?.id ?? "");
   const activeHackathon = hackathons.find((h) => h.id === currentHackathonId) || hackathons[0] || null;
 
+  const hasAlerts = React.useMemo(() => {
+    if (!activeHackathon) return false;
+    if (!currentTeam) return true;
+    if (activeHackathon.ends_at) {
+      const endsTime = new Date(activeHackathon.ends_at).getTime();
+      return !isNaN(endsTime) && endsTime - Date.now() > 0;
+    }
+    return false;
+  }, [activeHackathon, currentTeam]);
+
   React.useEffect(() => {
     const handleOpenCommand = () => setIsCommandPaletteOpen(true);
     window.addEventListener("open-command-palette", handleOpenCommand);
@@ -58,8 +68,9 @@ export function DashboardHeader({
   const handleSwitchHackathon = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newId = e.target.value;
     if (newId) {
-      document.cookie = `active_hackathon_id=${newId}; path=/; max-age=31536000`;
+      document.cookie = `active_hackathon_id=${newId}; path=/; max-age=31536000; SameSite=Lax`;
       router.push(`${pathname}?hackathon=${newId}`);
+      router.refresh();
     }
   };
 
@@ -137,12 +148,18 @@ export function DashboardHeader({
         {/* System Notifications Popover */}
         <div className="relative">
           <button
-            onClick={() => setIsNotificationsOpen((prev) => !prev)}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsNotificationsOpen((prev) => !prev);
+            }}
             className="relative flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white hover:border-white/[0.18] transition-colors"
             title="System Alerts & Deadlines"
           >
             <Bell className="h-3.5 w-3.5" />
-            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.9)]" />
+            {hasAlerts && (
+              <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.9)]" />
+            )}
           </button>
 
           <NotificationsPopover

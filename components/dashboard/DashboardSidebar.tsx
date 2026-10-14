@@ -102,7 +102,7 @@ export function DashboardSidebar({
       <div>
         {/* Brand Header */}
         <Link
-          href="/dashboard"
+          href={effectiveHackathon?.id ? `/dashboard?hackathon=${effectiveHackathon.id}` : "/dashboard"}
           className="flex items-center gap-3 px-2 py-2 mb-6 rounded-2xl hover:bg-white/[0.02] transition-colors group"
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-b from-white/[0.12] to-white/[0.02] border border-white/[0.1] text-white shadow-md transition-transform group-hover:scale-105">
@@ -169,10 +169,14 @@ export function DashboardSidebar({
                 ? pathname === "/dashboard"
                 : pathname.startsWith(item.href);
 
+            const targetHref = effectiveHackathon?.id
+              ? `${item.href}?hackathon=${effectiveHackathon.id}`
+              : item.href;
+
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={targetHref}
                 className={cn(
                   "flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 relative group",
                   isActive
@@ -219,7 +223,7 @@ export function DashboardSidebar({
           </div>
         ) : (
           <Link
-            href="/dashboard/squad"
+            href={effectiveHackathon?.id ? `/dashboard/squad?hackathon=${effectiveHackathon.id}` : "/dashboard/squad"}
             className="flex items-center justify-between p-2.5 rounded-2xl bg-white/[0.02] border border-dashed border-white/[0.08] text-xs text-zinc-400 hover:text-white hover:border-white/[0.2] transition-colors"
           >
             <span>No Squad Joined</span>
