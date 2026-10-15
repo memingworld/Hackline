@@ -8,6 +8,7 @@ import { HackathonConfirmationModal } from "@/components/scraper/HackathonConfir
 import { EditHackathonDialog } from "@/components/dashboard/EditHackathonDialog";
 import { ManualHackathonForm } from "@/components/scraper/ManualHackathonForm";
 import { deleteHackathon } from "@/lib/actions/hackathons";
+import { formatDateIst } from "@/lib/utils";
 import {
   Trophy,
   Calendar,
@@ -411,21 +412,13 @@ export function HackathonsManager({
                 <div className="p-3 rounded-xl bg-[#181410] border border-[rgba(229,169,60,0.18)]">
                   <span className="text-[#a89a8c] text-[10px] block uppercase">Starts</span>
                   <span className="text-[#fef3c7] mt-0.5 block font-semibold">
-                    {new Date(inspectingHackathon.starts_at).toLocaleDateString([], {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+                    {formatDateIst(inspectingHackathon.starts_at)}
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-[#181410] border border-[rgba(229,169,60,0.18)]">
                   <span className="text-[#a89a8c] text-[10px] block uppercase">Deadline</span>
                   <span className="text-[#fef3c7] mt-0.5 block font-semibold">
-                    {new Date(inspectingHackathon.ends_at).toLocaleDateString([], {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+                    {formatDateIst(inspectingHackathon.ends_at)}
                   </span>
                 </div>
               </div>

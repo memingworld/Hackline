@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { sanitizePlainText, sanitizeSafeUrl } from "@/lib/security";
 import { encodeReservedMembers, ReservedMember } from "@/lib/data/reserved-members";
 import { notifySquadDeployment, notifyTeammateAssignment } from "@/lib/actions/notifications";
+import { parseDateTimeInputToUtc } from "@/lib/utils";
 
 export async function updateHackathon(
   id: string,
@@ -56,8 +57,8 @@ export async function updateHackathon(
         title: sanitizePlainText(payload.title),
         prize_pool: sanitizePlainText(payload.prize_pool) || "TBA",
         description: sanitizePlainText(payload.description) || null,
-        starts_at: payload.starts_at,
-        ends_at: payload.ends_at,
+        starts_at: payload.starts_at ? parseDateTimeInputToUtc(payload.starts_at) : undefined,
+        ends_at: payload.ends_at ? parseDateTimeInputToUtc(payload.ends_at) : undefined,
         banner_url: sanitizeSafeUrl(payload.banner_url) || null,
         updated_at: new Date().toISOString(),
       })
@@ -104,7 +105,7 @@ export async function updateHackathon(
             .from("timeline_events")
             .update({
               title: finalTitle,
-              deadline: new Date(round.deadline).toISOString(),
+              deadline: parseDateTimeInputToUtc(round.deadline),
               event_type: (round.event_type as any) || "custom",
             })
             .eq("id", round.id);
@@ -115,7 +116,7 @@ export async function updateHackathon(
               hackathon_id: id,
               team_id: defaultTeamId,
               title: finalTitle,
-              deadline: new Date(round.deadline).toISOString(),
+              deadline: parseDateTimeInputToUtc(round.deadline),
               event_type: (round.event_type as any) || "custom",
               is_completed: false,
             });
@@ -237,10 +238,10 @@ export async function createHackathon(payload: {
         banner_url: sanitizeSafeUrl(payload.banner_url) || null,
         prize_pool: sanitizePlainText(payload.prize_pool) || "TBA",
         description: sanitizePlainText(payload.description) || null,
-        starts_at: payload.starts_at || new Date().toISOString(),
-        ends_at:
-          payload.ends_at ||
-          new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString(),
+        starts_at: payload.starts_at ? parseDateTimeInputToUtc(payload.starts_at) : new Date().toISOString(),
+        ends_at: payload.ends_at
+          ? parseDateTimeInputToUtc(payload.ends_at)
+          : new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString(),
         min_team_size: minSize,
         max_team_size: maxSize,
         created_by: user.id,
@@ -391,7 +392,7 @@ export async function createHackathon(payload: {
           hackathon_id: hackathon.id,
           team_id: team.id,
           title: g.title,
-          deadline: g.deadline,
+          deadline: parseDateTimeInputToUtc(g.deadline),
           event_type: (g.event_type as any) || "custom",
           is_completed: false,
         }));

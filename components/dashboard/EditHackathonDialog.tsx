@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { extractReservedMembers } from "@/lib/data/reserved-members";
-import { toLocalDatetimeString } from "@/lib/utils";
+import { toLocalDatetimeString, parseDateTimeInputToUtc } from "@/lib/utils";
 
 interface EditHackathonDialogProps {
   hackathon: Hackathon;
@@ -210,8 +210,7 @@ export function EditHackathonDialog({
     setIsSubmitting(true);
     try {
       const formattedRounds = rounds.map((r) => {
-        const d = r.deadline ? new Date(r.deadline) : new Date();
-        const validIsoDeadline = !isNaN(d.getTime()) ? d.toISOString() : new Date().toISOString();
+        const validIsoDeadline = parseDateTimeInputToUtc(r.deadline);
 
         return {
           id: r.id,
@@ -223,15 +222,15 @@ export function EditHackathonDialog({
         };
       });
 
-      const parsedStarts = startsAt ? new Date(startsAt) : new Date();
-      const parsedEnds = endsAt ? new Date(endsAt) : new Date();
+      const parsedStarts = startsAt ? parseDateTimeInputToUtc(startsAt) : undefined;
+      const parsedEnds = endsAt ? parseDateTimeInputToUtc(endsAt) : undefined;
 
       const res = await updateHackathon(hackathon.id, {
         title,
         prize_pool: prizePool,
         description,
-        starts_at: !isNaN(parsedStarts.getTime()) ? parsedStarts.toISOString() : undefined,
-        ends_at: !isNaN(parsedEnds.getTime()) ? parsedEnds.toISOString() : undefined,
+        starts_at: parsedStarts,
+        ends_at: parsedEnds,
         rounds: formattedRounds,
       });
 

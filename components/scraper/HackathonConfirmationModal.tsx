@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { createHackathonFromScraper } from "@/lib/actions/hackathons";
 import { toast } from "sonner";
 import { SavedSquad } from "@/types/database";
-import { toLocalDatetimeString } from "@/lib/utils";
+import { toLocalDatetimeString, parseDateTimeInputToUtc, formatDateTimeIst } from "@/lib/utils";
 import {
   X,
   Sparkles,
@@ -110,8 +110,8 @@ export function HackathonConfirmationModal({
         banner_url: bannerUrl,
         prize_pool: prizePool,
         description,
-        starts_at: new Date(startsAt).toISOString(),
-        ends_at: new Date(endsAt).toISOString(),
+        starts_at: parseDateTimeInputToUtc(startsAt),
+        ends_at: parseDateTimeInputToUtc(endsAt),
         team_name: squadName,
         max_team_size: maxTeamSize,
         timeline_gates: initialData.timeline_gates,
@@ -342,12 +342,7 @@ export function HackathonConfirmationModal({
                         <span>{gate.title}</span>
                       </span>
                       <span className="text-[#a89a8c] font-mono text-[10px]">
-                        {new Date(gate.deadline).toLocaleString([], {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {formatDateTimeIst(gate.deadline)}
                       </span>
                     </div>
                   ))}

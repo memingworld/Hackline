@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { X, CalendarDays } from "lucide-react";
 import { createTimelineEvent } from "@/lib/actions/timeline";
 import { TimelineEventType } from "@/types/database";
+import { parseDateTimeInputToUtc } from "@/lib/utils";
 
 interface CreateMilestoneModalProps {
   isOpen: boolean;
@@ -58,7 +59,7 @@ export function CreateMilestoneModal({
         teamId,
         title,
         eventType,
-        deadline,
+        deadline: parseDateTimeInputToUtc(deadline),
       });
 
       if (res.success) {

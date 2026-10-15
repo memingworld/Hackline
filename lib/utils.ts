@@ -5,31 +5,188 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const APP_TIMEZONE = "Asia/Kolkata";
+
 /**
  * Format a Date object or ISO string into a local HTML datetime-local input string: `YYYY-MM-DDTHH:mm`.
+ * Defaults to Asia/Kolkata (IST) so inputs remain strictly consistent across server and client.
  */
-export function toLocalDatetimeString(dateInput?: string | null | Date): string {
+export function toLocalDatetimeString(
+  dateInput?: string | null | Date,
+  timeZone: string = APP_TIMEZONE
+): string {
   if (!dateInput) return "";
   const d = new Date(dateInput);
   if (isNaN(d.getTime())) return "";
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  const year = d.getFullYear();
-  const month = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(d);
+
+    const map: Record<string, string> = {};
+    for (const part of parts) {
+      map[part.type] = part.value;
+    }
+
+    return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}`;
+  } catch {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
 }
 
 /**
  * Format a Date object or ISO string into a calendar date key: `YYYY-MM-DD`.
+ * Defaults to Asia/Kolkata (IST).
  */
-export function toDateKey(dateInput?: string | null | Date): string {
+export function toDateKey(
+  dateInput?: string | null | Date,
+  timeZone: string = APP_TIMEZONE
+): string {
   if (!dateInput) return "";
   const d = new Date(dateInput);
   if (isNaN(d.getTime())) return "";
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(d);
+
+    const map: Record<string, string> = {};
+    for (const part of parts) {
+      map[part.type] = part.value;
+    }
+
+    return `${map.year}-${map.month}-${map.day}`;
+  } catch {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+}
+
+/**
+ * Parse a datetime string (which may be a local datetime-local string without timezone)
+ * into a valid UTC ISO string, interpreting local times in Asia/Kolkata (IST, +05:30).
+ */
+export function parseDateTimeInputToUtc(
+  dateInput?: string | Date | null,
+  timeZone: string = APP_TIMEZONE
+): string {
+  if (!dateInput) return new Date().toISOString();
+  if (dateInput instanceof Date) {
+    return isNaN(dateInput.getTime()) ? new Date().toISOString() : dateInput.toISOString();
+  }
+
+  const str = String(dateInput).trim();
+  if (!str) return new Date().toISOString();
+
+  // If already an ISO string with UTC or explicit timezone offset
+  if (str.endsWith("Z") || /[+-]\d{2}:?\d{2}$/.test(str)) {
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+  }
+
+  // If datetime-local without timezone: YYYY-MM-DDTHH:mm or YYYY-MM-DDTHH:mm:ss
+  const withSeconds = str.length === 16 ? `${str}:00` : str;
+  const offset = timeZone === "Asia/Kolkata" ? "+05:30" : "+00:00";
+  const withOffset = `${withSeconds}${offset}`;
+  const d = new Date(withOffset);
+  if (!isNaN(d.getTime())) {
+    return d.toISOString();
+  }
+
+  const fallback = new Date(str);
+  return isNaN(fallback.getTime()) ? new Date().toISOString() : fallback.toISOString();
+}
+
+/**
+ * Format a timestamp into user-friendly localized date & time in IST.
+ * e.g. "Oct 19, 12:00 AM" or "Oct 19, 12:00 AM IST"
+ */
+export function formatDateTimeIst(
+  dateInput?: string | Date | null,
+  options?: Intl.DateTimeFormatOptions & { includeTz?: boolean }
+): string {
+  if (!dateInput) return "";
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return "";
+
+  const { includeTz = false, ...intlOptions } = options || {};
+
+  try {
+    const formatted = d.toLocaleString("en-US", {
+      timeZone: APP_TIMEZONE,
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      ...intlOptions,
+    });
+    return includeTz ? `${formatted} IST` : formatted;
+  } catch {
+    return d.toLocaleString();
+  }
+}
+
+/**
+ * Format a timestamp into localized date in IST.
+ * e.g. "Oct 19, 2026"
+ */
+export function formatDateIst(
+  dateInput?: string | Date | null,
+  options?: Intl.DateTimeFormatOptions
+): string {
+  if (!dateInput) return "";
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return "";
+
+  try {
+    return d.toLocaleDateString("en-US", {
+      timeZone: APP_TIMEZONE,
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      ...options,
+    });
+  } catch {
+    return d.toLocaleDateString();
+  }
+}
+
+/**
+ * Format a timestamp into localized time in IST.
+ * e.g. "12:00 AM"
+ */
+export function formatTimeIst(
+  dateInput?: string | Date | null,
+  options?: Intl.DateTimeFormatOptions
+): string {
+  if (!dateInput) return "";
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return "";
+
+  try {
+    return d.toLocaleTimeString("en-US", {
+      timeZone: APP_TIMEZONE,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      ...options,
+    });
+  } catch {
+    return d.toLocaleTimeString();
+  }
 }
 
 /**

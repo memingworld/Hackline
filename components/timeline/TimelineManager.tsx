@@ -24,6 +24,7 @@ import {
   generateGoogleCalendarUrl,
   generateIcsContent,
 } from "@/lib/utils/calendar";
+import { formatDateTimeIst } from "@/lib/utils";
 import { CreateMilestoneModal } from "./CreateMilestoneModal";
 import { useRouter } from "next/navigation";
 
@@ -54,17 +55,7 @@ export function TimelineManager({
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
 
   const formatDeadlineDate = (isoString: string) => {
-    try {
-      const d = new Date(isoString);
-      return d.toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return isoString;
-    }
+    return formatDateTimeIst(isoString);
   };
 
   const getDueStatus = (isoDeadline: string, isCompleted: boolean) => {

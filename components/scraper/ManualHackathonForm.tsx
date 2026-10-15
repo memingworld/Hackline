@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createHackathon } from "@/lib/actions/hackathons";
 import { toast } from "sonner";
-import { toLocalDatetimeString } from "@/lib/utils";
+import { toLocalDatetimeString, parseDateTimeInputToUtc } from "@/lib/utils";
 import {
   Trophy,
   Calendar,
@@ -70,10 +70,10 @@ export function ManualHackathonForm({ onSuccess }: { onSuccess?: () => void }) {
       return;
     }
 
-    const startDate = new Date(startsAt);
-    const endDate = new Date(endsAt);
+    const startIso = parseDateTimeInputToUtc(startsAt);
+    const endIso = parseDateTimeInputToUtc(endsAt);
 
-    if (endDate <= startDate) {
+    if (new Date(endIso).getTime() <= new Date(startIso).getTime()) {
       toast.error("Submission deadline must be after the start time.");
       return;
     }
@@ -88,8 +88,8 @@ export function ManualHackathonForm({ onSuccess }: { onSuccess?: () => void }) {
         banner_url: bannerUrl.trim() || null,
         prize_pool: prizePool.trim() || "TBA",
         description: description.trim() || null,
-        starts_at: startDate.toISOString(),
-        ends_at: endDate.toISOString(),
+        starts_at: startIso,
+        ends_at: endIso,
         team_name: squadName.trim() || `${title.trim().slice(0, 15)} Squad`,
         max_team_size: maxTeamSize,
       });

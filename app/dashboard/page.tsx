@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getActiveHackathons } from "@/lib/data/hackathons";
 import { getUserAllTeams } from "@/lib/data/squads";
 import { getAllUserTimelineEvents } from "@/lib/data/timeline";
+import { formatDateTimeIst } from "@/lib/utils";
 import {
   Trophy,
   Users,
@@ -336,14 +337,7 @@ export default async function DashboardPage() {
                   </div>
 
                   <div className="pt-2 border-t border-[rgba(229,169,60,0.12)] flex items-center justify-between text-[11px] text-[#a89a8c] font-mono">
-                    <span>
-                      {new Date(event.deadline).toLocaleDateString([], {
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
+                    <span>{formatDateTimeIst(event.deadline)}</span>
                     {event.hackathon_id && (
                       <Link
                         href={`/dashboard/hackathons/${event.hackathon_id}`}

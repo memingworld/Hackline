@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { generateMultiEventIcsContent, generateGoogleCalendarUrl } from "@/lib/utils/calendar";
-import { toDateKey } from "@/lib/utils";
+import { toDateKey, APP_TIMEZONE, formatDateTimeIst, formatTimeIst } from "@/lib/utils";
 import Link from "next/link";
 
 interface UnifiedCalendarViewProps {
@@ -345,7 +345,8 @@ export function UnifiedCalendarView({
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-[#e5a93c]" />
             <h3 className="text-sm font-bold text-[#fef3c7] font-mono">
-              Milestones on {new Date(selectedDateStr + "T00:00:00").toLocaleDateString(undefined, {
+              Milestones on {new Date(selectedDateStr + "T00:00:00+05:30").toLocaleDateString("en-US", {
+                timeZone: APP_TIMEZONE,
                 weekday: "long",
                 month: "short",
                 day: "numeric",
@@ -402,11 +403,7 @@ export function UnifiedCalendarView({
                     </h4>
 
                     <span className="text-xs font-mono text-[#a89a8c] block">
-                      Time:{" "}
-                      {new Date(ev.deadline).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      Time: {formatTimeIst(ev.deadline)}
                     </span>
                   </div>
 
@@ -484,13 +481,7 @@ export function UnifiedCalendarView({
                       )}
                     </div>
                     <span className="text-[11px] font-mono text-[#a89a8c]">
-                      {new Date(ev.deadline).toLocaleString([], {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatDateTimeIst(ev.deadline, { weekday: "short" })}
                     </span>
                   </div>
                 </div>

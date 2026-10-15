@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { TimelineEventType } from "@/types/database";
 import { sanitizePlainText } from "@/lib/security";
+import { parseDateTimeInputToUtc } from "@/lib/utils";
 
 export interface CreateTimelineEventPayload {
   hackathonId: string;
@@ -39,7 +40,7 @@ export async function createTimelineEvent(payload: CreateTimelineEventPayload) {
         team_id: payload.teamId || null,
         title: cleanTitle,
         event_type: payload.eventType || "custom",
-        deadline: new Date(payload.deadline).toISOString(),
+        deadline: parseDateTimeInputToUtc(payload.deadline),
         is_completed: false,
       })
       .select()
