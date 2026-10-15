@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +67,11 @@ export function HackathonConfirmationModal({
   const [maxTeamSize, setMaxTeamSize] = React.useState(4);
   const [notifyTelegram, setNotifyTelegram] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   React.useEffect(() => {
     if (initialData) {
@@ -88,7 +94,7 @@ export function HackathonConfirmationModal({
     }
   }, [initialData]);
 
-  if (!isOpen || !initialData) return null;
+  if (!isOpen || !initialData || !mounted) return null;
 
   const handlePresetChange = (presetId: string) => {
     setSelectedPresetId(presetId);
@@ -147,10 +153,10 @@ export function HackathonConfirmationModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md overflow-hidden animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-black/80 backdrop-blur-md overflow-y-auto">
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-xl max-h-[92dvh] sm:max-h-[88vh] rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10">
+      <div className="relative w-full max-w-xl max-h-[90vh] sm:max-h-[85vh] my-auto rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10">
         {/* Header */}
         <div className="px-5 py-4 border-b border-[rgba(229,169,60,0.18)] flex items-center justify-between shrink-0 bg-[#28231d]">
           <div className="flex items-center gap-3 min-w-0">
@@ -387,6 +393,7 @@ export function HackathonConfirmationModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

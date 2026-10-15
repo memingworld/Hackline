@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -28,8 +29,13 @@ export function JoinSquadModal({ isOpen, onClose, onSuccess }: JoinSquadModalPro
   const [inviteInput, setInviteInput] = React.useState("");
   const [duty, setDuty] = React.useState("Full-Stack Developer");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
 
-  if (!isOpen) return null;
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,10 +72,10 @@ export function JoinSquadModal({ isOpen, onClose, onSuccess }: JoinSquadModalPro
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-hidden animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto">
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-md max-h-[88vh] rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10">
+      <div className="relative w-full max-w-md max-h-[88vh] my-auto rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10">
         {/* Header */}
         <div className="p-5 border-b border-[rgba(229,169,60,0.18)] flex items-center justify-between shrink-0 bg-[#28231d]">
           <div className="flex items-center gap-2.5">
@@ -145,6 +151,7 @@ export function JoinSquadModal({ isOpen, onClose, onSuccess }: JoinSquadModalPro
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

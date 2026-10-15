@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   Search,
@@ -34,7 +35,12 @@ export function CommandPalette({
 }: CommandPaletteProps) {
   const router = useRouter();
   const [query, setQuery] = React.useState("");
+  const [mounted, setMounted] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -65,7 +71,7 @@ export function CommandPalette({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const q = query.toLowerCase().trim();
 
@@ -132,39 +138,42 @@ export function CommandPalette({
     router.push(href);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-xl rounded-3xl bg-[#0a0b10]/95 border border-white/[0.1] shadow-2xl overflow-hidden flex flex-col max-h-[80vh] backdrop-blur-2xl ring-1 ring-white/[0.05]">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+      {/* Background overlay click-to-close */}
+      <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
+
+      <div className="relative w-full max-w-xl rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col max-h-[80vh] backdrop-blur-2xl z-10">
         {/* Search Input Bar */}
-        <div className="p-4 border-b border-white/[0.06] flex items-center gap-3 bg-zinc-950/40">
-          <Search className="h-4 w-4 text-zinc-400 shrink-0" />
+        <div className="p-4 border-b border-[rgba(229,169,60,0.18)] flex items-center gap-3 bg-[#28231d]">
+          <Search className="h-4 w-4 text-[#e5a93c] shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Type a command or search hackathons, pages, or actions..."
-            className="w-full bg-transparent text-sm text-white placeholder:text-zinc-500 focus:outline-none"
+            className="w-full bg-transparent text-sm text-[#fef3c7] placeholder:text-[#a89a8c]/50 focus:outline-none font-sans"
           />
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="p-1 rounded text-zinc-500 hover:text-zinc-200 transition-colors"
+              className="p-1 rounded text-[#a89a8c] hover:text-[#fef3c7] transition-colors"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           )}
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400 shrink-0">
+          <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded-lg bg-[#14110e] border border-[rgba(229,169,60,0.20)] px-2 py-0.5 font-mono text-[10px] text-[#a89a8c] shrink-0">
             ESC
           </kbd>
         </div>
 
         {/* Scrollable Results List */}
-        <div className="p-3 overflow-y-auto space-y-4 text-xs">
+        <div className="p-3 overflow-y-auto space-y-4 text-xs custom-scrollbar">
           {/* Hackathons Section */}
           {matchedHackathons.length > 0 && (
             <div>
-              <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500 block mb-1.5">
+              <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-[#a89a8c] block mb-1.5 font-semibold">
                 Switch Hackathon Sprint
               </span>
               <div className="space-y-1">
@@ -174,28 +183,28 @@ export function CommandPalette({
                     <button
                       key={h.id}
                       onClick={() => handleSelectHackathon(h.id)}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-zinc-900 transition-colors group"
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-[#28231d] transition-colors group"
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-amber-400">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#14110e] border border-[rgba(229,169,60,0.20)] text-[#e5a93c]">
                           <Trophy className="h-3.5 w-3.5" />
                         </div>
                         <div className="truncate">
-                          <span className="font-medium text-white block truncate">
+                          <span className="font-medium text-[#fef3c7] block truncate">
                             {h.title}
                           </span>
-                          <span className="text-[10px] text-zinc-500 font-mono">
+                          <span className="text-[10px] text-[#a89a8c] font-mono">
                             {h.source_platform.toUpperCase()} &bull; {h.prize_pool || "TBA"}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         {isActive && (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#e5a93c]/15 border border-[rgba(229,169,60,0.30)] text-[#e5a93c]">
                             Active
                           </span>
                         )}
-                        <ArrowRight className="h-3.5 w-3.5 text-zinc-600 group-hover:text-zinc-300 transition-colors" />
+                        <ArrowRight className="h-3.5 w-3.5 text-[#6e6355] group-hover:text-[#fef3c7] transition-colors" />
                       </div>
                     </button>
                   );
@@ -207,7 +216,7 @@ export function CommandPalette({
           {/* Quick Actions */}
           {actions.length > 0 && (
             <div>
-              <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500 block mb-1.5">
+              <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-[#a89a8c] block mb-1.5 font-semibold">
                 Quick Actions
               </span>
               <div className="space-y-1">
@@ -217,17 +226,17 @@ export function CommandPalette({
                     <button
                       key={act.label}
                       onClick={act.onClick}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-zinc-900 transition-colors group"
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-[#28231d] transition-colors group"
                     >
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#14110e] border border-[rgba(229,169,60,0.20)] text-[#e5a93c]">
                           <Icon className="h-3.5 w-3.5" />
                         </div>
-                        <span className="font-medium text-zinc-200">
+                        <span className="font-medium text-[#fef3c7]">
                           {act.label}
                         </span>
                       </div>
-                      <ArrowRight className="h-3.5 w-3.5 text-zinc-600 group-hover:text-zinc-300 transition-colors" />
+                      <ArrowRight className="h-3.5 w-3.5 text-[#6e6355] group-hover:text-[#fef3c7] transition-colors" />
                     </button>
                   );
                 })}
@@ -238,7 +247,7 @@ export function CommandPalette({
           {/* Navigation Pages */}
           {pages.length > 0 && (
             <div>
-              <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500 block mb-1.5">
+              <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-[#a89a8c] block mb-1.5 font-semibold">
                 Workspace Pages
               </span>
               <div className="space-y-1">
@@ -248,15 +257,15 @@ export function CommandPalette({
                     <button
                       key={p.href}
                       onClick={() => handleNavigate(p.href)}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-zinc-900 transition-colors group"
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-[#28231d] transition-colors group"
                     >
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#14110e] border border-[rgba(229,169,60,0.20)] text-[#a89a8c]">
                           <Icon className="h-3.5 w-3.5" />
                         </div>
-                        <span className="text-zinc-300">{p.label}</span>
+                        <span className="text-[#fef3c7]">{p.label}</span>
                       </div>
-                      <ArrowRight className="h-3.5 w-3.5 text-zinc-600 group-hover:text-zinc-300 transition-colors" />
+                      <ArrowRight className="h-3.5 w-3.5 text-[#6e6355] group-hover:text-[#fef3c7] transition-colors" />
                     </button>
                   );
                 })}
@@ -265,18 +274,19 @@ export function CommandPalette({
           )}
 
           {matchedHackathons.length === 0 && actions.length === 0 && pages.length === 0 && (
-            <div className="p-8 text-center text-zinc-500 font-mono text-xs">
+            <div className="p-8 text-center text-[#a89a8c] font-mono text-xs">
               No matching commands or hackathons found for &quot;{query}&quot;
             </div>
           )}
         </div>
 
         {/* Footer shortcuts hint */}
-        <div className="p-2.5 px-4 border-t border-zinc-900 bg-zinc-950 flex items-center justify-between text-[11px] font-mono text-zinc-500">
+        <div className="p-2.5 px-4 border-t border-[rgba(229,169,60,0.18)] bg-[#28231d] flex items-center justify-between text-[11px] font-mono text-[#a89a8c]">
           <span>Navigate with mouse or Tab</span>
-          <span>Hackline Command Palette</span>
+          <span className="text-[#e5a93c]">Hackline Command Palette</span>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

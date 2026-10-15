@@ -196,12 +196,14 @@ export function HackathonCountdownBanner({ hackathon }: CountdownProps) {
         </div>
       </div>
 
-      <EditHackathonDialog
-        hackathon={hackathon}
-        isOpen={isEditDialogOpen}
-        onClose={() => setIsEditDialogOpen(false)}
-        onSuccess={() => window.location.reload()}
-      />
+      {isEditDialogOpen && (
+        <EditHackathonDialog
+          hackathon={hackathon}
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+          onSuccess={() => window.location.reload()}
+        />
+      )}
     </div>
   );
 }

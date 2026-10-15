@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -42,6 +43,11 @@ export function CreateProblemModal({
   const [track, setTrack] = React.useState(statementToEdit?.track || "AI & Autonomous Agents");
   const [sourceUrl, setSourceUrl] = React.useState(statementToEdit?.source_url || "");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   React.useEffect(() => {
     if (statementToEdit) {
@@ -57,7 +63,7 @@ export function CreateProblemModal({
     }
   }, [statementToEdit, isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,10 +112,10 @@ export function CreateProblemModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm overflow-y-auto">
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-lg max-h-[92dvh] sm:max-h-[88vh] rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10 text-[#fef3c7]">
+      <div className="relative w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] my-auto rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10 text-[#fef3c7]">
         {/* Pinned Header */}
         <div className="p-5 border-b border-[rgba(229,169,60,0.2)] flex items-center justify-between shrink-0 bg-[#1f1b16]">
           <div className="flex items-center gap-2.5">
@@ -224,6 +230,7 @@ export function CreateProblemModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

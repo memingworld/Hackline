@@ -71,7 +71,7 @@ export default async function SquadPage(props: {
       </section>
 
       {/* Saved Squad Presets Section */}
-      <section className="space-y-4 pt-6 border-t border-zinc-900">
+      <section className="space-y-4 pt-6 border-t border-[rgba(229,169,60,0.18)]">
         <SavedSquadsManager
           savedSquads={savedSquads}
           activeTeams={allTeams}

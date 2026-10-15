@@ -40,7 +40,11 @@ export default async function DashboardLayout({
   const currentTeam = await getUserCurrentTeam(activeHackathon?.id);
 
   const userProfile = profileRes?.data;
-  const avatarUrl = userProfile?.avatar_url || (user?.user_metadata?.avatar_url as string) || null;
+  const avatarUrl =
+    userProfile?.avatar_url ||
+    (user?.user_metadata?.avatar_url as string) ||
+    (user?.user_metadata?.picture as string) ||
+    null;
   const userEmail = user?.email || "";
   const userName =
     userProfile?.full_name ||

@@ -42,11 +42,15 @@ import { useRouter } from "next/navigation";
 interface SettingsFormProps {
   profile: Profile | null;
   userEmail: string;
+  defaultAvatarUrl?: string | null;
+  isOauthAvatar?: boolean;
 }
 
 export function SettingsForm({
   profile,
   userEmail,
+  defaultAvatarUrl = null,
+  isOauthAvatar = false,
 }: SettingsFormProps) {
   const router = useRouter();
 
@@ -55,7 +59,8 @@ export function SettingsForm({
   const [githubHandle, setGithubHandle] = React.useState(profile?.github_handle || "");
   const [primaryRole, setPrimaryRole] = React.useState(profile?.primary_role || "Full-Stack Developer");
   const [isSavingProfile, setIsSavingProfile] = React.useState(false);
-  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(profile?.avatar_url || null);
+  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(profile?.avatar_url || defaultAvatarUrl || null);
+  const [isOauth, setIsOauth] = React.useState(isOauthAvatar && !profile?.avatar_url);
   const [isUploadingAvatar, setIsUploadingAvatar] = React.useState(false);
   const [isRemovingAvatar, setIsRemovingAvatar] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -126,6 +131,7 @@ export function SettingsForm({
       const res = await uploadAvatar(formData);
       if (res.success && res.avatarUrl) {
         setAvatarUrl(res.avatarUrl);
+        setIsOauth(false);
         toast.success("Profile photo updated!", {
           description: "Your new avatar is now displayed across Hackline.",
         });
@@ -155,6 +161,7 @@ export function SettingsForm({
       const res = await removeAvatar();
       if (res.success) {
         setAvatarUrl(null);
+        setIsOauth(false);
         toast.success("Profile photo removed");
         router.refresh();
       } else {
@@ -350,7 +357,19 @@ export function SettingsForm({
 
           <div className="flex-1 text-center sm:text-left space-y-2">
             <div>
-              <h3 className="text-sm font-semibold text-[#fef3c7] font-mono">Profile Avatar</h3>
+              <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                <h3 className="text-sm font-semibold text-[#fef3c7] font-mono">Profile Avatar</h3>
+                {avatarUrl && isOauth && (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#4a82a6]/20 border border-[rgba(74,130,166,0.35)] text-[#7bb4d6]">
+                    OAuth Account Photo
+                  </span>
+                )}
+                {avatarUrl && !isOauth && (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#e5a93c]/15 border border-[rgba(229,169,60,0.30)] text-[#e5a93c]">
+                    Custom Storage Avatar
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-[#a89a8c] mt-0.5">
                 Upload a custom photo or avatar to represent your identity across squad rosters, hackathon teams, and navigation.
               </p>

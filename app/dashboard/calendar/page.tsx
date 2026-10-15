@@ -60,12 +60,12 @@ export default async function CalendarPage() {
 
       {/* Main Unified Interactive Calendar */}
       {hackathons.length === 0 ? (
-        <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-8 flex flex-col items-center justify-center text-center min-h-[300px] shadow-sm">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 mb-3">
+        <div className="rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.20)] p-8 flex flex-col items-center justify-center text-center min-h-[300px] shadow-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#181410] border border-[rgba(229,169,60,0.25)] text-[#e5a93c] mb-3">
             <CalendarDays className="h-6 w-6" />
           </div>
-          <h3 className="text-base font-bold text-white">No Hackathons Enrolled</h3>
-          <p className="mt-1 text-xs text-zinc-400 max-w-sm">
+          <h3 className="text-base font-bold text-[#fef3c7] font-mono">No Hackathons Enrolled</h3>
+          <p className="mt-1 text-xs text-[#a89a8c] max-w-sm">
             Milestone gates and deadlines will automatically populate here when you scrape or register hackathons.
           </p>
           <div className="mt-5 flex items-center gap-3">

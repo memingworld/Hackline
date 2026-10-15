@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { Hackathon } from "@/types/database";
 import { updateHackathon, deleteHackathon } from "@/lib/actions/hackathons";
 import { Input } from "@/components/ui/input";
@@ -80,6 +81,11 @@ export function EditHackathonDialog({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   React.useEffect(() => {
     if (isOpen && hackathon) {
@@ -184,7 +190,7 @@ export function EditHackathonDialog({
     }
   }, [isOpen, hackathon]);
 
-  if (!isOpen || !hackathon) return null;
+  if (!isOpen || !hackathon || !mounted) return null;
 
   const handleAddRound = () => {
     setRounds((prev) => [
@@ -286,13 +292,13 @@ export function EditHackathonDialog({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md overflow-hidden animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-black/80 backdrop-blur-md overflow-y-auto">
       {/* Background overlay click-to-close */}
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
 
       {/* Main Dialog Container */}
-      <div className="relative w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10">
+      <div className="relative w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] my-auto rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10">
         {/* Pinned Header */}
         <div className="px-5 py-4 border-b border-[rgba(229,169,60,0.18)] flex items-center justify-between shrink-0 bg-[#28231d]">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -544,6 +550,7 @@ export function EditHackathonDialog({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

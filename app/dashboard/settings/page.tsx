@@ -25,6 +25,13 @@ export default async function SettingsPage() {
     .eq("id", user.id)
     .single();
 
+  const oauthAvatar =
+    (user?.user_metadata?.avatar_url as string) ||
+    (user?.user_metadata?.picture as string) ||
+    null;
+  const initialAvatarUrl = profile?.avatar_url || oauthAvatar || null;
+  const isOauthAvatar = !profile?.avatar_url && !!oauthAvatar;
+
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Header */}
@@ -48,6 +55,8 @@ export default async function SettingsPage() {
       <SettingsForm
         profile={profile}
         userEmail={user.email || ""}
+        defaultAvatarUrl={initialAvatarUrl}
+        isOauthAvatar={isOauthAvatar}
       />
     </div>
   );
