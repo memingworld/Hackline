@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { SavedSquad, Team, InviteTeamDetails, TeamMember } from "@/types/database";
-
+import { getUserCurrentTeam } from "@/lib/data/hackathons";
 import {
   ReservedMember,
   extractReservedMembers,
@@ -37,8 +37,6 @@ export async function getUserSavedSquads(): Promise<SavedSquad[]> {
 
   return (data as SavedSquad[]) || [];
 }
-
-import { getUserCurrentTeam } from "@/lib/data/hackathons";
 
 /**
  * Fetch the user's active team roster and duty assignments for a specific hackathon.

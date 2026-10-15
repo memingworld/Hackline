@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createHackathon } from "@/lib/actions/hackathons";
 import { toast } from "sonner";
+import { toLocalDatetimeString } from "@/lib/utils";
 import {
   Trophy,
   Calendar,
@@ -26,19 +27,6 @@ const PLATFORM_OPTIONS = [
   { id: "unstop", label: "Unstop", icon: "🎯" },
   { id: "luma", label: "Luma", icon: "✨" },
 ];
-
-function toLocalDatetimeString(dateInput?: string | null | Date): string {
-  if (!dateInput) return "";
-  const d = new Date(dateInput);
-  if (isNaN(d.getTime())) return "";
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  const year = d.getFullYear();
-  const month = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
 
 export function ManualHackathonForm({ onSuccess }: { onSuccess?: () => void }) {
   const router = useRouter();

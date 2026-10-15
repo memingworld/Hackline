@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { generateMultiEventIcsContent, generateGoogleCalendarUrl } from "@/lib/utils/calendar";
+import { toDateKey } from "@/lib/utils";
 import Link from "next/link";
 
 interface UnifiedCalendarViewProps {
@@ -55,9 +56,7 @@ export function UnifiedCalendarView({
   const eventsByDate = React.useMemo(() => {
     const map = new Map<string, (TimelineEvent & { hackathon?: Hackathon })[]>();
     filteredEvents.forEach((e) => {
-      const d = new Date(e.deadline);
-      const pad = (n: number) => n.toString().padStart(2, "0");
-      const dStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      const dStr = toDateKey(e.deadline);
       const existing = map.get(dStr) || [];
       existing.push(e);
       map.set(dStr, existing);
@@ -85,8 +84,7 @@ export function UnifiedCalendarView({
   const handleGoToToday = () => {
     const today = new Date();
     setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1));
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    setSelectedDateStr(`${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`);
+    setSelectedDateStr(toDateKey(today));
   };
 
   // Build calendar matrix cells (padded prev + curr + padded next)
@@ -98,16 +96,13 @@ export function UnifiedCalendarView({
       isToday: boolean;
     }[] = [];
 
-    const now = new Date();
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    const todayStr = toDateKey(new Date());
 
     // 1. Previous month trailing days
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       const dayNum = daysInPrevMonth - i;
-      const prevMonth = month === 0 ? 11 : month - 1;
-      const prevYear = month === 0 ? year - 1 : year;
-      const dateStr = `${prevYear}-${pad(prevMonth + 1)}-${pad(dayNum)}`;
+      const prevDate = new Date(year, month - 1, dayNum);
+      const dateStr = toDateKey(prevDate);
       cells.push({
         dateStr,
         dayNum,
@@ -118,7 +113,8 @@ export function UnifiedCalendarView({
 
     // 2. Current month days
     for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = `${year}-${pad(month + 1)}-${pad(d)}`;
+      const curDate = new Date(year, month, d);
+      const dateStr = toDateKey(curDate);
       cells.push({
         dateStr,
         dayNum: d,
@@ -130,9 +126,8 @@ export function UnifiedCalendarView({
     // 3. Next month leading days to complete grid (total multiple of 7)
     const remaining = (7 - (cells.length % 7)) % 7;
     for (let d = 1; d <= remaining; d++) {
-      const nextMonth = month === 11 ? 0 : month + 1;
-      const nextYear = month === 11 ? year + 1 : year;
-      const dateStr = `${nextYear}-${pad(nextMonth + 1)}-${pad(d)}`;
+      const nextDate = new Date(year, month + 1, d);
+      const dateStr = toDateKey(nextDate);
       cells.push({
         dateStr,
         dayNum: d,

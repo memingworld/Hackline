@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { SavedSquad, Team } from "@/types/database";
 import {
   Users,
@@ -42,6 +43,21 @@ export function SavedSquadsManager({
   const [deployingSquadId, setDeployingSquadId] = React.useState<string | null>(null);
   const [deletingSquadId, setDeletingSquadId] = React.useState<string | null>(null);
   const [deployTargetModalSquad, setDeployTargetModalSquad] = React.useState<SavedSquad | null>(null);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && deployTargetModalSquad) {
+        setDeployTargetModalSquad(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [deployTargetModalSquad]);
 
   // Consolidated available teams list
   const availableTeams = React.useMemo(() => {
@@ -286,9 +302,10 @@ export function SavedSquadsManager({
       )}
 
       {/* Deploy Target Selection Modal (when multiple active teams exist) */}
-      {deployTargetModalSquad && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-hidden animate-fade-in">
-          <div className="relative w-full max-w-md rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] p-6 shadow-2xl space-y-4 z-10">
+      {mounted && deployTargetModalSquad && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="fixed inset-0" onClick={() => setDeployTargetModalSquad(null)} aria-hidden="true" />
+          <div className="relative w-full max-w-md my-auto rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] p-6 shadow-2xl space-y-4 z-10 animate-fade-in">
             <div>
               <h3 className="text-base font-bold text-[#fef3c7] tracking-tight font-mono">
                 Deploy &ldquo;{deployTargetModalSquad.name}&rdquo;
@@ -333,7 +350,8 @@ export function SavedSquadsManager({
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal for Creating / Editing */}

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { extractReservedMembers } from "@/lib/data/reserved-members";
+import { toLocalDatetimeString } from "@/lib/utils";
 
 interface EditHackathonDialogProps {
   hackathon: Hackathon;
@@ -43,19 +44,6 @@ interface SquadMemberOption {
   name: string;
   duty: string;
   isCaptain?: boolean;
-}
-
-function toLocalDatetimeString(dateInput?: string | null | Date): string {
-  if (!dateInput) return "";
-  const d = new Date(dateInput);
-  if (isNaN(d.getTime())) return "";
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  const year = d.getFullYear();
-  const month = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 export function EditHackathonDialog({

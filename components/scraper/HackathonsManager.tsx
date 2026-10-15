@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { Hackathon, SavedSquad } from "@/types/database";
 import { MagicLinkInput } from "@/components/scraper/MagicLinkInput";
 import { HackathonConfirmationModal } from "@/components/scraper/HackathonConfirmationModal";
@@ -42,6 +43,21 @@ export function HackathonsManager({
   const [editingHackathon, setEditingHackathon] = React.useState<Hackathon | null>(null);
   const [inspectingHackathon, setInspectingHackathon] = React.useState<Hackathon | null>(null);
   const [isDeletingId, setIsDeletingId] = React.useState<string | null>(null);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && inspectingHackathon) {
+        setInspectingHackathon(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [inspectingHackathon]);
 
   const handleScrapeSuccess = (data: any) => {
     setExtractedData(data);
@@ -335,10 +351,10 @@ export function HackathonsManager({
       </div>
 
       {/* Inspect Hackathon Details Modal */}
-      {inspectingHackathon && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md overflow-hidden animate-fade-in">
+      {mounted && inspectingHackathon && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-black/80 backdrop-blur-md overflow-y-auto">
           <div className="fixed inset-0" onClick={() => setInspectingHackathon(null)} aria-hidden="true" />
-          <div className="relative w-full max-w-lg max-h-[88vh] rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10">
+          <div className="relative w-full max-w-lg max-h-[88vh] my-auto rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10 animate-fade-in">
             {/* Modal Header */}
             <div className="p-5 border-b border-[rgba(229,169,60,0.18)] flex items-center justify-between shrink-0 bg-[#28231d]">
               <div className="flex items-center gap-2.5">
@@ -475,7 +491,8 @@ export function HackathonsManager({
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Confirmation Modal */}
