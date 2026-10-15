@@ -132,7 +132,7 @@ export function HackathonsManager({
               </h2>
               <p className="text-xs text-[#a89a8c]">
                 {activeTab === "magic"
-                  ? "Paste any URL from Devpost, Devfolio, Unstop, or Luma to extract prizes and deadlines."
+                  ? "Paste any URL from Devpost, Devfolio, Unstop, Devnovate, or Luma to extract prizes and deadlines."
                   : "Initialize custom, in-person, university, or private sprint workspaces without a URL."}
               </p>
             </div>

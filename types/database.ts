@@ -34,7 +34,7 @@ export interface Hackathon {
   id: string;
   title: string;
   slug: string;
-  source_platform: "unstop" | "devfolio" | "devpost" | "luma" | "hack2skill" | "custom";
+  source_platform: "unstop" | "devfolio" | "devpost" | "luma" | "hack2skill" | "devnovate" | "custom";
   source_url: string | null;
   banner_url: string | null;
   prize_pool: string | null;

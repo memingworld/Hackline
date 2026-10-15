@@ -77,7 +77,7 @@ export default function LandingPage() {
 
         {/* Hero Subtext */}
         <p className="mt-5 text-sm sm:text-base text-[#a89a8c] max-w-2xl mx-auto leading-relaxed">
-          From Devpost, Unstop, Devfolio, and Luma instant extractions to one-click squad assembly,
+          From Devpost, Unstop, Devfolio, Devnovate, and Luma instant extractions to one-click squad assembly,
           role duty rosters, and Telegram-synchronized deadline gates.
         </p>
 
@@ -105,7 +105,7 @@ export default function LandingPage() {
           <span className="text-[11px] font-mono text-[#a89a8c]/70 mr-1 uppercase tracking-wider">
             Supported Hubs:
           </span>
-          {["Devpost", "Unstop", "Devfolio", "Luma", "Hack2skill", "Custom Sprints"].map((p) => (
+          {["Devpost", "Unstop", "Devfolio", "Devnovate", "Luma", "Hack2skill", "Custom Sprints"].map((p) => (
             <span
               key={p}
               className="text-[11px] font-mono px-2.5 py-1 rounded-lg border border-[rgba(229,169,60,0.2)] bg-[#181410] text-[#fef3c7] shadow-sm"

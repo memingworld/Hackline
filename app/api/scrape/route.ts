@@ -20,7 +20,7 @@ function extractSmartDetailsFromUrl(
     trimmed.includes("403 Forbidden") ||
     trimmed.includes("Attention Required") ||
     trimmed.includes("Cloudflare") ||
-    ["unstop", "devfolio", "devpost", "luma", "hack2skill", "home", "competitions", "hackathons", "untitled"].includes(lower) ||
+    ["unstop", "devfolio", "devpost", "luma", "hack2skill", "devnovate", "home", "competitions", "hackathons", "untitled"].includes(lower) ||
     lower.includes("competitions, quizzes");
 
   if (!isGeneric) {
@@ -132,8 +132,9 @@ export async function POST(request: Request) {
     const cleanUrl = url.trim().startsWith("http") ? url.trim() : `https://${url.trim()}`;
 
     // Detect Platform
-    let platform: "devfolio" | "unstop" | "devpost" | "luma" | "hack2skill" | "custom" = "custom";
+    let platform: "devfolio" | "unstop" | "devpost" | "luma" | "hack2skill" | "devnovate" | "custom" = "custom";
     if (cleanUrl.includes("devfolio.co")) platform = "devfolio";
+    else if (cleanUrl.includes("devnovate.co")) platform = "devnovate";
     else if (cleanUrl.includes("unstop.com")) platform = "unstop";
     else if (cleanUrl.includes("devpost.com")) platform = "devpost";
     else if (cleanUrl.includes("lu.ma")) platform = "luma";
@@ -325,7 +326,225 @@ export async function POST(request: Request) {
     }
 
     // ==========================================
-    // 3. UNSTOP SEARCH API HANDLER (100% Reliable, Structured JSON)
+    // 3. DEVNOVATE OFFICIAL API HANDLER (100% Reliable, Fast JSON)
+    // ==========================================
+    if (platform === "devnovate") {
+      try {
+        const parsed = new URL(cleanUrl);
+        const pathParts = parsed.pathname.split("/").filter(Boolean);
+
+        // Devnovate URLs:
+        // https://devnovate.co/hackathons/sgu_hackx-10
+        // https://devnovate.co/events/sgu_hackx-10
+        // https://devnovate.co/sgu_hackx-10
+        let slugCandidate = "";
+        if (pathParts.length > 0) {
+          if (pathParts[0] === "hackathons" || pathParts[0] === "events") {
+            slugCandidate = pathParts[1] || pathParts[0];
+          } else {
+            slugCandidate = pathParts[pathParts.length - 1];
+          }
+        }
+
+        let eventData: any = null;
+
+        // 1. Try querying Devnovate by slug directly
+        if (slugCandidate) {
+          try {
+            const devnovateRes = await fetch(
+              `https://devnovate.co/api/v1/events/name/${encodeURIComponent(slugCandidate)}`,
+              {
+                signal: AbortSignal.timeout(10000),
+                headers: {
+                  Accept: "application/json",
+                  "User-Agent":
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                },
+              }
+            );
+
+            if (devnovateRes.ok) {
+              const json = await devnovateRes.json();
+              eventData = json?.hackathon || json;
+            }
+          } catch (e) {
+            console.warn("Devnovate slug fetch failed, trying search fallback:", e);
+          }
+        }
+
+        // 2. Fallback: Search all events if direct slug didn't match
+        if (!eventData?.name) {
+          try {
+            const listRes = await fetch("https://devnovate.co/api/v1/events", {
+              signal: AbortSignal.timeout(10000),
+              headers: {
+                Accept: "application/json",
+                "User-Agent":
+                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+              },
+            });
+            if (listRes.ok) {
+              const allEvents = await listRes.json();
+              if (Array.isArray(allEvents)) {
+                const normSlug = slugCandidate.toLowerCase().replace(/[-_]+/g, "");
+                eventData =
+                  allEvents.find((ev: any) => {
+                    const evSlug = (ev.hackathon || ev.eventName || "").toLowerCase().replace(/[-_]+/g, "");
+                    const evName = (ev.name || "").toLowerCase().replace(/[-_]+/g, "");
+                    return evSlug === normSlug || evName.includes(normSlug) || normSlug.includes(evSlug);
+                  }) || null;
+              }
+            }
+          } catch (e) {
+            console.warn("Devnovate all-events fallback search failed:", e);
+          }
+        }
+
+        if (eventData && eventData.name) {
+          const title = cleanString(eventData.name);
+          const slugBase = (eventData.hackathon || eventData.eventName || slugCandidate || "devnovate-event")
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, "")
+            .replace(/\s+/g, "-")
+            .slice(0, 50);
+
+          // Dates: startDate, endDate, registrationDeadline
+          let startsAt = new Date().toISOString();
+          let endsAt = new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString();
+
+          if (eventData.startDate) {
+            const parsedStart = new Date(eventData.startDate);
+            if (!isNaN(parsedStart.getTime())) {
+              startsAt = parsedStart.toISOString();
+            }
+          }
+
+          if (eventData.endDate) {
+            const parsedEnd = new Date(eventData.endDate);
+            if (!isNaN(parsedEnd.getTime())) {
+              endsAt = parsedEnd.toISOString();
+            }
+          } else {
+            endsAt = new Date(new Date(startsAt).getTime() + 1000 * 60 * 60 * 48).toISOString();
+          }
+
+          // Prize Pool
+          let prizePool = "TBA";
+          if (eventData.prizePool && typeof eventData.prizePool === "string" && eventData.prizePool.trim()) {
+            prizePool = cleanString(eventData.prizePool);
+          } else if (Array.isArray(eventData.prizes) && eventData.prizes.length > 0) {
+            const prizeStrings = eventData.prizes
+              .map((p: any) => (p.amount ? `${p.place || "Prize"}: ${p.amount}` : null))
+              .filter(Boolean);
+            if (prizeStrings.length > 0) {
+              prizePool = prizeStrings.join(" • ");
+            }
+          }
+
+          // Description & Themes
+          let description = "";
+          if (eventData.subtitle) {
+            description = cleanString(eventData.subtitle);
+          }
+          if (Array.isArray(eventData.theme) && eventData.theme.length > 0) {
+            const themesStr = eventData.theme.join(", ");
+            description = description
+              ? `${description}\n\nTracks & Themes: ${themesStr}`
+              : `Tracks & Themes: ${themesStr}`;
+          }
+          if (eventData.organizationName) {
+            description = `${description ? `${description}\n\n` : ""}Organized by: ${cleanString(eventData.organizationName)}`;
+          }
+
+          // Team Sizes
+          let minTeamSize = 1;
+          let maxTeamSize = 4;
+          if (eventData.teamSize && typeof eventData.teamSize === "string") {
+            const sizeParts = eventData.teamSize.match(/(\d+)\s*[-–to]+\s*(\d+)/i);
+            if (sizeParts) {
+              minTeamSize = parseInt(sizeParts[1], 10) || 1;
+              maxTeamSize = parseInt(sizeParts[2], 10) || 4;
+            } else {
+              const singleNum = eventData.teamSize.match(/(\d+)/);
+              if (singleNum) {
+                maxTeamSize = parseInt(singleNum[1], 10) || 4;
+              }
+            }
+          }
+
+          // Timeline Gates & Checkpoints
+          const timelineGates: { title: string; deadline: string; event_type: string }[] = [];
+
+          if (eventData.registrationDeadline) {
+            const regDate = new Date(eventData.registrationDeadline);
+            if (!isNaN(regDate.getTime())) {
+              timelineGates.push({
+                title: "Registration Deadline",
+                deadline: regDate.toISOString(),
+                event_type: "registration_deadline",
+              });
+            }
+          }
+
+          if (Array.isArray(eventData.schedule) && eventData.schedule.length > 0) {
+            eventData.schedule.forEach((daySchedule: any) => {
+              const dayStr = daySchedule.day;
+              if (Array.isArray(daySchedule.events)) {
+                daySchedule.events.forEach((ev: any) => {
+                  let gateTime = startsAt;
+                  try {
+                    if (dayStr && ev.time) {
+                      const candidateTime = new Date(`${dayStr} ${ev.time}`);
+                      if (!isNaN(candidateTime.getTime())) {
+                        gateTime = candidateTime.toISOString();
+                      }
+                    }
+                  } catch {}
+
+                  timelineGates.push({
+                    title: cleanString(ev.title) || "Sprint Checkpoint",
+                    deadline: gateTime,
+                    event_type: "pitch_session",
+                  });
+                });
+              }
+            });
+          }
+
+          // Always ensure final code freeze gate
+          timelineGates.push({
+            title: "Code Freeze & Final Submission",
+            deadline: endsAt,
+            event_type: "submission_deadline",
+          });
+
+          // Banner Image
+          const bannerUrl =
+            eventData.bannerImage || eventData.cardImage || eventData.organizationLogo || null;
+
+          return NextResponse.json({
+            title,
+            slug: `${slugBase}-${Math.random().toString(36).substring(2, 6)}`,
+            source_platform: "devnovate",
+            source_url: cleanUrl,
+            banner_url: bannerUrl,
+            prize_pool: prizePool,
+            description,
+            starts_at: startsAt,
+            ends_at: endsAt,
+            min_team_size: minTeamSize,
+            max_team_size: maxTeamSize,
+            timeline_gates: timelineGates,
+            extraction_method: "devnovate_api_engine",
+          });
+        }
+      } catch (devnovateErr) {
+        console.warn("Devnovate API lookup failed, falling back:", devnovateErr);
+      }
+    }
+
+    // ==========================================
+    // 4. UNSTOP SEARCH API HANDLER (100% Reliable, Structured JSON)
     // ==========================================
     if (platform === "unstop") {
       try {

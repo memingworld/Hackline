@@ -22,6 +22,7 @@ import {
 const PLATFORM_OPTIONS = [
   { id: "custom", label: "Custom / In-House", icon: "🏢" },
   { id: "in_person", label: "In-Person Meet", icon: "📍" },
+  { id: "devnovate", label: "Devnovate", icon: "🚀" },
   { id: "devpost", label: "Devpost", icon: "🌐" },
   { id: "devfolio", label: "Devfolio", icon: "⚡" },
   { id: "unstop", label: "Unstop", icon: "🎯" },
