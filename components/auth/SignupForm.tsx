@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowRight, CheckCircle2 } from "lucide-react";
-import { GithubIcon, GoogleIcon } from "@/components/icons/OAuthIcons";
+import { GithubIcon } from "@/components/icons/OAuthIcons";
 import { signupSchema, type SignupFormValues } from "@/lib/validations/auth";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,10 @@ import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 interface SignupFormProps {
   onVerificationRequired: (email: string) => void;
+  redirectPath?: string;
 }
 
-export function SignupForm({ onVerificationRequired }: SignupFormProps) {
+export function SignupForm({ onVerificationRequired, redirectPath = "/dashboard" }: SignupFormProps) {
   const router = useRouter();
   const [showPassword, setShowPassword] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -57,7 +58,7 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
           data: {
             full_name: values.fullName,
           },
-          emailRedirectTo: `${origin}/auth/callback?next=/dashboard`,
+          emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
         },
       });
 
@@ -73,7 +74,7 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
         toast.success("Welcome aboard!", {
           description: "Your account is live. Redirecting to command center...",
         });
-        router.push("/dashboard");
+        router.push(redirectPath);
         return;
       }
 
@@ -101,7 +102,7 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${origin}/auth/callback?next=/dashboard`,
+          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
         },
       });
 
@@ -135,6 +136,7 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
 
         <GoogleSignInButton
           isLoading={isOauthLoading === "google"}
+          redirectPath={redirectPath}
         />
       </div>
 

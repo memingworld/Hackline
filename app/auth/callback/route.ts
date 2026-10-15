@@ -7,6 +7,12 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const rawNext = searchParams.get("next");
 
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const effectiveOrigin = forwardedHost
+    ? `${forwardedProto || "https"}://${forwardedHost}`
+    : origin;
+
   // Mitigate Open Redirect (CWE-601): strictly sanitize redirect path
   const safeNext = sanitizeSafeRedirectPath(rawNext, "/dashboard");
 
@@ -15,13 +21,12 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      // In production and local, always use origin + safeNext to prevent host header poisoning
-      const redirectUrl = new URL(safeNext, origin);
+      const redirectUrl = new URL(safeNext, effectiveOrigin);
       return NextResponse.redirect(redirectUrl);
     }
   }
 
   // Return the user to login with an error message if code exchange fails
-  const errorUrl = new URL("/login?error=email_verification_failed", origin);
+  const errorUrl = new URL("/login?error=email_verification_failed", effectiveOrigin);
   return NextResponse.redirect(errorUrl);
 }

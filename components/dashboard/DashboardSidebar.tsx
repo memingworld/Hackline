@@ -67,8 +67,6 @@ interface DashboardSidebarProps {
   avatarUrl?: string | null;
   hackathons?: Hackathon[];
   timelineEvents?: (TimelineEvent & { hackathon?: any })[];
-  activeHackathon?: Hackathon | null;
-  currentTeam?: Team | null;
 }
 
 export function DashboardSidebar({

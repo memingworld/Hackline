@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
-import { GithubIcon, GoogleIcon } from "@/components/icons/OAuthIcons";
+import { GithubIcon } from "@/components/icons/OAuthIcons";
 import { loginSchema, type LoginFormValues } from "@/lib/validations/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,9 +15,10 @@ import Link from "next/link";
 
 interface LoginFormProps {
   onSuccess?: () => void;
+  redirectPath?: string;
 }
 
-export function LoginForm({ onSuccess }: LoginFormProps) {
+export function LoginForm({ onSuccess, redirectPath = "/dashboard" }: LoginFormProps) {
   const [showPassword, setShowPassword] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isOauthLoading, setIsOauthLoading] = React.useState<"github" | "google" | null>(null);
@@ -67,7 +68,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         if (onSuccess) {
           onSuccess();
         } else {
-          window.location.href = "/dashboard";
+          window.location.href = redirectPath;
         }
       }
     } catch {
@@ -86,7 +87,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${origin}/auth/callback?next=/dashboard`,
+          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
         },
       });
 
@@ -121,6 +122,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         <GoogleSignInButton
           isLoading={isOauthLoading === "google"}
           onSuccess={onSuccess}
+          redirectPath={redirectPath}
         />
       </div>
 

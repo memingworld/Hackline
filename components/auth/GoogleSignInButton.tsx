@@ -47,12 +47,14 @@ interface GoogleSignInButtonProps {
   isLoading?: boolean;
   onSuccess?: () => void;
   className?: string;
+  redirectPath?: string;
 }
 
 export function GoogleSignInButton({
   isLoading: externalLoading,
   onSuccess,
   className,
+  redirectPath = "/dashboard",
 }: GoogleSignInButtonProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -110,7 +112,7 @@ export function GoogleSignInButton({
             if (onSuccess) {
               onSuccess();
             } else {
-              router.push("/dashboard");
+              router.push(redirectPath);
               router.refresh();
             }
           } catch (err: any) {
@@ -133,7 +135,7 @@ export function GoogleSignInButton({
     } catch (err) {
       console.warn("Google Identity initialization fallback:", err);
     }
-  }, [gisLoaded, clientId, onSuccess, router, supabase]);
+  }, [gisLoaded, clientId, onSuccess, router, supabase, redirectPath]);
 
   // Fallback OAuth handler if Client ID is not configured or script hasn't loaded
   const handleOAuthFallback = async () => {
@@ -143,7 +145,7 @@ export function GoogleSignInButton({
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${origin}/auth/callback?next=/dashboard`,
+          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
         },
       });
 

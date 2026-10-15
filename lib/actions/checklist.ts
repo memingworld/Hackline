@@ -39,6 +39,8 @@ export async function ensureDefaultChecklistItems(teamId: string) {
 
       await supabase.from("submission_checklists").insert(inserts);
       revalidatePath("/dashboard");
+      revalidatePath("/dashboard/squad");
+      revalidatePath("/dashboard/hackathons");
     }
 
     return { success: true };
@@ -75,7 +77,8 @@ export async function toggleChecklistItem(itemId: string, isCompleted: boolean) 
     }
 
     revalidatePath("/dashboard");
-    revalidatePath("/dashboard/settings");
+    revalidatePath("/dashboard/squad");
+    revalidatePath("/dashboard/hackathons");
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to update checklist item." };
@@ -131,7 +134,8 @@ export async function createChecklistItem(teamId: string, title: string) {
     }
 
     revalidatePath("/dashboard");
-    revalidatePath("/dashboard/settings");
+    revalidatePath("/dashboard/squad");
+    revalidatePath("/dashboard/hackathons");
     return { success: true, item: data };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to add checklist item." };
@@ -162,7 +166,8 @@ export async function deleteChecklistItem(itemId: string) {
     }
 
     revalidatePath("/dashboard");
-    revalidatePath("/dashboard/settings");
+    revalidatePath("/dashboard/squad");
+    revalidatePath("/dashboard/hackathons");
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to delete checklist item." };

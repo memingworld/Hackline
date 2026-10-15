@@ -10,15 +10,26 @@ import { CheckEmailCard } from "@/components/auth/CheckEmailCard";
 export default function SignupPage() {
   const router = useRouter();
   const [verificationEmail, setVerificationEmail] = React.useState<string | null>(null);
+  const [redirectPath, setRedirectPath] = React.useState("/dashboard");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const target = params.get("redirect") || params.get("next");
+      if (target && target.startsWith("/") && !target.startsWith("//")) {
+        setRedirectPath(target);
+      }
+    }
+  }, []);
 
   React.useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.replace("/dashboard");
+        router.replace(redirectPath);
       }
     });
-  }, [router]);
+  }, [router, redirectPath]);
 
   return (
     <AuthLayout
@@ -31,7 +42,7 @@ export default function SignupPage() {
       alternateLink={{
         prompt: "Already deployed an account?",
         label: "Sign in",
-        href: "/login",
+        href: redirectPath !== "/dashboard" ? `/login?redirect=${encodeURIComponent(redirectPath)}` : "/login",
       }}
     >
       {verificationEmail ? (
@@ -42,6 +53,7 @@ export default function SignupPage() {
       ) : (
         <SignupForm
           onVerificationRequired={(email) => setVerificationEmail(email)}
+          redirectPath={redirectPath}
         />
       )}
     </AuthLayout>

@@ -195,7 +195,6 @@ export async function notifySquadDeployment(params: {
   try {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     if (!botToken) {
-      console.log("[Telegram Dispatch] No TELEGRAM_BOT_TOKEN found, skipping teammate bot DM dispatch.");
       return { success: true, notifiedCount: 0 };
     }
 

@@ -8,7 +8,10 @@ export const metadata: Metadata = {
   description: "Scrape, track, and manage hackathons from Devfolio, Unstop, Devpost, and Luma.",
 };
 
-export default async function HackathonsPage() {
+export default async function HackathonsPage(props: {
+  searchParams?: Promise<{ action?: string }>;
+}) {
+  const searchParams = props.searchParams ? await props.searchParams : {};
   const [hackathons, savedPresets] = await Promise.all([
     getActiveHackathons(),
     getUserSavedSquads(),
@@ -19,6 +22,7 @@ export default async function HackathonsPage() {
       <HackathonsManager
         initialHackathons={hackathons}
         savedSquadPresets={savedPresets}
+        initialTab={searchParams.action === "manual" ? "manual" : "magic"}
       />
     </div>
   );

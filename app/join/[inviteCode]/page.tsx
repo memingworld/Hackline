@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import { getTeamByInviteCode } from "@/lib/data/squads";
 import { InviteJoinCard } from "@/components/squads/InviteJoinCard";
 import Link from "next/link";
-import { Terminal, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {

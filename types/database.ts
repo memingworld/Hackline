@@ -87,7 +87,7 @@ export interface TelegramNotification {
   user_id: string;
   team_id?: string | null;
   hackathon_id?: string | null;
-  trigger_type: "T-24h" | "T-2h" | "test";
+  trigger_type: "T-24h" | "T-2h" | "test" | "overdue" | string;
   message_text: string;
   status: "pending" | "sent" | "failed";
   telegram_message_id?: string | null;

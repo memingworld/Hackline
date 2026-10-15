@@ -43,7 +43,7 @@ export function UnifiedCalendarView({
 
   const [selectedHackathonId, setSelectedHackathonId] = React.useState<string>("all");
   const [selectedDateStr, setSelectedDateStr] = React.useState<string>(() => {
-    return new Date().toISOString().slice(0, 10);
+    return toDateKey(new Date());
   });
 
   // Filter events

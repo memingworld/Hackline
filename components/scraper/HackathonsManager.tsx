@@ -30,14 +30,16 @@ import { toast } from "sonner";
 interface HackathonsManagerProps {
   initialHackathons: Hackathon[];
   savedSquadPresets?: SavedSquad[];
+  initialTab?: "magic" | "manual";
 }
 
 export function HackathonsManager({
   initialHackathons,
   savedSquadPresets = [],
+  initialTab = "magic",
 }: HackathonsManagerProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = React.useState<"magic" | "manual">("magic");
+  const [activeTab, setActiveTab] = React.useState<"magic" | "manual">(initialTab);
   const [extractedData, setExtractedData] = React.useState<any>(null);
   const [isConfirmOpen, setIsConfirmOpen] = React.useState(false);
   const [editingHackathon, setEditingHackathon] = React.useState<Hackathon | null>(null);
