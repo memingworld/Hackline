@@ -32,51 +32,51 @@ const CATEGORY_CONFIG: Record<
   github: {
     label: "Code Repository",
     icon: Code2,
-    color: "text-zinc-200",
-    bg: "bg-zinc-800/60",
-    border: "border-zinc-700/80",
+    color: "text-[#fef3c7]",
+    bg: "bg-[#28231d]",
+    border: "border-[rgba(229,169,60,0.25)]",
   },
   figma: {
     label: "Figma Prototype",
     icon: Layers,
-    color: "text-purple-400",
-    bg: "bg-purple-500/10",
-    border: "border-purple-500/30",
+    color: "text-[#e5a93c]",
+    bg: "bg-[#e5a93c]/15",
+    border: "border-[rgba(229,169,60,0.35)]",
   },
   canva: {
     label: "Canva Design",
     icon: Sparkles,
-    color: "text-cyan-400",
-    bg: "bg-cyan-500/10",
-    border: "border-cyan-500/30",
+    color: "text-[#7bb4d6]",
+    bg: "bg-[#4a82a6]/15",
+    border: "border-[rgba(74,130,166,0.35)]",
   },
   demo: {
     label: "Video Walkthrough",
     icon: Video,
-    color: "text-rose-400",
-    bg: "bg-rose-500/10",
-    border: "border-rose-500/30",
+    color: "text-[#e5a93c]",
+    bg: "bg-[#e5a93c]/15",
+    border: "border-[rgba(229,169,60,0.35)]",
   },
   pitch_deck: {
     label: "Pitch Presentation",
     icon: Presentation,
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/30",
+    color: "text-[#fef3c7]",
+    bg: "bg-[#28231d]",
+    border: "border-[rgba(229,169,60,0.25)]",
   },
   drive: {
     label: "Google Drive Folder",
     icon: HardDrive,
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
-    border: "border-amber-500/30",
+    color: "text-[#7bb4d6]",
+    bg: "bg-[#4a82a6]/15",
+    border: "border-[rgba(74,130,166,0.35)]",
   },
   other: {
-    label: "External Link",
+    label: "External Deliverable",
     icon: Link2,
-    color: "text-indigo-400",
-    bg: "bg-indigo-500/10",
-    border: "border-indigo-500/30",
+    color: "text-[#a89a8c]",
+    bg: "bg-[#181410]",
+    border: "border-[rgba(229,169,60,0.2)]",
   },
 };
 
@@ -122,7 +122,7 @@ export function AssetCard({ asset, onEdit, onRefresh }: AssetCardProps) {
   };
 
   return (
-    <div className="rounded-2xl border border-zinc-850 bg-zinc-950 p-5 hover:border-zinc-750 transition-all flex flex-col justify-between shadow-sm">
+    <div className="rounded-2xl border border-[rgba(229,169,60,0.2)] bg-[#1f1b16] p-5 hover:border-[rgba(229,169,60,0.38)] transition-all flex flex-col justify-between shadow-sm">
       <div>
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-4">
@@ -133,10 +133,10 @@ export function AssetCard({ asset, onEdit, onRefresh }: AssetCardProps) {
               <Icon className="h-4 w-4" />
             </div>
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#a89a8c] block">
                 {config.label}
               </span>
-              <h3 className="text-sm font-bold text-white tracking-tight leading-snug">
+              <h3 className="text-sm font-bold text-[#fef3c7] tracking-tight leading-snug">
                 {asset.title}
               </h3>
             </div>
@@ -145,7 +145,7 @@ export function AssetCard({ asset, onEdit, onRefresh }: AssetCardProps) {
           <div className="flex items-center gap-1">
             <button
               onClick={() => onEdit(asset)}
-              className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+              className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#28231d] transition-colors"
               title="Edit asset"
             >
               <Edit2 className="h-3.5 w-3.5" />
@@ -153,7 +153,7 @@ export function AssetCard({ asset, onEdit, onRefresh }: AssetCardProps) {
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
+              className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#e06c75] hover:bg-[#e06c75]/10 transition-colors"
               title="Delete asset"
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -162,27 +162,27 @@ export function AssetCard({ asset, onEdit, onRefresh }: AssetCardProps) {
         </div>
 
         {asset.description && (
-          <p className="text-xs text-zinc-400 leading-relaxed mb-4 line-clamp-2">
+          <p className="text-xs text-[#a89a8c] leading-relaxed mb-4 line-clamp-2">
             {asset.description}
           </p>
         )}
       </div>
 
       {/* Footer actions */}
-      <div className="mt-4 pt-3.5 border-t border-zinc-900 flex items-center justify-between">
-        <div className="flex items-center gap-1 text-[11px] font-mono text-zinc-500 truncate max-w-[170px]">
+      <div className="mt-4 pt-3.5 border-t border-[rgba(229,169,60,0.15)] flex items-center justify-between">
+        <div className="flex items-center gap-1 text-[11px] font-mono text-[#a89a8c]/70 truncate max-w-[170px]">
           <span>{getDomain(asset.url)}</span>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={handleCopy}
-            className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-[11px] font-mono text-zinc-300 transition-colors"
+            className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-[rgba(229,169,60,0.2)] bg-[#181410] hover:bg-[#28231d] text-[11px] font-mono text-[#a89a8c] hover:text-[#fef3c7] transition-colors"
           >
             {copied ? (
-              <Check className="h-3 w-3 text-emerald-400" />
+              <Check className="h-3 w-3 text-[#e5a93c]" />
             ) : (
-              <Copy className="h-3 w-3 text-zinc-400" />
+              <Copy className="h-3 w-3 text-[#a89a8c]" />
             )}
             <span>{copied ? "Copied" : "Copy"}</span>
           </button>
@@ -191,10 +191,10 @@ export function AssetCard({ asset, onEdit, onRefresh }: AssetCardProps) {
             href={asset.url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-[11px] font-mono text-white transition-colors"
+            className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-[rgba(229,169,60,0.3)] bg-[#28231d] hover:bg-[#e5a93c]/15 text-[11px] font-mono text-[#fef3c7] hover:border-[#e5a93c]/40 transition-colors"
           >
             <span>Launch</span>
-            <ExternalLink className="h-3 w-3" />
+            <ExternalLink className="h-3 w-3 text-[#e5a93c]" />
           </a>
         </div>
       </div>

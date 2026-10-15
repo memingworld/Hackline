@@ -47,11 +47,11 @@ export function ResetPasswordForm() {
   const strength = getPasswordStrength(currentPassword || "");
 
   const getStrengthLabel = (score: number) => {
-    if (!currentPassword) return { label: "Enter password", color: "bg-zinc-800", text: "text-zinc-500" };
-    if (score <= 1) return { label: "Weak", color: "bg-rose-500", text: "text-rose-400" };
-    if (score === 2) return { label: "Fair", color: "bg-amber-500", text: "text-amber-400" };
-    if (score === 3) return { label: "Good", color: "bg-blue-500", text: "text-blue-400" };
-    return { label: "Bulletproof", color: "bg-emerald-500", text: "text-emerald-400" };
+    if (!currentPassword) return { label: "Enter password", color: "bg-[#28231d]", text: "text-[#a89a8c]" };
+    if (score <= 1) return { label: "Weak", color: "bg-[#e06c75]", text: "text-[#e06c75]" };
+    if (score === 2) return { label: "Fair", color: "bg-[#e5a93c]", text: "text-[#e5a93c]" };
+    if (score === 3) return { label: "Good", color: "bg-[#4a82a6]", text: "text-[#7bb4d6]" };
+    return { label: "Robust", color: "bg-[#e5a93c]", text: "text-[#e5a93c]" };
   };
 
   const strengthInfo = getStrengthLabel(strength);
@@ -98,7 +98,7 @@ export function ResetPasswordForm() {
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-[34px] text-zinc-500 hover:text-zinc-300 transition-colors"
+          className="absolute right-3 top-[34px] text-[#a89a8c] hover:text-[#fef3c7] transition-colors"
           tabIndex={-1}
         >
           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -109,7 +109,7 @@ export function ResetPasswordForm() {
       {currentPassword && (
         <div className="space-y-1.5 pt-1">
           <div className="flex items-center justify-between text-[11px] font-mono">
-            <span className="text-zinc-500">Security Strength:</span>
+            <span className="text-[#a89a8c]">Security Strength:</span>
             <span className={strengthInfo.text}>{strengthInfo.label}</span>
           </div>
           <div className="grid grid-cols-4 gap-1.5 h-1">
@@ -117,7 +117,7 @@ export function ResetPasswordForm() {
               <div
                 key={step}
                 className={`rounded-full transition-all duration-300 ${
-                  strength >= step ? strengthInfo.color : "bg-zinc-800"
+                  strength >= step ? strengthInfo.color : "bg-[#28231d]"
                 }`}
               />
             ))}
@@ -137,27 +137,27 @@ export function ResetPasswordForm() {
         <button
           type="button"
           onClick={() => setShowConfirm(!showConfirm)}
-          className="absolute right-3 top-[34px] text-zinc-500 hover:text-zinc-300 transition-colors"
+          className="absolute right-3 top-[34px] text-[#a89a8c] hover:text-[#fef3c7] transition-colors"
           tabIndex={-1}
         >
           {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
       </div>
 
-      <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3.5 space-y-2 text-xs text-zinc-400 font-mono">
-        <span className="text-[11px] text-zinc-500 uppercase tracking-wider block">
+      <div className="rounded-xl border border-[rgba(229,169,60,0.2)] bg-[#181410] p-3.5 space-y-2 text-xs text-[#a89a8c] font-mono">
+        <span className="text-[11px] text-[#a89a8c]/70 uppercase tracking-wider block">
           Password Policy:
         </span>
         <div className="flex items-center gap-2 text-[11px]">
-          <Check className={`h-3 w-3 ${currentPassword?.length >= 8 ? "text-emerald-400" : "text-zinc-600"}`} />
+          <Check className={`h-3 w-3 ${currentPassword?.length >= 8 ? "text-[#e5a93c]" : "text-[#a89a8c]/30"}`} />
           <span>At least 8 characters long</span>
         </div>
         <div className="flex items-center gap-2 text-[11px]">
-          <Check className={`h-3 w-3 ${/[A-Z]/.test(currentPassword || "") ? "text-emerald-400" : "text-zinc-600"}`} />
+          <Check className={`h-3 w-3 ${/[A-Z]/.test(currentPassword || "") ? "text-[#e5a93c]" : "text-[#a89a8c]/30"}`} />
           <span>At least one uppercase character</span>
         </div>
         <div className="flex items-center gap-2 text-[11px]">
-          <Check className={`h-3 w-3 ${/[0-9]/.test(currentPassword || "") ? "text-emerald-400" : "text-zinc-600"}`} />
+          <Check className={`h-3 w-3 ${/[0-9]/.test(currentPassword || "") ? "text-[#e5a93c]" : "text-[#a89a8c]/30"}`} />
           <span>At least one number</span>
         </div>
       </div>

@@ -103,31 +103,31 @@ export function ForgotPasswordForm() {
   if (isSubmitted) {
     return (
       <div className="space-y-6 animate-fade-in">
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-500/10 p-2 ring-1 ring-amber-500/20">
-          <div className="flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/30">
-            <Mail className="h-8 w-8 text-white animate-bounce" />
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-[#28231d] p-2 ring-1 ring-[rgba(229,169,60,0.3)]">
+          <div className="flex h-full w-full items-center justify-center rounded-xl bg-[#e5a93c] shadow-lg shadow-[#e5a93c]/20">
+            <Mail className="h-8 w-8 text-[#14110e] animate-bounce" />
           </div>
         </div>
 
         <div className="text-center space-y-2">
-          <h2 className="text-xl font-semibold text-white tracking-tight">
+          <h2 className="text-xl font-bold text-[#fef3c7] tracking-tight">
             Check your email inbox
           </h2>
-          <p className="text-xs text-zinc-400 leading-relaxed max-w-sm mx-auto">
+          <p className="text-xs text-[#a89a8c] leading-relaxed max-w-sm mx-auto">
             We sent a secure password reset link to:
           </p>
-          <div className="inline-block rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1 font-mono text-xs font-semibold text-amber-300">
+          <div className="inline-block rounded-lg border border-[rgba(229,169,60,0.35)] bg-[#e5a93c]/15 px-3 py-1 font-mono text-xs font-semibold text-[#e5a93c]">
             {submittedEmail}
           </div>
         </div>
 
-        <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4 space-y-2 text-xs text-zinc-400">
+        <div className="rounded-xl border border-[rgba(229,169,60,0.2)] bg-[#181410] p-4 space-y-2 text-xs text-[#a89a8c]">
           <div className="flex items-start gap-2.5">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+            <CheckCircle2 className="h-4 w-4 text-[#e5a93c] shrink-0 mt-0.5" />
             <span>Click the password reset link inside the email.</span>
           </div>
           <div className="flex items-start gap-2.5">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+            <CheckCircle2 className="h-4 w-4 text-[#e5a93c] shrink-0 mt-0.5" />
             <span>You will land on the secure "Set New Password" page to finalize your credentials.</span>
           </div>
         </div>
@@ -153,7 +153,7 @@ export function ForgotPasswordForm() {
             size="lg"
             disabled={resendCooldown > 0 || isSubmitting}
             onClick={handleResend}
-            className="w-full gap-2 bg-zinc-950/40 border-zinc-800"
+            className="w-full gap-2 bg-[#181410] border-[rgba(229,169,60,0.2)] text-[#fef3c7] hover:border-[rgba(229,169,60,0.4)] hover:bg-[#28231d]"
           >
             <RefreshCw className={`h-4 w-4 ${isSubmitting ? "animate-spin" : ""}`} />
             <span>
@@ -166,7 +166,7 @@ export function ForgotPasswordForm() {
           <div className="text-center pt-2">
             <button
               onClick={() => setIsSubmitted(false)}
-              className="text-xs font-mono text-zinc-500 hover:text-zinc-300 transition-colors inline-flex items-center gap-1.5"
+              className="text-xs font-mono text-[#a89a8c] hover:text-[#fef3c7] transition-colors inline-flex items-center gap-1.5"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Try a different email address</span>
@@ -203,7 +203,7 @@ export function ForgotPasswordForm() {
       <div className="text-center pt-2">
         <Link
           href="/login"
-          className="text-xs font-mono text-zinc-400 hover:text-indigo-400 transition-colors inline-flex items-center gap-1.5"
+          className="text-xs font-mono text-[#a89a8c] hover:text-[#e5a93c] transition-colors inline-flex items-center gap-1.5"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to sign in</span>

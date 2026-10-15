@@ -10,23 +10,57 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#09090b",
-        foreground: "#fafafa",
+        // Palette C: Vintage Bauhaus & Warm Brass Design System
+        canvas: "#14110e",
+        surface: {
+          DEFAULT: "#1f1b16",
+          elevated: "#28231d",
+          sunken: "#100d0a",
+          border: "rgba(229, 169, 60, 0.18)",
+        },
+        brass: {
+          DEFAULT: "rgba(229, 169, 60, 0.20)",
+          hover: "rgba(229, 169, 60, 0.38)",
+          solid: "#d4a042",
+        },
+        mustard: {
+          DEFAULT: "#e5a93c",
+          hover: "#d99b2e",
+          light: "#f3c768",
+          muted: "rgba(229, 169, 60, 0.12)",
+        },
+        steel: {
+          DEFAULT: "#4a82a6",
+          hover: "#3d6f8f",
+          light: "#7bb4d6",
+          muted: "rgba(74, 130, 166, 0.16)",
+        },
+        parchment: {
+          DEFAULT: "#fef3c7",
+          muted: "#f5ecd0",
+        },
+        clay: {
+          DEFAULT: "#a89a8c",
+          dark: "#6e6256",
+          light: "#c5b8ab",
+        },
+        background: "#14110e",
+        foreground: "#fef3c7",
         muted: {
-          DEFAULT: "#18181b",
-          foreground: "#a1a1aa",
+          DEFAULT: "#1f1b16",
+          foreground: "#a89a8c",
         },
         card: {
-          DEFAULT: "rgba(18, 18, 23, 0.75)",
-          foreground: "#fafafa",
-          border: "rgba(255, 255, 255, 0.08)",
+          DEFAULT: "#1f1b16",
+          foreground: "#fef3c7",
+          border: "rgba(229, 169, 60, 0.18)",
         },
         accent: {
-          DEFAULT: "#6366f1",
-          hover: "#4f46e5",
-          foreground: "#ffffff",
+          DEFAULT: "#e5a93c",
+          hover: "#d99b2e",
+          foreground: "#14110e",
         },
-        border: "rgba(255, 255, 255, 0.08)",
+        border: "rgba(229, 169, 60, 0.18)",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],

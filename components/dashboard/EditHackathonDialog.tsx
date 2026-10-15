@@ -44,10 +44,17 @@ interface SquadMemberOption {
   isCaptain?: boolean;
 }
 
-function safeIsoSlice(dateStr?: string | null): string {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 16);
+function toLocalDatetimeString(dateInput?: string | null | Date): string {
+  if (!dateInput) return "";
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 export function EditHackathonDialog({
@@ -60,11 +67,11 @@ export function EditHackathonDialog({
   const [prizePool, setPrizePool] = React.useState(hackathon.prize_pool || "");
   const [description, setDescription] = React.useState(hackathon.description || "");
   const [startsAt, setStartsAt] = React.useState(
-    safeIsoSlice(hackathon.starts_at) || new Date().toISOString().slice(0, 16)
+    toLocalDatetimeString(hackathon.starts_at) || toLocalDatetimeString(new Date())
   );
   const [endsAt, setEndsAt] = React.useState(
-    safeIsoSlice(hackathon.ends_at) ||
-      new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString().slice(0, 16)
+    toLocalDatetimeString(hackathon.ends_at) ||
+      toLocalDatetimeString(new Date(Date.now() + 1000 * 60 * 60 * 48))
   );
   const [rounds, setRounds] = React.useState<RoundItem[]>([]);
   const [squadMembers, setSquadMembers] = React.useState<SquadMemberOption[]>([]);
@@ -80,10 +87,10 @@ export function EditHackathonDialog({
       setPrizePool(hackathon.prize_pool || "");
       setDescription(hackathon.description || "");
       if (hackathon.starts_at) {
-        setStartsAt(safeIsoSlice(hackathon.starts_at));
+        setStartsAt(toLocalDatetimeString(hackathon.starts_at));
       }
       if (hackathon.ends_at) {
-        setEndsAt(safeIsoSlice(hackathon.ends_at));
+        setEndsAt(toLocalDatetimeString(hackathon.ends_at));
       }
 
       // Fetch existing timeline events & squad roster for this hackathon
@@ -115,7 +122,7 @@ export function EditHackathonDialog({
               return {
                 id: ev.id,
                 title: cleanTitle,
-                deadline: safeIsoSlice(ev.deadline) || new Date().toISOString().slice(0, 16),
+                deadline: toLocalDatetimeString(ev.deadline) || toLocalDatetimeString(new Date()),
                 eventType: ev.event_type || "custom",
                 assignedMemberId: assignedId,
                 assignedMemberName: assignedName,
@@ -124,8 +131,8 @@ export function EditHackathonDialog({
             setRounds(parsedRounds);
           }
 
-          // 2. Fetch team members (including reserved members)
-          const { data: teamData } = await supabase
+          // 2. Fetch team members (safely, without maybeSingle to prevent PGRST116)
+          const { data: teamsData } = await supabase
             .from("teams")
             .select(`
               id,
@@ -138,8 +145,9 @@ export function EditHackathonDialog({
                 user:profiles(id, full_name, email)
               )
             `)
-            .eq("hackathon_id", hackathon.id)
-            .maybeSingle();
+            .eq("hackathon_id", hackathon.id);
+
+          const teamData = teamsData && teamsData.length > 0 ? teamsData[0] : null;
 
           if (teamData) {
             const memberOptions: SquadMemberOption[] = [];
@@ -183,7 +191,7 @@ export function EditHackathonDialog({
       ...prev,
       {
         title: "",
-        deadline: endsAt || new Date().toISOString().slice(0, 16),
+        deadline: endsAt || toLocalDatetimeString(new Date()),
         eventType: "custom",
         assignedMemberId: null,
         assignedMemberName: null,
@@ -279,31 +287,31 @@ export function EditHackathonDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md overflow-hidden animate-fade-in">
       {/* Background overlay click-to-close */}
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
 
       {/* Main Dialog Container */}
-      <div className="relative w-full max-w-2xl max-h-[86vh] rounded-2xl bg-[#090a0f] border border-white/[0.1] shadow-2xl overflow-hidden flex flex-col z-10">
+      <div className="relative w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10">
         {/* Pinned Header */}
-        <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between shrink-0 bg-[#0d0e14]">
+        <div className="px-5 py-4 border-b border-[rgba(229,169,60,0.18)] flex items-center justify-between shrink-0 bg-[#28231d]">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] border border-white/[0.1] text-zinc-300">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] text-[#e5a93c]">
               <Edit3 className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-sm font-bold text-white tracking-tight truncate">
+              <h3 className="text-sm font-bold text-[#fef3c7] tracking-tight truncate font-mono">
                 Edit Hackathon & Rounds
               </h3>
-              <p className="text-[11px] font-mono text-zinc-400 uppercase truncate">
-                Platform: <span className="text-emerald-400 font-semibold">{hackathon.source_platform}</span>
+              <p className="text-[11px] font-mono text-[#a89a8c] uppercase truncate">
+                Platform: <span className="text-[#e5a93c] font-semibold">{hackathon.source_platform}</span>
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/[0.08] transition-colors shrink-0"
+            className="p-1.5 text-[#a89a8c] hover:text-[#fef3c7] rounded-lg hover:bg-[#181410] transition-colors shrink-0"
             title="Close dialog"
           >
             <X className="h-4 w-4" />
@@ -312,7 +320,7 @@ export function EditHackathonDialog({
 
         {/* Scrollable Form Body */}
         <form onSubmit={handleUpdate} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <div className="p-5 overflow-y-auto space-y-5 flex-1 min-h-0">
+          <div className="p-5 overflow-y-auto space-y-4 flex-1 min-h-0 custom-scrollbar">
             {/* Event Basic Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <Input
@@ -350,27 +358,27 @@ export function EditHackathonDialog({
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-mono font-medium text-zinc-400 tracking-wider uppercase">
+              <label className="block text-[11px] font-mono font-medium text-[#a89a8c] tracking-wider uppercase">
                 Description & Tracks
               </label>
               <textarea
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-xl bg-zinc-900/60 p-3 text-xs text-zinc-100 placeholder:text-zinc-500 border border-white/[0.08] outline-none focus:border-emerald-500 transition-colors"
+                className="w-full rounded-xl bg-[#181410] p-3 text-xs text-[#fef3c7] placeholder:text-[#a89a8c]/50 border border-[rgba(229,169,60,0.20)] outline-none focus:border-[#e5a93c] transition-colors"
                 placeholder="Brief summary of challenge, problem statement, or track rules..."
               />
             </div>
 
             {/* Rounds & Divided Team Work Section */}
-            <div className="rounded-xl border border-white/[0.08] bg-zinc-900/40 p-4 space-y-3">
-              <div className="flex items-center justify-between gap-3">
+            <div className="rounded-xl border border-[rgba(229,169,60,0.20)] bg-[#181410] p-4 space-y-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-white uppercase font-mono tracking-wider flex items-center gap-1.5">
-                    <Target className="h-3.5 w-3.5 text-indigo-400" />
-                    <span>Sprint Rounds & Team Work Division ({rounds.length})</span>
+                  <h4 className="text-xs font-bold text-[#fef3c7] uppercase font-mono tracking-wider flex items-center gap-1.5">
+                    <Target className="h-3.5 w-3.5 text-[#e5a93c]" />
+                    <span>Sprint Rounds & Work Division ({rounds.length})</span>
                   </h4>
-                  <p className="text-[11px] text-zinc-400 leading-snug">
+                  <p className="text-[11px] text-[#a89a8c] leading-snug">
                     Add custom middle rounds, screening stages, and assign tasks to teammates.
                   </p>
                 </div>
@@ -378,27 +386,27 @@ export function EditHackathonDialog({
                 <button
                   type="button"
                   onClick={handleAddRound}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 text-xs font-medium transition-colors shrink-0"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[rgba(229,169,60,0.30)] bg-[#e5a93c]/10 hover:bg-[#e5a93c]/20 text-[#e5a93c] text-xs font-medium transition-colors shrink-0"
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  <span>Add Round / Deadline</span>
+                  <span>Add Round / Gate</span>
                 </button>
               </div>
 
               {rounds.length === 0 ? (
-                <div className="text-center py-6 px-4 rounded-xl border border-dashed border-white/[0.08] bg-zinc-950/40 text-xs text-zinc-500">
-                  No middle rounds or internal deadlines configured. Tap &ldquo;Add Round / Deadline&rdquo; to schedule one.
+                <div className="text-center py-6 px-4 rounded-xl border border-dashed border-[rgba(229,169,60,0.20)] bg-[#28231d]/40 text-xs text-[#a89a8c]">
+                  No middle rounds or internal deadlines configured. Tap &ldquo;Add Round / Gate&rdquo; to schedule one.
                 </div>
               ) : (
                 <div className="space-y-3 pt-1">
                   {rounds.map((round, idx) => (
                     <div
                       key={round.id || `round-${idx}`}
-                      className="p-3.5 rounded-xl border border-white/[0.08] bg-zinc-950/70 space-y-3 hover:border-white/[0.15] transition-colors"
+                      className="p-3.5 rounded-xl border border-[rgba(229,169,60,0.18)] bg-[#28231d] space-y-3 hover:border-[rgba(229,169,60,0.35)] transition-colors"
                     >
                       {/* Top Header of Milestone */}
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-white/[0.06] border border-white/[0.08] text-zinc-300">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#1f1b16] border border-[rgba(229,169,60,0.20)] text-[#fef3c7]">
                           Milestone #{idx + 1}
                         </span>
 
@@ -408,7 +416,7 @@ export function EditHackathonDialog({
                             onChange={(e) =>
                               handleUpdateRound(idx, { eventType: e.target.value })
                             }
-                            className="h-7 rounded-lg border border-white/[0.1] bg-zinc-900 px-2 text-[11px] text-zinc-200 font-mono outline-none focus:border-indigo-500"
+                            className="h-7 rounded-lg border border-[rgba(229,169,60,0.25)] bg-[#181410] px-2 text-[11px] text-[#fef3c7] font-mono outline-none focus:border-[#e5a93c]"
                           >
                             <option value="pitch_session">🏆 Official Round (Screening/Pitch)</option>
                             <option value="submission_deadline">🏁 Submission Deadline</option>
@@ -419,7 +427,7 @@ export function EditHackathonDialog({
                           <button
                             type="button"
                             onClick={() => handleDeleteRound(idx)}
-                            className="p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition-colors"
+                            className="p-1.5 text-[#a89a8c] hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition-colors"
                             title="Delete this round"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -436,7 +444,7 @@ export function EditHackathonDialog({
                             handleUpdateRound(idx, { title: e.target.value })
                           }
                           placeholder="e.g. Round 1: PPT Submission or FastAPI Endpoints Frozen"
-                          className="w-full h-8 rounded-lg bg-zinc-900 border border-white/[0.08] px-3 text-xs text-white placeholder:text-zinc-500 outline-none focus:border-indigo-500 transition-colors"
+                          className="w-full h-8 rounded-lg bg-[#181410] border border-[rgba(229,169,60,0.20)] px-3 text-xs text-[#fef3c7] placeholder:text-[#a89a8c]/50 outline-none focus:border-[#e5a93c] transition-colors"
                           required
                         />
                       </div>
@@ -444,7 +452,7 @@ export function EditHackathonDialog({
                       {/* Date & Teammate Assignment (Clean 2-Column Grid) */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         <div>
-                          <label className="block text-[10px] font-mono text-zinc-400 mb-1">
+                          <label className="block text-[10px] font-mono text-[#a89a8c] mb-1">
                             Target Deadline
                           </label>
                           <input
@@ -454,13 +462,13 @@ export function EditHackathonDialog({
                               handleUpdateRound(idx, { deadline: e.target.value })
                             }
                             style={{ colorScheme: "dark" }}
-                            className="w-full h-8 rounded-lg bg-zinc-900 border border-white/[0.08] px-2.5 text-xs text-zinc-200 outline-none focus:border-indigo-500 font-mono"
+                            className="w-full h-8 rounded-lg bg-[#181410] border border-[rgba(229,169,60,0.20)] px-2.5 text-xs text-[#fef3c7] outline-none focus:border-[#e5a93c] font-mono"
                             required
                           />
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-mono text-zinc-400 mb-1">
+                          <label className="block text-[10px] font-mono text-[#a89a8c] mb-1">
                             Assigned Teammate
                           </label>
                           <select
@@ -473,7 +481,7 @@ export function EditHackathonDialog({
                                 assignedMemberName: member ? member.name : null,
                               });
                             }}
-                            className="w-full h-8 rounded-lg bg-zinc-900 border border-white/[0.08] px-2.5 text-[11px] text-zinc-200 font-mono outline-none focus:border-indigo-500 truncate"
+                            className="w-full h-8 rounded-lg bg-[#181410] border border-[rgba(229,169,60,0.20)] px-2.5 text-[11px] text-[#fef3c7] font-mono outline-none focus:border-[#e5a93c] truncate"
                           >
                             <option value="">-- All Squad / Unassigned --</option>
                             {squadMembers.map((m) => (
@@ -499,7 +507,7 @@ export function EditHackathonDialog({
           </div>
 
           {/* Pinned Actions Footer */}
-          <div className="px-5 py-3.5 border-t border-white/[0.08] bg-[#0d0e14] flex items-center justify-between gap-3 shrink-0">
+          <div className="px-5 py-3.5 border-t border-[rgba(229,169,60,0.18)] bg-[#28231d] flex items-center justify-between gap-3 shrink-0">
             <button
               type="button"
               onClick={handleDelete}

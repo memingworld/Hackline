@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { getUserAllTeams, getUserSavedSquads } from "@/lib/data/squads";
 import { getSubmissionChecklist } from "@/lib/data/hackathons";
+import { ensureDefaultChecklistItems } from "@/lib/actions/checklist";
 import { MultiSquadManager } from "@/components/squads/MultiSquadManager";
 import { SavedSquadsManager } from "@/components/squads/SavedSquadsManager";
 import { SquadPageClientHeader } from "@/components/squads/SquadPageClientHeader";
@@ -40,9 +41,10 @@ export default async function SquadPage(props: {
     getUserSavedSquads(),
   ]);
 
-  // Fetch checklist items for each team
+  // Fetch checklist items for each team, ensuring defaults exist
   const teamsWithChecklists = await Promise.all(
     allTeams.map(async (team) => {
+      await ensureDefaultChecklistItems(team.id);
       const checklistItems = await getSubmissionChecklist(team.id);
       return {
         ...team,

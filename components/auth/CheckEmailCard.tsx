@@ -67,30 +67,30 @@ export function CheckEmailCard({ email, onReset }: CheckEmailCardProps) {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Icon Container */}
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-800 text-white shadow-sm">
-        <Mail className="h-6 w-6 text-zinc-200" />
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#28231d] border border-[rgba(229,169,60,0.25)] text-[#e5a93c] shadow-sm">
+        <Mail className="h-6 w-6 text-[#e5a93c]" />
       </div>
 
       <div className="text-center space-y-2">
-        <h2 className="text-xl font-bold text-white tracking-tight">
+        <h2 className="text-xl font-bold text-[#fef3c7] tracking-tight">
           Verify your email address
         </h2>
-        <p className="text-xs text-zinc-400 leading-relaxed max-w-sm mx-auto">
+        <p className="text-xs text-[#a89a8c] leading-relaxed max-w-sm mx-auto">
           We sent a single-use cryptographically signed activation link to:
         </p>
-        <div className="inline-block rounded-md border border-zinc-800 bg-zinc-900 px-3 py-1 font-mono text-xs font-medium text-zinc-200">
+        <div className="inline-block rounded-md border border-[rgba(229,169,60,0.35)] bg-[#e5a93c]/15 px-3 py-1 font-mono text-xs font-semibold text-[#e5a93c]">
           {email}
         </div>
       </div>
 
       {/* Instruction Steps */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 space-y-2.5 text-xs text-zinc-400">
+      <div className="rounded-xl border border-[rgba(229,169,60,0.2)] bg-[#181410] p-4 space-y-2.5 text-xs text-[#a89a8c]">
         <div className="flex items-start gap-2.5">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+          <CheckCircle2 className="h-4 w-4 text-[#e5a93c] shrink-0 mt-0.5" />
           <span>Click the magic confirmation link in the verification email.</span>
         </div>
         <div className="flex items-start gap-2.5">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+          <CheckCircle2 className="h-4 w-4 text-[#e5a93c] shrink-0 mt-0.5" />
           <span>You will be securely redirected to your Hackline squad dashboard.</span>
         </div>
       </div>
@@ -102,7 +102,7 @@ export function CheckEmailCard({ email, onReset }: CheckEmailCardProps) {
             href={providerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full inline-flex items-center justify-center gap-2 h-10 px-4 text-xs font-semibold rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 transition-colors shadow-sm"
+            className="w-full inline-flex items-center justify-center gap-2 h-10 px-4 text-xs font-semibold rounded-xl bg-[#e5a93c] text-[#14110e] hover:bg-[#d99b2e] transition-colors shadow-sm"
           >
             <span>Open Email Inbox</span>
             <ExternalLink className="h-3.5 w-3.5" />
@@ -117,7 +117,7 @@ export function CheckEmailCard({ email, onReset }: CheckEmailCardProps) {
             isLoading={isResending}
             disabled={resendCooldown > 0}
             onClick={handleResend}
-            className="flex-1 text-xs"
+            className="flex-1 text-xs bg-[#181410] border-[rgba(229,169,60,0.2)] text-[#fef3c7] hover:border-[rgba(229,169,60,0.4)] hover:bg-[#28231d]"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${resendCooldown > 0 ? "animate-spin" : ""}`} />
             <span>
@@ -132,7 +132,7 @@ export function CheckEmailCard({ email, onReset }: CheckEmailCardProps) {
             variant="ghost"
             size="md"
             onClick={onReset}
-            className="text-xs text-zinc-400 hover:text-zinc-200"
+            className="text-xs text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#28231d]"
           >
             <span>Change email</span>
           </Button>

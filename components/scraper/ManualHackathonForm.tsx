@@ -27,23 +27,29 @@ const PLATFORM_OPTIONS = [
   { id: "luma", label: "Luma", icon: "✨" },
 ];
 
+function toLocalDatetimeString(dateInput?: string | null | Date): string {
+  if (!dateInput) return "";
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 export function ManualHackathonForm({ onSuccess }: { onSuccess?: () => void }) {
   const router = useRouter();
 
-  // Helper for datetime-local ISO format
   const getDefaultDates = () => {
     const now = new Date();
-    now.setMinutes(0, 0, 0);
-    const startStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-      .toISOString()
-      .slice(0, 16);
-
     const end = new Date(now.getTime() + 48 * 60 * 60 * 1000);
-    const endStr = new Date(end.getTime() - end.getTimezoneOffset() * 60000)
-      .toISOString()
-      .slice(0, 16);
-
-    return { startStr, endStr };
+    return {
+      startStr: toLocalDatetimeString(now),
+      endStr: toLocalDatetimeString(end),
+    };
   };
 
   const { startStr, endStr } = React.useMemo(() => getDefaultDates(), []);
@@ -60,7 +66,6 @@ export function ManualHackathonForm({ onSuccess }: { onSuccess?: () => void }) {
   const [description, setDescription] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  // Auto-sync squad name when title changes if user hasn't explicitly customized it
   const handleTitleChange = (val: string) => {
     setTitle(val);
     if (!squadName || squadName.endsWith("Squad")) {
@@ -98,155 +103,149 @@ export function ManualHackathonForm({ onSuccess }: { onSuccess?: () => void }) {
         starts_at: startDate.toISOString(),
         ends_at: endDate.toISOString(),
         team_name: squadName.trim() || `${title.trim().slice(0, 15)} Squad`,
-        min_team_size: 1,
-        max_team_size: Math.max(1, Math.min(10, maxTeamSize)),
+        max_team_size: maxTeamSize,
       });
 
-      if (!res.success || !res.hackathonId) {
-        throw new Error(res.error || "Failed to create hackathon.");
+      if (res.success && res.hackathonId) {
+        toast.success("Hackathon workspace created!", {
+          description: `Initialized ${title.trim()} and configured initial squad.`,
+        });
+
+        if (onSuccess) onSuccess();
+        router.push(`/dashboard/hackathons/${res.hackathonId}`);
+      } else {
+        toast.error("Failed to create hackathon", {
+          description: res.error || "An unknown error occurred.",
+        });
       }
-
-      toast.success("Hackathon & Workspace Initialized!", {
-        description: `Created "${title}" with command center ready.`,
-      });
-
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      router.push(`/dashboard/hackathons/${res.hackathonId}`);
-      router.refresh();
-    } catch (err: any) {
-      toast.error("Creation failed", {
-        description: err.message || "Could not initialize hackathon.",
-      });
+    } catch {
+      toast.error("Error creating hackathon");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in">
-      {/* Platform & Format Tag Selector */}
-      <div className="space-y-1.5">
-        <label className="text-[11px] font-mono uppercase text-zinc-400 tracking-wider">
-          Event Format / Platform
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Platform Selector Tabs */}
+      <div className="space-y-2">
+        <label className="text-[11px] font-mono uppercase text-[#a89a8c] tracking-wider block">
+          Event Category / Host Platform
         </label>
-        <div className="flex flex-wrap gap-2">
-          {PLATFORM_OPTIONS.map((opt) => {
-            const isSelected = platform === opt.id;
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+          {PLATFORM_OPTIONS.map((p) => {
+            const isSelected = platform === p.id;
             return (
               <button
-                key={opt.id}
+                key={p.id}
                 type="button"
-                onClick={() => setPlatform(opt.id)}
-                className={`px-3 py-1.5 rounded-xl border text-xs font-mono transition-all flex items-center gap-1.5 ${
+                onClick={() => setPlatform(p.id)}
+                className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-mono transition-all text-left ${
                   isSelected
-                    ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300 font-semibold shadow-sm ring-1 ring-emerald-500/20"
-                    : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60"
+                    ? "bg-[#e5a93c]/15 text-[#fef3c7] border-[#e5a93c]/50 font-bold shadow-sm"
+                    : "bg-[#181410] border-[rgba(229,169,60,0.18)] text-[#a89a8c] hover:text-[#fef3c7] hover:border-[rgba(229,169,60,0.35)]"
                 }`}
               >
-                <span>{opt.icon}</span>
-                <span>{opt.label}</span>
+                <span>{p.icon}</span>
+                <span className="truncate">{p.label}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Main Details Grid */}
+      {/* Grid Inputs */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Title */}
         <div className="space-y-1.5 md:col-span-2">
-          <label className="text-[11px] font-mono uppercase text-zinc-400 tracking-wider flex items-center gap-1">
+          <label className="text-[11px] font-mono uppercase text-[#a89a8c] tracking-wider flex items-center gap-1">
+            <Trophy className="h-3 w-3 text-[#e5a93c]" />
             <span>Hackathon Title</span>
-            <span className="text-emerald-400">*</span>
           </label>
           <Input
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
-            placeholder="e.g. TreeHacks 2026, AI Agents Sprint, Campus Hackathon"
-            className="h-11 bg-zinc-900/60 border-zinc-800 text-sm focus:border-zinc-500 font-mono"
+            placeholder="e.g. ETHGlobal Hackathon or Unstop Tech Challenge"
             required
           />
         </div>
 
         {/* Prize Pool */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-mono uppercase text-zinc-400 tracking-wider flex items-center gap-1">
-            <Trophy className="h-3 w-3 text-amber-400" />
-            <span>Prize Pool</span>
+          <label className="text-[11px] font-mono uppercase text-[#a89a8c] tracking-wider">
+            Prize Pool
           </label>
           <Input
             value={prizePool}
             onChange={(e) => setPrizePool(e.target.value)}
-            placeholder="e.g. $25,000, ₹2,00,000, or TBA"
-            className="h-10 bg-zinc-900/60 border-zinc-800 text-xs focus:border-zinc-500 font-mono"
+            placeholder="e.g. $50,000 or ₹10,00,000"
           />
         </div>
 
-        {/* Portal / Official Link */}
+        {/* Source URL */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-mono uppercase text-zinc-400 tracking-wider flex items-center gap-1">
-            <LinkIcon className="h-3 w-3 text-zinc-400" />
-            <span>Website / Portal URL (Optional)</span>
+          <label className="text-[11px] font-mono uppercase text-[#a89a8c] tracking-wider flex items-center gap-1">
+            <LinkIcon className="h-3 w-3 text-[#e5a93c]" />
+            <span>Event Portal URL (Optional)</span>
           </label>
           <Input
             type="url"
             value={sourceUrl}
             onChange={(e) => setSourceUrl(e.target.value)}
-            placeholder="https://event.example.com"
-            className="h-10 bg-zinc-900/60 border-zinc-800 text-xs focus:border-zinc-500 font-mono"
+            placeholder="https://devpost.com/..."
+            className="font-mono"
           />
         </div>
 
         {/* Start Time */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-mono uppercase text-zinc-400 tracking-wider flex items-center gap-1">
-            <Calendar className="h-3 w-3 text-zinc-400" />
+          <label className="text-[11px] font-mono uppercase text-[#a89a8c] tracking-wider flex items-center gap-1">
+            <Calendar className="h-3 w-3 text-[#a89a8c]" />
             <span>Start Date & Time</span>
           </label>
           <Input
             type="datetime-local"
             value={startsAt}
             onChange={(e) => setStartsAt(e.target.value)}
-            className="h-10 bg-zinc-900/60 border-zinc-800 text-xs focus:border-zinc-500 font-mono text-zinc-200"
+            style={{ colorScheme: "dark" }}
+            className="font-mono"
             required
           />
         </div>
 
         {/* End Time */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-mono uppercase text-zinc-400 tracking-wider flex items-center gap-1">
-            <Calendar className="h-3 w-3 text-emerald-400" />
+          <label className="text-[11px] font-mono uppercase text-[#a89a8c] tracking-wider flex items-center gap-1">
+            <Calendar className="h-3 w-3 text-[#e5a93c]" />
             <span>Submission Deadline</span>
           </label>
           <Input
             type="datetime-local"
             value={endsAt}
             onChange={(e) => setEndsAt(e.target.value)}
-            className="h-10 bg-zinc-900/60 border-zinc-800 text-xs focus:border-zinc-500 font-mono text-zinc-200"
+            style={{ colorScheme: "dark" }}
+            className="font-mono"
             required
           />
         </div>
 
         {/* Squad Name */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-mono uppercase text-zinc-400 tracking-wider flex items-center gap-1">
-            <Users className="h-3 w-3 text-zinc-400" />
+          <label className="text-[11px] font-mono uppercase text-[#a89a8c] tracking-wider flex items-center gap-1">
+            <Users className="h-3 w-3 text-[#e5a93c]" />
             <span>Initial Squad Name</span>
           </label>
           <Input
             value={squadName}
             onChange={(e) => setSquadName(e.target.value)}
             placeholder="e.g. Apex Squad"
-            className="h-10 bg-zinc-900/60 border-zinc-800 text-xs focus:border-zinc-500 font-mono"
+            className="font-mono"
           />
         </div>
 
         {/* Max Team Size */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-mono uppercase text-zinc-400 tracking-wider">
+          <label className="text-[11px] font-mono uppercase text-[#a89a8c] tracking-wider">
             Max Team Size
           </label>
           <Input
@@ -255,14 +254,14 @@ export function ManualHackathonForm({ onSuccess }: { onSuccess?: () => void }) {
             max={10}
             value={maxTeamSize}
             onChange={(e) => setMaxTeamSize(Number(e.target.value) || 4)}
-            className="h-10 bg-zinc-900/60 border-zinc-800 text-xs focus:border-zinc-500 font-mono"
+            className="font-mono"
           />
         </div>
 
         {/* Banner URL */}
         <div className="space-y-1.5 md:col-span-2">
-          <label className="text-[11px] font-mono uppercase text-zinc-400 tracking-wider flex items-center gap-1">
-            <ImageIcon className="h-3 w-3 text-zinc-400" />
+          <label className="text-[11px] font-mono uppercase text-[#a89a8c] tracking-wider flex items-center gap-1">
+            <ImageIcon className="h-3 w-3 text-[#a89a8c]" />
             <span>Banner / Poster Image URL (Optional)</span>
           </label>
           <Input
@@ -270,13 +269,13 @@ export function ManualHackathonForm({ onSuccess }: { onSuccess?: () => void }) {
             value={bannerUrl}
             onChange={(e) => setBannerUrl(e.target.value)}
             placeholder="https://images.unsplash.com/... or hosted poster link"
-            className="h-10 bg-zinc-900/60 border-zinc-800 text-xs focus:border-zinc-500 font-mono"
+            className="font-mono"
           />
         </div>
 
         {/* Description / Problem Statement */}
         <div className="space-y-1.5 md:col-span-2">
-          <label className="text-[11px] font-mono uppercase text-zinc-400 tracking-wider">
+          <label className="text-[11px] font-mono uppercase text-[#a89a8c] tracking-wider">
             Description / Tracks Focus (Optional)
           </label>
           <textarea
@@ -284,14 +283,14 @@ export function ManualHackathonForm({ onSuccess }: { onSuccess?: () => void }) {
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             placeholder="Brief overview of challenges, problem statements, track requirements, or team objectives..."
-            className="w-full rounded-xl bg-zinc-900/60 border border-zinc-800 p-3 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/30 transition-all font-mono resize-none leading-relaxed"
+            className="w-full rounded-xl bg-[#181410] border border-[rgba(229,169,60,0.20)] p-3 text-xs text-[#fef3c7] placeholder:text-[#a89a8c]/50 focus:outline-none focus:border-[#e5a93c] transition-all font-mono resize-none leading-relaxed"
           />
         </div>
       </div>
 
       {/* Action Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-zinc-900">
-        <p className="text-[11px] text-zinc-500 font-mono">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[rgba(229,169,60,0.15)]">
+        <p className="text-[11px] text-[#a89a8c] font-mono">
           Will automatically generate captain workspace, timeline gates, and sprint checklist.
         </p>
 
@@ -300,7 +299,7 @@ export function ManualHackathonForm({ onSuccess }: { onSuccess?: () => void }) {
           variant="primary"
           isLoading={isSubmitting}
           disabled={!title.trim() || isSubmitting}
-          className="rounded-xl px-5 h-10 text-xs font-semibold gap-2 shadow-lg shadow-emerald-500/10"
+          className="rounded-xl px-5 h-10 text-xs font-semibold gap-2"
         >
           <Rocket className="h-3.5 w-3.5" />
           <span>Deploy Hackathon</span>

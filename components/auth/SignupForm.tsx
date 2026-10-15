@@ -127,7 +127,7 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
           size="md"
           isLoading={isOauthLoading === "github"}
           onClick={() => handleOAuthLogin("github")}
-          className="w-full bg-zinc-950/40 border-zinc-800 hover:border-zinc-700"
+          className="w-full bg-[#181410] border-[rgba(229,169,60,0.2)] text-[#fef3c7] hover:border-[rgba(229,169,60,0.4)] hover:bg-[#28231d]"
         >
           <GithubIcon className="h-4 w-4" />
           <span className="text-xs font-medium">GitHub</span>
@@ -140,9 +140,9 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
 
       <div className="relative flex items-center justify-center">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-zinc-800" />
+          <div className="w-full border-t border-[rgba(229,169,60,0.15)]" />
         </div>
-        <span className="relative bg-zinc-900/90 px-3 text-[11px] font-mono uppercase tracking-wider text-zinc-500">
+        <span className="relative bg-[#1f1b16] px-3 text-[11px] font-mono uppercase tracking-wider text-[#a89a8c]">
           Or register with credentials
         </span>
       </div>
@@ -178,7 +178,7 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-[34px] text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="absolute right-3 top-[34px] text-[#a89a8c] hover:text-[#fef3c7] transition-colors"
             tabIndex={-1}
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
@@ -195,8 +195,8 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
           <span
             className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 border transition-colors ${
               hasMinLength
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                : "border-zinc-800 bg-zinc-900/50 text-zinc-500"
+                ? "border-[rgba(229,169,60,0.4)] bg-[#e5a93c]/15 text-[#e5a93c] font-semibold"
+                : "border-[rgba(229,169,60,0.12)] bg-[#181410] text-[#a89a8c]/50"
             }`}
           >
             <CheckCircle2 className="h-3 w-3" />
@@ -205,8 +205,8 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
           <span
             className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 border transition-colors ${
               hasUppercase
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                : "border-zinc-800 bg-zinc-900/50 text-zinc-500"
+                ? "border-[rgba(229,169,60,0.4)] bg-[#e5a93c]/15 text-[#e5a93c] font-semibold"
+                : "border-[rgba(229,169,60,0.12)] bg-[#181410] text-[#a89a8c]/50"
             }`}
           >
             <CheckCircle2 className="h-3 w-3" />
@@ -215,8 +215,8 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
           <span
             className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 border transition-colors ${
               hasNumber
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                : "border-zinc-800 bg-zinc-900/50 text-zinc-500"
+                ? "border-[rgba(229,169,60,0.4)] bg-[#e5a93c]/15 text-[#e5a93c] font-semibold"
+                : "border-[rgba(229,169,60,0.12)] bg-[#181410] text-[#a89a8c]/50"
             }`}
           >
             <CheckCircle2 className="h-3 w-3" />
@@ -233,7 +233,7 @@ export function SignupForm({ onVerificationRequired }: SignupFormProps) {
           {...register("confirmPassword")}
         />
 
-        <p className="text-[11px] text-zinc-500 leading-tight pt-1">
+        <p className="text-[11px] text-[#a89a8c] leading-tight pt-1">
           By signing up, you agree to our terms of service and verify that you
           will receive an activation link to authenticate this device.
         </p>

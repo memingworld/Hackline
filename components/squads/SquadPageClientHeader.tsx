@@ -28,17 +28,17 @@ export function SquadPageClientHeader({
 
   return (
     <>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-900">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[rgba(229,169,60,0.18)]">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-white font-mono">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl font-bold tracking-tight text-[#fef3c7] font-mono">
               Squad & Role Matrix
             </h1>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-md border border-indigo-500/20 bg-indigo-500/10 text-indigo-400">
-              4-Person Team Engine
+            <span className="text-[11px] font-mono font-medium px-2.5 py-0.5 rounded-md border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6]">
+              Dream Crew Engine
             </span>
           </div>
-          <p className="mt-1 text-xs text-zinc-400 max-w-xl">
+          <p className="mt-1 text-xs text-[#a89a8c] max-w-xl">
             Coordinate your dream squad lineup, assign specialized duties, and manage reusable crew presets for instant deployment.
           </p>
         </div>

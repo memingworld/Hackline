@@ -112,7 +112,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           size="md"
           isLoading={isOauthLoading === "github"}
           onClick={() => handleOAuthLogin("github")}
-          className="w-full bg-zinc-950/40 border-zinc-800 hover:border-zinc-700"
+          className="w-full bg-[#181410] border-[rgba(229,169,60,0.2)] text-[#fef3c7] hover:border-[rgba(229,169,60,0.4)] hover:bg-[#28231d]"
         >
           <GithubIcon className="h-4 w-4" />
           <span className="text-xs font-medium">GitHub</span>
@@ -126,9 +126,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
       <div className="relative flex items-center justify-center">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-zinc-800" />
+          <div className="w-full border-t border-[rgba(229,169,60,0.15)]" />
         </div>
-        <span className="relative bg-zinc-900/90 px-3 text-[11px] font-mono uppercase tracking-wider text-zinc-500">
+        <span className="relative bg-[#1f1b16] px-3 text-[11px] font-mono uppercase tracking-wider text-[#a89a8c]">
           Or continue with email
         </span>
       </div>
@@ -156,7 +156,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-[34px] text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="absolute right-3 top-[34px] text-[#a89a8c] hover:text-[#fef3c7] transition-colors"
             tabIndex={-1}
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
@@ -169,16 +169,16 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         </div>
 
         <div className="flex items-center justify-between text-xs pt-1">
-          <label className="flex items-center gap-2 cursor-pointer text-zinc-400 hover:text-zinc-300">
+          <label className="flex items-center gap-2 cursor-pointer text-[#a89a8c] hover:text-[#fef3c7]">
             <input
               type="checkbox"
-              className="rounded border-zinc-700 bg-zinc-800 text-indigo-500 focus:ring-indigo-500/50"
+              className="rounded border-[rgba(229,169,60,0.25)] bg-[#181410] text-[#e5a93c] focus:ring-[#e5a93c]/50 accent-[#e5a93c]"
             />
             <span>Remember for 30 days</span>
           </label>
           <Link
             href="/forgot-password"
-            className="text-zinc-400 hover:text-indigo-400 transition-colors"
+            className="text-[#a89a8c] hover:text-[#e5a93c] transition-colors"
           >
             Forgot password?
           </Link>

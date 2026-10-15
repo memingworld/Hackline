@@ -168,7 +168,7 @@ export function GoogleSignInButton({
         size="md"
         isLoading={isLoading}
         onClick={handleOAuthFallback}
-        className={className || "w-full bg-zinc-950/40 border-zinc-800 hover:border-zinc-700"}
+        className={className || "w-full bg-[#181410] border-[rgba(229,169,60,0.2)] text-[#fef3c7] hover:border-[rgba(229,169,60,0.4)] hover:bg-[#28231d]"}
       >
         <GoogleIcon className="h-4 w-4" />
         <span className="text-xs font-medium">Google</span>

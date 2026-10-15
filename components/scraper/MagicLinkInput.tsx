@@ -87,15 +87,15 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Paste URL from Devpost, Devfolio, Unstop, Luma..."
             disabled={isLoading}
-            className="w-full h-12 pl-10 pr-32 rounded-xl bg-zinc-900/60 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 border border-zinc-800 shadow-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/30 transition-all font-mono"
+            className="w-full h-12 pl-10 pr-32 rounded-xl bg-[#181410] text-xs sm:text-sm text-[#fef3c7] placeholder:text-[#a89a8c]/50 border border-[rgba(229,169,60,0.20)] shadow-sm focus:outline-none focus:border-[#e5a93c] focus:ring-1 focus:ring-[#e5a93c]/30 transition-all font-mono"
           />
-          <Sparkles className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
+          <Sparkles className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#e5a93c] pointer-events-none" />
 
           {url && !isLoading && (
             <button
               type="button"
               onClick={() => setUrl("")}
-              className="absolute right-28 top-1/2 -translate-y-1/2 p-1 rounded-md text-zinc-500 hover:text-zinc-200 transition-colors"
+              className="absolute right-28 top-1/2 -translate-y-1/2 p-1 rounded-md text-[#a89a8c] hover:text-[#fef3c7] transition-colors"
               title="Clear link"
             >
               <X className="h-3.5 w-3.5" />
@@ -104,7 +104,7 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
 
           <Button
             type="submit"
-            variant={url.trim() ? "primary" : "secondary"}
+            variant="primary"
             size="sm"
             isLoading={isLoading}
             disabled={!url.trim()}
@@ -121,14 +121,14 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
 
       {/* Loading Step Progress Indicator */}
       {isLoading && (
-        <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono animate-fade-in pl-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+        <div className="flex items-center gap-2 text-xs text-[#a89a8c] font-mono animate-fade-in pl-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#e5a93c] animate-ping" />
           <span>{loadingStep}</span>
         </div>
       )}
 
       {/* Supported Platforms Pills */}
-      <div className="flex flex-wrap items-center gap-1.5 pt-0.5 pl-0.5 text-[11px] text-zinc-500 font-mono">
+      <div className="flex flex-wrap items-center gap-1.5 pt-0.5 pl-0.5 text-[11px] text-[#a89a8c] font-mono">
         <span>Supported portals:</span>
         {SUPPORTED_PLATFORMS.map((p) => {
           const isDetected = detectedPlatform?.name === p.name;
@@ -138,11 +138,11 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
               className={cn(
                 "px-2 py-0.5 rounded transition-all flex items-center gap-1",
                 isDetected
-                  ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-bold shadow-sm"
-                  : "bg-zinc-900 border border-zinc-800 text-zinc-400"
+                  ? "bg-[#e5a93c]/15 border border-[#e5a93c]/40 text-[#e5a93c] font-bold shadow-sm"
+                  : "bg-[#181410] border border-[rgba(229,169,60,0.15)] text-[#a89a8c]"
               )}
             >
-              {isDetected && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+              {isDetected && <span className="h-1.5 w-1.5 rounded-full bg-[#e5a93c] animate-pulse" />}
               {p.name}
             </span>
           );

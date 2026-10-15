@@ -54,16 +54,16 @@ export function VaultManager({
       {/* Action bar & Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {/* Track filter pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-xl">
-          <Filter className="h-3.5 w-3.5 text-zinc-500 shrink-0 mr-1" />
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-xl scrollbar-none">
+          <Filter className="h-3.5 w-3.5 text-[#a89a8c] shrink-0 mr-1" />
           {tracks.map((track) => (
             <button
               key={track}
               onClick={() => setSelectedTrack(track)}
               className={`px-3 py-1 rounded-xl text-xs font-mono transition-all shrink-0 ${
                 selectedTrack === track
-                  ? "bg-zinc-800 text-white border border-zinc-700 shadow-sm"
-                  : "bg-zinc-950/60 text-zinc-400 border border-zinc-850 hover:text-zinc-200"
+                  ? "bg-[#e5a93c]/20 text-[#e5a93c] border border-[rgba(229,169,60,0.35)] font-semibold shadow-sm"
+                  : "bg-[#1f1b16] text-[#a89a8c] border border-[rgba(229,169,60,0.18)] hover:text-[#fef3c7] hover:border-[rgba(229,169,60,0.3)]"
               }`}
             >
               {track}
@@ -83,12 +83,12 @@ export function VaultManager({
 
       {/* Grid or Empty State */}
       {filteredStatements.length === 0 ? (
-        <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-8 flex flex-col items-center justify-center text-center min-h-[260px] shadow-sm">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-amber-400 mb-3">
+        <div className="rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.2)] p-8 flex flex-col items-center justify-center text-center min-h-[260px] shadow-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#28231d] border border-[rgba(229,169,60,0.25)] text-[#e5a93c] mb-3">
             <Lightbulb className="h-6 w-6" />
           </div>
-          <h4 className="text-sm font-bold text-white">No Problem Statements Pitched</h4>
-          <p className="mt-1 text-xs text-zinc-400 max-w-sm">
+          <h4 className="text-sm font-bold text-[#fef3c7]">No Problem Statements Pitched</h4>
+          <p className="mt-1 text-xs text-[#a89a8c] max-w-sm">
             Propose your hackathon concept or problem track. The squad can blind-vote to lock in the winning idea.
           </p>
           <Button

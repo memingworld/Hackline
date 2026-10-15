@@ -36,13 +36,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary:
-        "bg-white text-zinc-950 font-semibold hover:bg-zinc-200 border border-white/20 shadow-sm shadow-black/40",
+        "bg-[#e5a93c] text-[#14110e] font-bold hover:bg-[#d99b2e] border border-[#f3c768]/40 shadow-sm shadow-black/40",
       secondary:
-        "bg-zinc-900 text-zinc-200 hover:bg-zinc-800 border border-zinc-800 shadow-sm",
+        "bg-[#1f1b16] text-[#fef3c7] hover:bg-[#28231d] border border-[rgba(229,169,60,0.22)] shadow-sm",
       outline:
-        "bg-transparent text-zinc-300 hover:text-white border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/60",
+        "bg-transparent text-[#fef3c7] hover:text-white border border-[rgba(229,169,60,0.25)] hover:border-[rgba(229,169,60,0.45)] hover:bg-[#1f1b16]/60",
       ghost:
-        "bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900",
+        "bg-transparent text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#1f1b16]",
       destructive:
         "bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20",
     };
@@ -60,14 +60,29 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.3s]" />
-              <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.15s]" />
-              <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce" />
-            </span>
-            {loadingText ? <span>{loadingText}</span> : children}
-          </div>
+          <>
+            <svg
+              className="animate-spin -ml-1 mr-2 h-3.5 w-3.5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            <span>{loadingText || "Processing..."}</span>
+          </>
         ) : (
           children
         )}

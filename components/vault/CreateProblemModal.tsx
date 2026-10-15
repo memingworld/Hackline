@@ -109,17 +109,18 @@ export function CreateProblemModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm animate-fade-in">
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-lg max-h-[86vh] rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl overflow-hidden flex flex-col z-10">
-        <div className="p-5 border-b border-zinc-800 flex items-center justify-between shrink-0 bg-zinc-950">
+      <div className="relative w-full max-w-lg max-h-[92dvh] sm:max-h-[88vh] rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10 text-[#fef3c7]">
+        {/* Pinned Header */}
+        <div className="p-5 border-b border-[rgba(229,169,60,0.2)] flex items-center justify-between shrink-0 bg-[#1f1b16]">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#28231d] border border-[rgba(229,169,60,0.25)] text-[#e5a93c]">
               <Lightbulb className="h-4 w-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white tracking-tight">
+              <h2 className="text-sm font-bold text-[#fef3c7] tracking-tight">
                 {isEditing ? "Edit Problem Statement" : "Pitch New Problem Statement"}
               </h2>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-[#a89a8c]">
                 Propose an idea or hackathon track for team blind voting.
               </p>
             </div>
@@ -127,33 +128,35 @@ export function CreateProblemModal({
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
+            className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#28231d] transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-          <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
+        {/* Scrollable Form Body */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="p-5 overflow-y-auto space-y-4 flex-1">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-300">Problem Title / Hook</label>
+              <label className="text-xs font-mono font-medium text-[#fef3c7]">Problem Title / Hook</label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Autonomous Multimodal Compliance Agent"
                 required
-                className="bg-zinc-900/60 border-zinc-800 text-xs focus:border-amber-500"
+                className="bg-[#181410] border-[rgba(229,169,60,0.2)] text-xs text-[#fef3c7] focus:border-[#e5a93c]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-300">Category / Track</label>
+              <label className="text-xs font-mono font-medium text-[#fef3c7]">Category / Track</label>
               <select
                 value={track}
                 onChange={(e) => setTrack(e.target.value)}
-                className="w-full h-10 rounded-xl border border-zinc-800 bg-zinc-900/80 px-3 text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="w-full h-10 rounded-xl border border-[rgba(229,169,60,0.2)] bg-[#181410] px-3 text-xs text-[#fef3c7] focus:outline-none focus:ring-1 focus:ring-[#e5a93c]"
               >
                 {COMMON_TRACKS.map((t) => (
-                  <option key={t} value={t} className="bg-zinc-900 text-white">
+                  <option key={t} value={t} className="bg-[#1f1b16] text-[#fef3c7]">
                     {t}
                   </option>
                 ))}
@@ -161,18 +164,18 @@ export function CreateProblemModal({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-300">Description / Rationale</label>
+              <label className="text-xs font-mono font-medium text-[#fef3c7]">Description / Rationale</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 placeholder="Why is this a winner? What is the edge or technical novelty?"
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 p-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 resize-none"
+                className="w-full rounded-xl border border-[rgba(229,169,60,0.2)] bg-[#181410] p-3 text-xs text-[#fef3c7] placeholder-[#a89a8c]/50 focus:outline-none focus:border-[#e5a93c] resize-none"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-300">
+              <label className="text-xs font-mono font-medium text-[#fef3c7]">
                 Source Document / Reference URL (Optional)
               </label>
               <Input
@@ -180,45 +183,47 @@ export function CreateProblemModal({
                 onChange={(e) => setSourceUrl(e.target.value)}
                 placeholder="https://devpost.com/software/... or notion doc"
                 type="url"
-                className="bg-zinc-900/60 border-zinc-800 text-xs focus:border-amber-500"
+                className="bg-[#181410] border-[rgba(229,169,60,0.2)] text-xs text-[#fef3c7] focus:border-[#e5a93c]"
               />
             </div>
+          </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-800/80">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={onClose}
-                disabled={isSubmitting}
-                className="text-xs rounded-xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={isSubmitting}
-                className="text-xs rounded-xl px-4 gap-1.5"
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="flex gap-1 items-center">
-                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-bounce" />
-                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-bounce [animation-delay:0.2s]" />
-                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-bounce [animation-delay:0.4s]" />
-                    </span>
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>{isEditing ? "Update Problem" : "Propose Problem"}</span>
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </div>
+          {/* Pinned Footer */}
+          <div className="flex items-center justify-end gap-2.5 p-4 sm:p-5 border-t border-[rgba(229,169,60,0.2)] bg-[#1f1b16] shrink-0">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="text-xs rounded-xl text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#28231d]"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isSubmitting}
+              className="text-xs rounded-xl px-4 gap-1.5"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="flex gap-1 items-center">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#14110e] animate-bounce" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#14110e] animate-bounce [animation-delay:0.2s]" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#14110e] animate-bounce [animation-delay:0.4s]" />
+                  </span>
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>{isEditing ? "Update Problem" : "Propose Problem"}</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
-    );
-  }
+    </div>
+  );
+}

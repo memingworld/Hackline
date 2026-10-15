@@ -33,25 +33,25 @@ export default async function CalendarPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-300 pb-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-900">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[rgba(229,169,60,0.18)]">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-white font-mono">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl font-bold tracking-tight text-[#fef3c7] font-mono">
               Sprint Timeline & Universal Calendar
             </h1>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+            <span className="text-[11px] font-mono font-medium px-2.5 py-0.5 rounded-md border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6]">
               Multi-Hackathon Sync
             </span>
           </div>
-          <p className="mt-1 text-xs text-zinc-400 max-w-xl">
+          <p className="mt-1 text-xs text-[#a89a8c] max-w-xl">
             View all submission gates, registration deadlines, and pitch demos across all your sprints on an interactive calendar. Export everything at once to your preferred calendar app.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <Link href="/dashboard/hackathons?action=scrape">
-            <Button size="sm" variant="outline" className="gap-1.5 rounded-xl text-xs">
-              <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+            <Button size="sm" variant="outline" className="gap-1.5 rounded-xl text-xs border-[rgba(229,169,60,0.3)] text-[#fef3c7]">
+              <Sparkles className="h-3.5 w-3.5 text-[#e5a93c]" />
               <span>Import Sprint</span>
             </Button>
           </Link>
