@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { formatNotificationDeadline } from "@/lib/utils";
 
 export interface TelegramSettingsPayload {
   chatId?: string;
@@ -226,21 +227,10 @@ export async function notifySquadDeployment(params: {
       process.env.NEXT_PUBLIC_SITE_URL ||
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://hackline.dev");
 
-    const endsTime = new Date(params.endsAt).getTime();
-    const diffHours = !isNaN(endsTime)
-      ? Math.round((endsTime - Date.now()) / (1000 * 60 * 60))
-      : 48;
+    const timeInfo = formatNotificationDeadline(params.endsAt, {
+      referenceTimeMs: Date.now(),
+    });
 
-    const formattedDeadline = !isNaN(endsTime)
-      ? new Date(params.endsAt).toLocaleString([], {
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : "In 48 Hours";
-
-    const countdownTag = diffHours > 0 ? `T-${diffHours}h left` : "Sprint Active";
     let notifiedCount = 0;
 
     for (const profile of profiles) {
@@ -256,7 +246,7 @@ export async function notifySquadDeployment(params: {
         `*[Captain ${params.captainName}]* has deployed your squad (*${params.squadName}*) to:\n` +
         `🏆 *${params.hackathonTitle}* (${(params.sourcePlatform || "Sprint").toUpperCase()})\n\n` +
         `🎯 *Your Assigned Role:* \`${memberDuty}\`\n` +
-        `⏳ *Submission Deadline:* ${formattedDeadline} (${countdownTag})\n\n` +
+        `⏳ *Submission Deadline:* ${timeInfo.displayString}\n\n` +
         `Your workspace, deliverables tracker, and pre-flight checklist are live. Tap below to inspect!`;
 
       const inlineKeyboard: any[] = [
@@ -352,21 +342,9 @@ export async function notifyTeammateAssignment(params: {
       process.env.NEXT_PUBLIC_SITE_URL ||
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://hackline.dev");
 
-    const endsTime = new Date(params.deadline).getTime();
-    const diffHours = !isNaN(endsTime)
-      ? Math.round((endsTime - Date.now()) / (1000 * 60 * 60))
-      : null;
-
-    const formattedDeadline = !isNaN(endsTime)
-      ? new Date(params.deadline).toLocaleString([], {
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : params.deadline;
-
-    const countdownText = diffHours !== null && diffHours > 0 ? ` (T-${diffHours}h left)` : "";
+    const timeInfo = formatNotificationDeadline(params.deadline, {
+      referenceTimeMs: Date.now(),
+    });
 
     const message =
       `🎯 *Hackline Milestone Assigned!* 🎯\n\n` +
@@ -374,7 +352,7 @@ export async function notifyTeammateAssignment(params: {
       `*[Captain ${params.captainName}]* assigned you to an upcoming sprint milestone in:\n` +
       `🏆 *${params.hackathonTitle}*\n\n` +
       `📌 *Milestone:* \`${params.taskTitle}\`\n` +
-      `⏳ *Target Deadline:* ${formattedDeadline}${countdownText}\n\n` +
+      `⏳ *Target Deadline:* ${timeInfo.displayString}\n\n` +
       `Tap below to open your sprint workspace and track deliverables:`;
 
     const inlineKeyboard = [

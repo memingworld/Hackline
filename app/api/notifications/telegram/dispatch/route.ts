@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { constantTimeCompare } from "@/lib/security";
+import { formatNotificationDeadline } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
   try {
@@ -143,7 +144,7 @@ export async function POST(req: NextRequest) {
             .select(`
               name,
               members:team_members(
-                user:profiles(id, full_name, telegram_chat_id, notify_t24, notify_t2)
+                user:profiles(id, full_name, telegram_chat_id, phone_number, notify_t24, notify_t2)
               )
             `)
             .eq("id", ev.team_id)
@@ -164,7 +165,7 @@ export async function POST(req: NextRequest) {
             .select(`
               name,
               members:team_members(
-                user:profiles(id, full_name, telegram_chat_id, notify_t24, notify_t2)
+                user:profiles(id, full_name, telegram_chat_id, phone_number, notify_t24, notify_t2)
               )
             `)
             .eq("hackathon_id", ev.hackathon_id);
@@ -178,13 +179,6 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        const formattedDate = new Date(ev.deadline).toLocaleString([], {
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-
         for (const profile of candidateProfiles) {
           if (!profile || !profile.telegram_chat_id) continue;
 
@@ -193,14 +187,19 @@ export async function POST(req: NextRequest) {
           if (triggerWindow === "T-2h" && profile.notify_t2 === false) continue;
 
           const userName = profile.full_name || "Builder";
+          const timeInfo = formatNotificationDeadline(ev.deadline, {
+            phoneNumber: profile.phone_number,
+            referenceTimeMs: nowTime,
+          });
+
           let message = "";
 
           if (triggerWindow === "T-24h") {
-            message = `⚠️ *Hackline Milestone Alert [T-24h]*\n\nHey *${userName}*!\n\n24 hours remaining for milestone *"${cleanTitle}"* on *${hackathonTitle}*!\n\n📅 Target Deadline: *${formattedDate}*\n\n• Finalize core tasks & test deliverables\n• Check off submission gates in your dashboard`;
+            message = `⚠️ *Hackline Milestone Alert [T-24h]*\n\nHey *${userName}*!\n\n24 hours remaining for milestone *"${cleanTitle}"* on *${hackathonTitle}*!\n\n📅 Target Deadline: *${timeInfo.localizedDateTime}*\n⏳ Status: *${timeInfo.countdownText}*\n\n• Finalize core tasks & test deliverables\n• Check off submission gates in your dashboard`;
           } else if (triggerWindow === "T-2h") {
-            message = `🚨 *Hackline Final Sprint Warning [T-2h]*\n\nHey *${userName}*!\n\nFINAL 2 HOURS for milestone *"${cleanTitle}"* on *${hackathonTitle}*!\n\n📅 Target Deadline: *${formattedDate}*\n\n1️⃣ Freeze code and push commits\n2️⃣ Verify video demo and slide deck links\n3️⃣ Complete pre-flight checklist gates`;
+            message = `🚨 *Hackline Final Sprint Warning [T-2h]*\n\nHey *${userName}*!\n\nFINAL 2 HOURS for milestone *"${cleanTitle}"* on *${hackathonTitle}*!\n\n📅 Target Deadline: *${timeInfo.localizedDateTime}*\n⏳ Status: *${timeInfo.countdownText}*\n\n1️⃣ Freeze code and push commits\n2️⃣ Verify video demo and slide deck links\n3️⃣ Complete pre-flight checklist gates`;
           } else if (triggerWindow === "overdue") {
-            message = `⏰ *Hackline Gate Alert [OVERDUE]*\n\nHey *${userName}*!\n\nThe deadline for milestone *"${cleanTitle}"* on *${hackathonTitle}* has passed (${formattedDate}).\n\nVerify your submission portal status and ensure all deliverable links are active in the Asset Hub!`;
+            message = `⏰ *Hackline Gate Alert [OVERDUE]*\n\nHey *${userName}*!\n\nThe deadline for milestone *"${cleanTitle}"* on *${hackathonTitle}* has elapsed!\n\n📅 Target Deadline: *${timeInfo.localizedDateTime}*\n⏳ Status: *${timeInfo.countdownText}*\n\nVerify your submission portal status and ensure all deliverable links are active in the Asset Hub!`;
           }
 
           const sent = await sendNotification(profile, ev.hackathon_id, triggerKey, message);
@@ -244,7 +243,7 @@ export async function POST(req: NextRequest) {
           .select(`
             name,
             members:team_members(
-              user:profiles(id, full_name, telegram_chat_id, notify_t24, notify_t2)
+              user:profiles(id, full_name, telegram_chat_id, phone_number, notify_t24, notify_t2)
             )
           `)
           .eq("hackathon_id", hackathon.id);
@@ -262,14 +261,19 @@ export async function POST(req: NextRequest) {
             if (triggerWindow === "T-2h" && profile.notify_t2 === false) continue;
 
             const userName = profile.full_name || "Builder";
+            const timeInfo = formatNotificationDeadline(hackathon.ends_at, {
+              phoneNumber: profile.phone_number,
+              referenceTimeMs: nowTime,
+            });
+
             let message = "";
 
             if (triggerWindow === "T-24h") {
-              message = `⚠️ *Hackline Urgent Alert [T-24h Remaining]*\n\nHey *${userName}*!\n\n24 hours remain until submission portal closes for *${hackathon.title}* (Squad: *${team.name}*)!\n\n• Finalize core feature branches\n• Prepare demo video link & pitch deck\n• Verify all team members are registered in portal`;
+              message = `⚠️ *Hackline Urgent Alert [T-24h Remaining]*\n\nHey *${userName}*!\n\n24 hours remain until submission portal closes for *${hackathon.title}* (Squad: *${team.name}*)!\n\n📅 Final Deadline: *${timeInfo.localizedDateTime}*\n⏳ Status: *${timeInfo.countdownText}*\n\n• Finalize core feature branches\n• Prepare demo video link & pitch deck\n• Verify all team members are registered in portal`;
             } else if (triggerWindow === "T-2h") {
-              message = `🚨 *Hackline Code Freeze Warning [T-2h Remaining]*\n\nHey *${userName}*!\n\nFINAL 2 HOURS for *${hackathon.title}*!\n\n1️⃣ Push main branch & make GitHub repo public\n2️⃣ Upload Loom/YouTube demo & test permissions\n3️⃣ Complete pre-flight checklist gates & submit before portal closes!`;
+              message = `🚨 *Hackline Code Freeze Warning [T-2h Remaining]*\n\nHey *${userName}*!\n\nFINAL 2 HOURS for *${hackathon.title}* (Squad: *${team.name}*)!\n\n📅 Final Deadline: *${timeInfo.localizedDateTime}*\n⏳ Status: *${timeInfo.countdownText}*\n\n1️⃣ Push main branch & make GitHub repo public\n2️⃣ Upload Loom/YouTube demo & test permissions\n3️⃣ Complete pre-flight checklist gates & submit before portal closes!`;
             } else if (triggerWindow === "overdue") {
-              message = `🏁 *Hackline Sprint Concluded*\n\nHey *${userName}*!\n\nThe submission window for *${hackathon.title}* has concluded!\n\nReview judging criteria, track submissions, and celebrate with your squad!`;
+              message = `🏁 *Hackline Sprint Concluded*\n\nHey *${userName}*!\n\nThe submission window for *${hackathon.title}* has concluded!\n\n📅 Concluded At: *${timeInfo.localizedDateTime}*\n⏳ Status: *${timeInfo.countdownText}*\n\nReview judging criteria, track submissions, and celebrate with your squad!`;
             }
 
             const sent = await sendNotification(profile, hackathon.id, triggerKey, message);
