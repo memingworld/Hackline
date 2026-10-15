@@ -257,12 +257,14 @@ export async function removeAvatar(): Promise<{ success: boolean; error?: string
 }
 
 /**
- * Change account password while logged in, verifying current password first.
+ * Change or set account password while logged in.
+ * Verifies current password first for standard email/password users;
+ * OAuth users (Google/GitHub) without an established password can set their first password directly.
  */
 export async function changeUserPassword(payload: {
-  currentPassword: string;
+  currentPassword?: string;
   newPassword: string;
-}) {
+}): Promise<{ success: boolean; isFirstPasswordSet?: boolean; error?: string }> {
   try {
     const supabase = await createClient();
     const {
@@ -273,21 +275,31 @@ export async function changeUserPassword(payload: {
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
-    if (payload.newPassword.length < 8) {
+    if (!payload.newPassword || payload.newPassword.length < 8) {
       return { success: false, error: "New password must be at least 8 characters long." };
     }
 
-    // 1. Verify current password
-    const { error: verifyError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: payload.currentPassword,
-    });
+    const authProvider = user.app_metadata?.provider || "email";
+    const providers = (user.app_metadata?.providers as string[]) || [authProvider];
+    const hasExistingPassword = providers.includes("email") || authProvider === "email";
 
-    if (verifyError) {
-      return { success: false, error: "Current password is incorrect. Please check your credentials." };
+    // 1. If user already has an established email/password, verify current password
+    if (hasExistingPassword) {
+      if (!payload.currentPassword) {
+        return { success: false, error: "Current password is required." };
+      }
+
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: payload.currentPassword,
+      });
+
+      if (verifyError) {
+        return { success: false, error: "Current password is incorrect. Please check your credentials." };
+      }
     }
 
-    // 2. Update to new password
+    // 2. Set/update new password
     const { error: updateError } = await supabase.auth.updateUser({
       password: payload.newPassword,
     });
@@ -296,8 +308,9 @@ export async function changeUserPassword(payload: {
       return { success: false, error: updateError.message };
     }
 
-    return { success: true };
+    revalidatePath("/dashboard/settings");
+    return { success: true, isFirstPasswordSet: !hasExistingPassword };
   } catch (err: any) {
-    return { success: false, error: err.message || "Failed to change password." };
+    return { success: false, error: err.message || "Failed to update password." };
   }
 }

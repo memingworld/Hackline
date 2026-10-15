@@ -32,6 +32,17 @@ export default async function SettingsPage() {
   const initialAvatarUrl = profile?.avatar_url || oauthAvatar || null;
   const isOauthAvatar = !profile?.avatar_url && !!oauthAvatar;
 
+  const authProvider = user?.app_metadata?.provider || "email";
+  const providers = (user?.app_metadata?.providers as string[]) || [authProvider];
+  const hasExistingPassword = providers.includes("email") || authProvider === "email";
+  const oauthProvider = !hasExistingPassword
+    ? authProvider === "google"
+      ? "Google"
+      : authProvider === "github"
+      ? "GitHub"
+      : authProvider.toUpperCase()
+    : null;
+
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Header */}
@@ -57,6 +68,8 @@ export default async function SettingsPage() {
         userEmail={user.email || ""}
         defaultAvatarUrl={initialAvatarUrl}
         isOauthAvatar={isOauthAvatar}
+        hasExistingPassword={hasExistingPassword}
+        oauthProvider={oauthProvider}
       />
     </div>
   );

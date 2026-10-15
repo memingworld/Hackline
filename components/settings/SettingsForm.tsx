@@ -44,6 +44,8 @@ interface SettingsFormProps {
   userEmail: string;
   defaultAvatarUrl?: string | null;
   isOauthAvatar?: boolean;
+  hasExistingPassword?: boolean;
+  oauthProvider?: string | null;
 }
 
 export function SettingsForm({
@@ -51,8 +53,13 @@ export function SettingsForm({
   userEmail,
   defaultAvatarUrl = null,
   isOauthAvatar = false,
+  hasExistingPassword = true,
+  oauthProvider = null,
 }: SettingsFormProps) {
   const router = useRouter();
+
+  // Password account type state
+  const [hasPassword, setHasPassword] = React.useState(hasExistingPassword);
 
   // Profile state
   const [fullName, setFullName] = React.useState(profile?.full_name || "");
@@ -215,20 +222,29 @@ export function SettingsForm({
 
     setIsChangingPassword(true);
     try {
-      const res = await changeUserPassword({ currentPassword, newPassword });
+      const res = await changeUserPassword({
+        currentPassword: hasPassword ? currentPassword : undefined,
+        newPassword,
+      });
       if (res.success) {
-        toast.success("Password changed successfully!", {
-          description: "Your session credentials have been updated.",
-        });
+        toast.success(
+          res.isFirstPasswordSet || !hasPassword
+            ? "Account password established! You can now sign in using either OAuth or email & password."
+            : "Password changed successfully!",
+          {
+            description: "Your session credentials have been updated.",
+          }
+        );
+        setHasPassword(true);
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
         router.refresh();
       } else {
-        toast.error("Failed to change password", { description: res.error });
+        toast.error("Failed to update password", { description: res.error });
       }
     } catch {
-      toast.error("Error changing password");
+      toast.error("Error updating password");
     } finally {
       setIsChangingPassword(false);
     }
@@ -489,43 +505,56 @@ export function SettingsForm({
             <Lock className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-[#fef3c7] tracking-tight font-mono">
-              Security & Password Management
-            </h2>
-            <p className="text-xs text-[#a89a8c]">
-              Update your login credentials. We verify your current password before committing changes.
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-base font-bold text-[#fef3c7] tracking-tight font-mono">
+                {hasPassword ? "Security & Password Management" : "Set Account Password"}
+              </h2>
+              {!hasPassword && (
+                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md border border-[rgba(229,169,60,0.35)] bg-[#e5a93c]/15 text-[#e5a93c]">
+                  Authenticated via {oauthProvider || "OAuth"}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-[#a89a8c] mt-0.5">
+              {hasPassword
+                ? "Update your login credentials. We verify your current password before committing changes."
+                : `Your account was created via ${oauthProvider || "OAuth"}. Set a secure password below to enable direct email & password sign-in alongside your OAuth login.`}
             </p>
           </div>
         </div>
 
         <form onSubmit={handleChangePassword} className="mt-6 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Current Password */}
-            <div className="space-y-1.5 relative">
-              <label className="text-xs font-medium text-[#a89a8c] font-mono">Current Password</label>
-              <div className="relative">
-                <Input
-                  type={showCurrent ? "text" : "password"}
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  required
-                  className="pr-9"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCurrent(!showCurrent)}
-                  className="absolute right-3 top-2.5 text-[#a89a8c] hover:text-[#fef3c7]"
-                  tabIndex={-1}
-                >
-                  {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+          <div className={`grid grid-cols-1 ${hasPassword ? "sm:grid-cols-3" : "sm:grid-cols-2"} gap-4`}>
+            {/* Current Password - Only shown if user has an existing password */}
+            {hasPassword && (
+              <div className="space-y-1.5 relative">
+                <label className="text-xs font-medium text-[#a89a8c] font-mono">Current Password</label>
+                <div className="relative">
+                  <Input
+                    type={showCurrent ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    required
+                    className="pr-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrent(!showCurrent)}
+                    className="absolute right-3 top-2.5 text-[#a89a8c] hover:text-[#fef3c7]"
+                    tabIndex={-1}
+                  >
+                    {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* New Password */}
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-medium text-[#a89a8c] font-mono">New Password</label>
+              <label className="text-xs font-medium text-[#a89a8c] font-mono">
+                {hasPassword ? "New Password" : "Create Password"}
+              </label>
               <div className="relative">
                 <Input
                   type={showNew ? "text" : "password"}
@@ -548,7 +577,9 @@ export function SettingsForm({
 
             {/* Confirm New Password */}
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-medium text-[#a89a8c] font-mono">Confirm New Password</label>
+              <label className="text-xs font-medium text-[#a89a8c] font-mono">
+                {hasPassword ? "Confirm New Password" : "Confirm Password"}
+              </label>
               <div className="relative">
                 <Input
                   type={showConfirm ? "text" : "password"}
@@ -598,11 +629,19 @@ export function SettingsForm({
             <Button
               type="submit"
               variant="outline"
-              disabled={isChangingPassword || !newPassword || !currentPassword}
+              disabled={isChangingPassword || !newPassword || !confirmPassword || (hasPassword && !currentPassword)}
               className="text-xs rounded-xl px-5 gap-1.5 border-[rgba(229,169,60,0.30)] hover:border-[#e5a93c] text-[#fef3c7]"
             >
               <KeyRound className="h-3.5 w-3.5 text-[#e5a93c]" />
-              <span>{isChangingPassword ? "Updating..." : "Update Password"}</span>
+              <span>
+                {isChangingPassword
+                  ? hasPassword
+                    ? "Updating..."
+                    : "Setting..."
+                  : hasPassword
+                  ? "Update Password"
+                  : "Set Account Password"}
+              </span>
             </Button>
           </div>
         </form>
