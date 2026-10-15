@@ -102,6 +102,7 @@ export function MultiTeamVaultView({
         teamId={selectedTeam.id}
         hackathonId={selectedTeam.hackathon_id}
         isCaptain={isCaptain}
+        currentUserId={currentUserId}
       />
     </div>
   );

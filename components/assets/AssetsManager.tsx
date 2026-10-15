@@ -12,9 +12,17 @@ interface AssetsManagerProps {
   assets: Asset[];
   teamId: string;
   hackathonId: string;
+  isCaptain?: boolean;
+  currentUserId?: string;
 }
 
-export function AssetsManager({ assets, teamId, hackathonId }: AssetsManagerProps) {
+export function AssetsManager({
+  assets,
+  teamId,
+  hackathonId,
+  isCaptain,
+  currentUserId,
+}: AssetsManagerProps) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [assetToEdit, setAssetToEdit] = React.useState<Asset | null>(null);
@@ -101,6 +109,8 @@ export function AssetsManager({ assets, teamId, hackathonId }: AssetsManagerProp
             <AssetCard
               key={asset.id}
               asset={asset}
+              isCaptain={isCaptain}
+              currentUserId={currentUserId}
               onEdit={handleOpenEdit}
               onRefresh={() => router.refresh()}
             />

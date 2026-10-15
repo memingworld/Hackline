@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 
 interface MultiTeamAssetsViewProps {
   teams: (Team & { assets: Asset[] })[];
+  currentUserId?: string;
 }
 
-export function MultiTeamAssetsView({ teams }: MultiTeamAssetsViewProps) {
+export function MultiTeamAssetsView({ teams, currentUserId }: MultiTeamAssetsViewProps) {
   const [selectedTeamId, setSelectedTeamId] = React.useState<string>(
     () => teams[0]?.id || ""
   );
@@ -44,6 +45,7 @@ export function MultiTeamAssetsView({ teams }: MultiTeamAssetsViewProps) {
   }
 
   const selectedTeam = teams.find((t) => t.id === selectedTeamId) || teams[0];
+  const isCaptain = selectedTeam.captain_id === currentUserId;
 
   return (
     <div className="space-y-6">
@@ -96,6 +98,8 @@ export function MultiTeamAssetsView({ teams }: MultiTeamAssetsViewProps) {
         assets={selectedTeam.assets || []}
         teamId={selectedTeam.id}
         hackathonId={selectedTeam.hackathon_id}
+        isCaptain={isCaptain}
+        currentUserId={currentUserId}
       />
     </div>
   );

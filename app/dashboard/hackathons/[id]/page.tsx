@@ -111,6 +111,8 @@ export default async function HackathonWorkspacePage(props: {
             hackathonId={hackathon.id}
             teamId={teamId}
             hackathonTitle={hackathon.title}
+            isCaptain={isCaptain}
+            isCreator={hackathon.created_by === user.id}
           />
         </div>
         <div className="lg:col-span-5 space-y-6 min-w-0">

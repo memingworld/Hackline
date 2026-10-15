@@ -13,6 +13,7 @@ interface VaultManagerProps {
   teamId: string;
   hackathonId: string;
   isCaptain: boolean;
+  currentUserId?: string;
 }
 
 export function VaultManager({
@@ -20,6 +21,7 @@ export function VaultManager({
   teamId,
   hackathonId,
   isCaptain,
+  currentUserId,
 }: VaultManagerProps) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -109,6 +111,7 @@ export function VaultManager({
               statement={statement}
               teamId={teamId}
               isCaptain={isCaptain}
+              currentUserId={currentUserId}
               onEdit={handleOpenEdit}
               onRefresh={() => router.refresh()}
             />

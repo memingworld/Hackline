@@ -248,7 +248,7 @@ export function PreFlightGateManager({
                     <span className="text-[10px] font-mono uppercase text-[#a89a8c] px-2 py-0.5 rounded border border-[rgba(229,169,60,0.15)] bg-[#28231d]">
                       Standard Gate
                     </span>
-                  ) : (
+                  ) : isCaptain ? (
                     <button
                       type="button"
                       onClick={() => handleDeleteGate(item.id, item.title)}
@@ -258,7 +258,7 @@ export function PreFlightGateManager({
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
-                  )}
+                  ) : null}
                 </div>
               </div>
             );

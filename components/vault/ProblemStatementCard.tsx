@@ -23,6 +23,7 @@ interface ProblemStatementCardProps {
   statement: ProblemStatement;
   teamId: string;
   isCaptain: boolean;
+  currentUserId?: string;
   onEdit: (statement: ProblemStatement) => void;
   onRefresh: () => void;
 }
@@ -31,6 +32,7 @@ export function ProblemStatementCard({
   statement,
   teamId,
   isCaptain,
+  currentUserId,
   onEdit,
   onRefresh,
 }: ProblemStatementCardProps) {
@@ -93,6 +95,8 @@ export function ProblemStatementCard({
   };
 
   const isSelected = statement.is_selected;
+  const canManage =
+    isCaptain || (Boolean(statement.created_by) && statement.created_by === currentUserId);
 
   return (
     <div
@@ -118,23 +122,25 @@ export function ProblemStatementCard({
             )}
           </div>
 
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => onEdit(statement)}
-              className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#28231d] transition-colors"
-              title="Edit statement"
-            >
-              <Edit2 className="h-3.5 w-3.5" />
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#e06c75] hover:bg-[#e06c75]/10 transition-colors flex items-center justify-center shrink-0"
-              title="Delete statement"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
+          {canManage && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => onEdit(statement)}
+                className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#28231d] transition-colors"
+                title="Edit statement"
+              >
+                <Edit2 className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#e06c75] hover:bg-[#e06c75]/10 transition-colors flex items-center justify-center shrink-0"
+                title="Delete statement"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Title & Description */}
@@ -186,8 +192,13 @@ export function ProblemStatementCard({
           <span>{statement.vote_count || 0} Votes</span>
         </button>
 
-        {/* Captain / Member Select Action */}
-        {!isSelected ? (
+        {/* Winner Selection Action (Captain Only) */}
+        {isSelected ? (
+          <span className="inline-flex items-center gap-1 text-xs text-[#e5a93c] font-mono font-medium">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            <span>Primary Build Focus</span>
+          </span>
+        ) : isCaptain ? (
           <Button
             size="sm"
             variant="outline"
@@ -198,12 +209,7 @@ export function ProblemStatementCard({
             <Crown className="h-3 w-3 text-[#e5a93c]" />
             <span>Select as Winning Idea</span>
           </Button>
-        ) : (
-          <span className="inline-flex items-center gap-1 text-xs text-[#e5a93c] font-mono font-medium">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            <span>Primary Build Focus</span>
-          </span>
-        )}
+        ) : null}
       </div>
     </div>
   );

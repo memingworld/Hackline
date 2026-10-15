@@ -21,6 +21,8 @@ import { deleteAsset } from "@/lib/actions/assets";
 
 interface AssetCardProps {
   asset: Asset;
+  isCaptain?: boolean;
+  currentUserId?: string;
   onEdit: (asset: Asset) => void;
   onRefresh: () => void;
 }
@@ -80,10 +82,17 @@ const CATEGORY_CONFIG: Record<
   },
 };
 
-export function AssetCard({ asset, onEdit, onRefresh }: AssetCardProps) {
+export function AssetCard({
+  asset,
+  isCaptain = false,
+  currentUserId,
+  onEdit,
+  onRefresh,
+}: AssetCardProps) {
   const [copied, setCopied] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
+  const canManage = isCaptain || (Boolean(asset.created_by) && asset.created_by === currentUserId);
   const config = CATEGORY_CONFIG[asset.category] || CATEGORY_CONFIG.other;
   const Icon = config.icon;
 
@@ -142,23 +151,25 @@ export function AssetCard({ asset, onEdit, onRefresh }: AssetCardProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => onEdit(asset)}
-              className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#28231d] transition-colors"
-              title="Edit asset"
-            >
-              <Edit2 className="h-3.5 w-3.5" />
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#e06c75] hover:bg-[#e06c75]/10 transition-colors flex items-center justify-center shrink-0"
-              title="Delete asset"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
+          {canManage && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => onEdit(asset)}
+                className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#28231d] transition-colors"
+                title="Edit asset"
+              >
+                <Edit2 className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#e06c75] hover:bg-[#e06c75]/10 transition-colors flex items-center justify-center shrink-0"
+                title="Delete asset"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
         </div>
 
         {asset.description && (

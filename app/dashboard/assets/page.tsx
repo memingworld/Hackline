@@ -54,7 +54,7 @@ export default async function AssetsPage() {
       </div>
 
       {/* Main Content */}
-      <MultiTeamAssetsView teams={teamsWithAssets} />
+      <MultiTeamAssetsView teams={teamsWithAssets} currentUserId={user.id} />
     </div>
   );
 }
