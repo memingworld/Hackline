@@ -159,7 +159,7 @@ export function DashboardSidebar({
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: "local" });
       toast.success("Signed out successfully");
       router.push("/login");
       router.refresh();
