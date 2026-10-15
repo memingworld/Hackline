@@ -15,7 +15,7 @@ export async function updateHackathon(
     description?: string;
     starts_at?: string;
     ends_at?: string;
-    banner_url?: string;
+    banner_url?: string | null;
     rounds?: Array<{
       id?: string;
       title: string;

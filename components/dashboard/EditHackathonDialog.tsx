@@ -18,6 +18,7 @@ import {
   Trophy,
   Target,
   Calendar,
+  Image as ImageIcon,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { extractReservedMembers } from "@/lib/data/reserved-members";
@@ -55,6 +56,7 @@ export function EditHackathonDialog({
   const [title, setTitle] = React.useState(hackathon.title);
   const [prizePool, setPrizePool] = React.useState(hackathon.prize_pool || "");
   const [description, setDescription] = React.useState(hackathon.description || "");
+  const [bannerUrl, setBannerUrl] = React.useState(hackathon.banner_url || "");
   const [startsAt, setStartsAt] = React.useState(
     toLocalDatetimeString(hackathon.starts_at) || toLocalDatetimeString(new Date())
   );
@@ -80,6 +82,7 @@ export function EditHackathonDialog({
       setTitle(hackathon.title);
       setPrizePool(hackathon.prize_pool || "");
       setDescription(hackathon.description || "");
+      setBannerUrl(hackathon.banner_url || "");
       if (hackathon.starts_at) {
         setStartsAt(toLocalDatetimeString(hackathon.starts_at));
       }
@@ -231,6 +234,7 @@ export function EditHackathonDialog({
         description,
         starts_at: parsedStarts,
         ends_at: parsedEnds,
+        banner_url: bannerUrl.trim() || null,
         rounds: formattedRounds,
       });
 
@@ -361,6 +365,45 @@ export function EditHackathonDialog({
                 className="w-full rounded-xl bg-[#181410] p-3 text-xs text-[#fef3c7] placeholder:text-[#a89a8c]/50 border border-[rgba(229,169,60,0.20)] outline-none focus:border-[#e5a93c] transition-colors resize-none min-h-[76px]"
                 placeholder="Brief summary of challenge, problem statement, or track rules..."
               />
+            </div>
+
+            {/* Banner Image URL & Live Preview */}
+            <div className="space-y-1.5 font-mono">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-mono font-medium text-[#a89a8c] tracking-wider uppercase flex items-center gap-1.5">
+                  <ImageIcon className="h-3 w-3 text-[#e5a93c]" />
+                  <span>Banner Image URL</span>
+                </label>
+                {bannerUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setBannerUrl("")}
+                    className="text-[10px] text-rose-400 hover:text-rose-300 transition-colors"
+                  >
+                    Clear Image
+                  </button>
+                )}
+              </div>
+              <Input
+                type="url"
+                value={bannerUrl}
+                onChange={(e) => setBannerUrl(e.target.value)}
+                placeholder="https://example.com/cover-banner.jpg"
+              />
+              {bannerUrl && (
+                <div className="relative w-full h-24 sm:h-28 rounded-xl overflow-hidden bg-[#181410] border border-[rgba(229,169,60,0.20)] mt-1.5">
+                  <img
+                    src={bannerUrl}
+                    alt="Banner Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget.parentElement as HTMLElement)?.classList.add("hidden");
+                    }}
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                </div>
+              )}
             </div>
 
             {/* Rounds & Divided Team Work Section */}

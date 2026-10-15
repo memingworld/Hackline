@@ -196,62 +196,80 @@ export default async function DashboardPage() {
               return (
                 <div
                   key={h.id}
-                  className="rounded-2xl border border-[rgba(229,169,60,0.20)] bg-[#1f1b16] p-5 hover:border-[#e5a93c]/50 transition-all flex flex-col justify-between group shadow-lg"
+                  className="rounded-2xl border border-[rgba(229,169,60,0.20)] bg-[#1f1b16] hover:border-[#e5a93c]/50 transition-all flex flex-col justify-between group shadow-lg overflow-hidden"
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6] font-semibold">
-                        {h.source_platform}
-                      </span>
-                      {h.prize_pool && (
-                        <span className="text-[10px] font-mono font-bold text-[#e5a93c] bg-[#e5a93c]/10 border border-[#e5a93c]/25 px-2 py-0.5 rounded">
-                          {h.prize_pool}
+                  {/* Card Cover Banner (Mobile-Friendly) */}
+                  {h.banner_url && (
+                    <div className="relative w-full h-24 sm:h-28 bg-[#100d0a] overflow-hidden border-b border-[rgba(229,169,60,0.15)] shrink-0">
+                      <img
+                        src={h.banner_url}
+                        alt={h.title}
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          (e.currentTarget.parentElement as HTMLElement)?.classList.add("hidden");
+                        }}
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1f1b16] via-transparent to-black/30 pointer-events-none" />
+                    </div>
+                  )}
+
+                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6] font-semibold">
+                          {h.source_platform}
                         </span>
-                      )}
+                        {h.prize_pool && (
+                          <span className="text-[10px] font-mono font-bold text-[#e5a93c] bg-[#e5a93c]/10 border border-[#e5a93c]/25 px-2 py-0.5 rounded">
+                            {h.prize_pool}
+                          </span>
+                        )}
+                      </div>
+
+                      <div>
+                        <h3 className="text-sm font-bold text-[#fef3c7] group-hover:text-[#e5a93c] transition-colors line-clamp-1 font-mono">
+                          {h.title}
+                        </h3>
+                        {h.description && (
+                          <p className="mt-1 text-xs text-[#a89a8c] line-clamp-2 leading-relaxed">
+                            {h.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Assigned Squad Info */}
+                      <div className="pt-2 border-t border-[rgba(229,169,60,0.12)] flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1.5 text-[#fef3c7] truncate">
+                          <Users className="h-3.5 w-3.5 text-[#e5a93c] shrink-0" />
+                          <span className="font-medium truncate">
+                            {team ? team.name : "Solo Hacker"}
+                          </span>
+                        </div>
+                        {team && (
+                          <span className="text-[10px] font-mono text-[#a89a8c] bg-[#181410] px-2 py-0.5 rounded border border-[rgba(229,169,60,0.15)]">
+                            {team.members?.length || 1} {team.members?.length === 1 ? "member" : "members"}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    <div>
-                      <h3 className="text-sm font-bold text-[#fef3c7] group-hover:text-[#e5a93c] transition-colors line-clamp-1 font-mono">
-                        {h.title}
-                      </h3>
-                      {h.description && (
-                        <p className="mt-1 text-xs text-[#a89a8c] line-clamp-2 leading-relaxed">
-                          {h.description}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Assigned Squad Info */}
-                    <div className="pt-2 border-t border-[rgba(229,169,60,0.12)] flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1.5 text-[#fef3c7] truncate">
-                        <Users className="h-3.5 w-3.5 text-[#e5a93c] shrink-0" />
-                        <span className="font-medium truncate">
-                          {team ? team.name : "Solo Hacker"}
+                    {/* Footer Action */}
+                    <div className="mt-5 pt-3.5 border-t border-[rgba(229,169,60,0.12)] flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 font-mono text-[11px]">
+                        <Clock className="h-3 w-3 text-[#e5a93c]" />
+                        <span className={isUrgent ? "text-[#e5a93c] font-bold" : "text-[#a89a8c]"}>
+                          {remainingLabel}
                         </span>
                       </div>
-                      {team && (
-                        <span className="text-[10px] font-mono text-[#a89a8c] bg-[#181410] px-2 py-0.5 rounded border border-[rgba(229,169,60,0.15)]">
-                          {team.members?.length || 1} {team.members?.length === 1 ? "member" : "members"}
-                        </span>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Footer Action */}
-                  <div className="mt-5 pt-3.5 border-t border-[rgba(229,169,60,0.12)] flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5 font-mono text-[11px]">
-                      <Clock className="h-3 w-3 text-[#e5a93c]" />
-                      <span className={isUrgent ? "text-[#e5a93c] font-bold" : "text-[#a89a8c]"}>
-                        {remainingLabel}
-                      </span>
+                      <Link href={`/dashboard/hackathons/${h.id}`}>
+                        <button className="px-3 py-1.5 rounded-xl border border-[rgba(229,169,60,0.30)] bg-[#e5a93c]/15 text-[#fef3c7] hover:bg-[#e5a93c]/25 text-xs font-medium flex items-center gap-1.5 transition-colors active:scale-95">
+                          <span>Workspace</span>
+                          <ArrowRight className="h-3 w-3 text-[#e5a93c]" />
+                        </button>
+                      </Link>
                     </div>
-
-                    <Link href={`/dashboard/hackathons/${h.id}`}>
-                      <button className="px-3 py-1.5 rounded-xl border border-[rgba(229,169,60,0.30)] bg-[#e5a93c]/15 text-[#fef3c7] hover:bg-[#e5a93c]/25 text-xs font-medium flex items-center gap-1.5 transition-colors active:scale-95">
-                        <span>Workspace</span>
-                        <ArrowRight className="h-3 w-3 text-[#e5a93c]" />
-                      </button>
-                    </Link>
                   </div>
                 </div>
               );

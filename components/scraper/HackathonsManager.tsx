@@ -198,63 +198,80 @@ export function HackathonsManager({
                 <div
                   key={h.id}
                   onClick={() => handleOpenWorkspace(h.id)}
-                  className="rounded-2xl border border-[rgba(229,169,60,0.20)] bg-[#1f1b16] hover:border-[#e5a93c]/50 hover:bg-[#231e18] p-5 transition-all flex flex-col justify-between group shadow-lg cursor-pointer relative"
+                  className="rounded-2xl border border-[rgba(229,169,60,0.20)] bg-[#1f1b16] hover:border-[#e5a93c]/50 hover:bg-[#231e18] transition-all flex flex-col justify-between group shadow-lg cursor-pointer relative overflow-hidden"
                 >
-                  <div>
-                    {/* Top Row Badges */}
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6] font-semibold">
-                          {h.source_platform}
-                        </span>
+                  {/* Card Cover Banner (Mobile-Friendly) */}
+                  {h.banner_url && (
+                    <div className="relative w-full h-28 sm:h-32 bg-[#100d0a] overflow-hidden border-b border-[rgba(229,169,60,0.15)] shrink-0">
+                      <img
+                        src={h.banner_url}
+                        alt={h.title}
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          (e.currentTarget.parentElement as HTMLElement)?.classList.add("hidden");
+                        }}
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1f1b16] via-transparent to-black/30 pointer-events-none" />
+                    </div>
+                  )}
 
-                        {(() => {
-                          const now = Date.now();
-                          const starts = new Date(h.starts_at).getTime();
-                          const ends = new Date(h.ends_at).getTime();
-                          if (!isNaN(starts) && !isNaN(ends) && starts <= now && now <= ends) {
+                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      {/* Top Row Badges */}
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6] font-semibold">
+                            {h.source_platform}
+                          </span>
+
+                          {(() => {
+                            const now = Date.now();
+                            const starts = new Date(h.starts_at).getTime();
+                            const ends = new Date(h.ends_at).getTime();
+                            if (!isNaN(starts) && !isNaN(ends) && starts <= now && now <= ends) {
+                              return (
+                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-[#e5a93c]/40 bg-[#e5a93c]/15 text-[#e5a93c] flex items-center gap-1">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-[#e5a93c] animate-pulse" />
+                                  Live Sprint
+                                </span>
+                              );
+                            }
+                            if (!isNaN(starts) && starts > now) {
+                              return (
+                                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6]">
+                                  Upcoming
+                                </span>
+                              );
+                            }
                             return (
-                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-[#e5a93c]/40 bg-[#e5a93c]/15 text-[#e5a93c] flex items-center gap-1">
-                                <span className="h-1.5 w-1.5 rounded-full bg-[#e5a93c] animate-pulse" />
-                                Live Sprint
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-[rgba(229,169,60,0.15)] bg-[#181410] text-[#a89a8c]">
+                                Concluded
                               </span>
                             );
-                          }
-                          if (!isNaN(starts) && starts > now) {
-                            return (
-                              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6]">
-                                Upcoming
-                              </span>
-                            );
-                          }
-                          return (
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-[rgba(229,169,60,0.15)] bg-[#181410] text-[#a89a8c]">
-                              Concluded
-                            </span>
-                          );
-                        })()}
+                          })()}
+                        </div>
+
+                        {h.prize_pool && (
+                          <span className="text-[10px] font-mono font-bold text-[#e5a93c] bg-[#e5a93c]/10 border border-[#e5a93c]/25 px-2 py-0.5 rounded shrink-0">
+                            {h.prize_pool}
+                          </span>
+                        )}
                       </div>
 
-                      {h.prize_pool && (
-                        <span className="text-[10px] font-mono font-bold text-[#e5a93c] bg-[#e5a93c]/10 border border-[#e5a93c]/25 px-2 py-0.5 rounded shrink-0">
-                          {h.prize_pool}
-                        </span>
+                      <h4 className="text-sm font-bold text-[#fef3c7] group-hover:text-[#e5a93c] transition-colors line-clamp-1 font-mono">
+                        {h.title}
+                      </h4>
+
+                      {h.description && (
+                        <p className="mt-1.5 text-xs text-[#a89a8c] line-clamp-2 leading-relaxed">
+                          {h.description}
+                        </p>
                       )}
                     </div>
 
-                    <h4 className="text-sm font-bold text-[#fef3c7] group-hover:text-[#e5a93c] transition-colors line-clamp-1 font-mono">
-                      {h.title}
-                    </h4>
-
-                    {h.description && (
-                      <p className="mt-1.5 text-xs text-[#a89a8c] line-clamp-2 leading-relaxed">
-                        {h.description}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Bottom Footer Actions */}
-                  <div className="mt-5 pt-3.5 border-t border-[rgba(229,169,60,0.12)] flex items-center justify-between text-xs flex-wrap gap-2">
+                    {/* Bottom Footer Actions */}
+                    <div className="mt-5 pt-3.5 border-t border-[rgba(229,169,60,0.12)] flex items-center justify-between text-xs flex-wrap gap-2">
                     <div className="flex items-center gap-1.5 font-mono text-[11px]">
                       <Clock className="h-3 w-3 text-[#e5a93c]" />
                       <span className={remaining.urgent ? "text-[#e5a93c] font-bold" : "text-[#a89a8c]"}>
@@ -337,8 +354,9 @@ export function HackathonsManager({
                     </div>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-[rgba(229,169,60,0.22)] bg-[#181410] p-12 text-center text-[#a89a8c] space-y-3">
@@ -384,6 +402,22 @@ export function HackathonsManager({
 
             {/* Modal Body */}
             <div className="p-5 overflow-y-auto space-y-4 flex-1 min-h-0 custom-scrollbar">
+              {/* Event Cover Banner if available */}
+              {inspectingHackathon.banner_url && (
+                <div className="relative w-full h-32 sm:h-44 rounded-xl overflow-hidden bg-[#181410] border border-[rgba(229,169,60,0.20)] shrink-0">
+                  <img
+                    src={inspectingHackathon.banner_url}
+                    alt={inspectingHackathon.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget.parentElement as HTMLElement)?.classList.add("hidden");
+                    }}
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                </div>
+              )}
+
               {/* Top Banner or Badges */}
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6] font-semibold">

@@ -21,6 +21,7 @@ interface CountdownProps {
 
 export function HackathonCountdownBanner({ hackathon, timelineEvents = [] }: CountdownProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [imageError, setImageError] = React.useState(false);
 
   // Find next uncompleted impending milestone gate across the sprint timeline
   const nextMilestone = React.useMemo(() => {
@@ -103,6 +104,30 @@ export function HackathonCountdownBanner({ hackathon, timelineEvents = [] }: Cou
 
   return (
     <div className="rounded-2xl border border-[rgba(229,169,60,0.22)] bg-[#1f1b16] shadow-xl overflow-hidden transition-all">
+      {/* Cinematic Cover Banner Header (Responsive & Mobile-Friendly) */}
+      {hackathon.banner_url && !imageError && (
+        <div className="relative w-full h-32 sm:h-44 md:h-56 bg-[#100d0a] overflow-hidden border-b border-[rgba(229,169,60,0.20)]">
+          <img
+            src={hackathon.banner_url}
+            alt={hackathon.title}
+            className="w-full h-full object-cover object-center"
+            onError={() => setImageError(true)}
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1f1b16] via-black/20 to-black/40 pointer-events-none" />
+          <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex items-center gap-2 flex-wrap z-10">
+            <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full border border-[rgba(229,169,60,0.4)] bg-black/70 backdrop-blur-md text-[#fef3c7] font-semibold shadow-md">
+              {hackathon.source_platform}
+            </span>
+            {hackathon.prize_pool && (
+              <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border border-[#e5a93c]/50 bg-black/70 backdrop-blur-md text-[#e5a93c] shadow-md">
+                {hackathon.prize_pool}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Bauhaus Mustard Yellow Hero Countdown HUD Bar (Signature Palette C) */}
       <div className="bg-[#e5a93c] px-5 py-4 sm:px-6 sm:py-5 text-[#14110e] flex flex-col md:flex-row md:items-center justify-between gap-4 select-none">
         <div className="min-w-0">
