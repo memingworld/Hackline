@@ -57,8 +57,12 @@ export default async function HackathonWorkspacePage(props: {
 
   let checklistItems = teamId ? await getSubmissionChecklist(teamId) : [];
   if (teamId && checklistItems.length === 0) {
-    await ensureDefaultChecklistItems(teamId);
-    checklistItems = await getSubmissionChecklist(teamId);
+    const seedRes = await ensureDefaultChecklistItems(teamId);
+    if (seedRes.success && seedRes.items && seedRes.items.length > 0) {
+      checklistItems = seedRes.items;
+    } else {
+      checklistItems = await getSubmissionChecklist(teamId);
+    }
   }
 
   const timelineEvents = await getTeamTimelineEvents(teamId, hackathon.id);

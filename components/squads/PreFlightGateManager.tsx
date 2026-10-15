@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Team, SubmissionChecklistItem } from "@/types/database";
-import { ShieldCheck, Plus, Trash2, CheckCircle2, Lock, Sparkles, RefreshCw } from "lucide-react";
+import { ShieldCheck, Plus, Trash2, CheckCircle2, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -26,11 +26,17 @@ export function PreFlightGateManager({
   isCaptain = false,
 }: PreFlightGateManagerProps) {
   const router = useRouter();
+  const [items, setItems] = React.useState<SubmissionChecklistItem[]>(checklistItems || []);
   const [newGateTitle, setNewGateTitle] = React.useState("");
   const [isAddingGate, setIsAddingGate] = React.useState(false);
   const [isInitializing, setIsInitializing] = React.useState(false);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [togglingId, setTogglingId] = React.useState<string | null>(null);
+
+  // Sync state when props change from server
+  React.useEffect(() => {
+    setItems(checklistItems || []);
+  }, [checklistItems]);
 
   const handleAddGate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +51,9 @@ export function PreFlightGateManager({
     try {
       const res = await createChecklistItem(activeTeam.id, newGateTitle.trim());
       if (res.success) {
+        if (res.item) {
+          setItems((prev) => [...prev, res.item]);
+        }
         toast.success("Checkpoint added", {
           description: `Added "${newGateTitle.trim()}" to pre-flight checklist.`,
         });
@@ -66,6 +75,9 @@ export function PreFlightGateManager({
     try {
       const res = await ensureDefaultChecklistItems(activeTeam.id);
       if (res.success) {
+        if (res.items && res.items.length > 0) {
+          setItems(res.items);
+        }
         toast.success("Default submission gates initialized!", {
           description: "Standard hackathon checkpoints (repo, demo, slides, team) have been deployed.",
         });
@@ -82,17 +94,31 @@ export function PreFlightGateManager({
 
   const handleToggle = async (item: SubmissionChecklistItem) => {
     setTogglingId(item.id);
+    const targetStatus = !item.is_completed;
+
+    // Optimistic toggle
+    setItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, is_completed: targetStatus } : i))
+    );
+
     try {
-      const res = await toggleChecklistItem(item.id, !item.is_completed);
+      const res = await toggleChecklistItem(item.id, targetStatus);
       if (res.success) {
         toast.success(
-          item.is_completed ? "Gate marked pending" : "Gate verified & cleared!"
+          targetStatus ? "Gate verified & cleared!" : "Gate marked pending"
         );
         router.refresh();
       } else {
+        // Rollback on error
+        setItems((prev) =>
+          prev.map((i) => (i.id === item.id ? { ...i, is_completed: item.is_completed } : i))
+        );
         toast.error("Failed to update gate", { description: res.error });
       }
     } catch {
+      setItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, is_completed: item.is_completed } : i))
+      );
       toast.error("Error toggling gate status");
     } finally {
       setTogglingId(null);
@@ -101,6 +127,11 @@ export function PreFlightGateManager({
 
   const handleDeleteGate = async (itemId: string, title: string) => {
     setDeletingId(itemId);
+    const prevItems = [...items];
+
+    // Optimistic delete
+    setItems((prev) => prev.filter((i) => i.id !== itemId));
+
     try {
       const res = await deleteChecklistItem(itemId);
       if (res.success) {
@@ -109,9 +140,12 @@ export function PreFlightGateManager({
         });
         router.refresh();
       } else {
+        // Rollback
+        setItems(prevItems);
         toast.error("Failed to delete checkpoint", { description: res.error });
       }
     } catch {
+      setItems(prevItems);
       toast.error("An error occurred while deleting checkpoint");
     } finally {
       setDeletingId(null);
@@ -132,10 +166,10 @@ export function PreFlightGateManager({
     );
   }
 
-  const hasGates = checklistItems.length > 0;
-  const completedCount = checklistItems.filter((i) => i.is_completed).length;
+  const hasGates = items.length > 0;
+  const completedCount = items.filter((i) => i.is_completed).length;
   const progressPercent = hasGates
-    ? Math.round((completedCount / checklistItems.length) * 100)
+    ? Math.round((completedCount / items.length) * 100)
     : 0;
 
   return (
@@ -166,7 +200,7 @@ export function PreFlightGateManager({
           <div className="flex items-center gap-2 self-start sm:self-auto bg-[#181410] border border-[rgba(229,169,60,0.25)] px-3 py-1.5 rounded-xl font-mono text-xs">
             <span className="text-[#a89a8c]">Readiness:</span>
             <span className="text-[#e5a93c] font-bold">
-              {completedCount}/{checklistItems.length} ({progressPercent}%)
+              {completedCount}/{items.length} ({progressPercent}%)
             </span>
           </div>
         ) : (
@@ -210,7 +244,7 @@ export function PreFlightGateManager({
         </div>
       ) : (
         <div className="space-y-2">
-          {checklistItems.map((item) => {
+          {items.map((item) => {
             const isCustom = item.item_key.startsWith("custom_");
             const isPending = togglingId === item.id;
 

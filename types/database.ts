@@ -117,6 +117,7 @@ export interface SubmissionChecklistItem {
   is_completed: boolean;
   completed_by: string | null;
   completed_at: string | null;
+  created_at?: string;
 }
 
 export interface ProblemStatement {

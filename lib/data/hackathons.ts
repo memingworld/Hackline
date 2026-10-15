@@ -198,15 +198,25 @@ export async function getTeamTimeline(teamId?: string, hackathonId?: string): Pr
  */
 export async function getSubmissionChecklist(teamId: string): Promise<SubmissionChecklistItem[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("submission_checklists")
     .select("*")
     .eq("team_id", teamId)
     .order("created_at", { ascending: true });
 
   if (error) {
-    console.error("Error fetching submission checklist from Supabase:", error.message);
-    return [];
+    // Graceful fallback if created_at column has not yet been migrated in remote DB
+    const fallback = await supabase
+      .from("submission_checklists")
+      .select("*")
+      .eq("team_id", teamId);
+
+    if (!fallback.error && fallback.data) {
+      data = fallback.data;
+    } else {
+      console.error("Error fetching submission checklist from Supabase:", error.message);
+      return [];
+    }
   }
 
   return (data as SubmissionChecklistItem[]) || [];
