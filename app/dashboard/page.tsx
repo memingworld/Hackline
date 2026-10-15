@@ -277,21 +277,21 @@ export default async function DashboardPage() {
 
       {/* Aggregated Milestone Feed Across All Sprints */}
       <div className="space-y-4 pt-4 border-t border-[rgba(229,169,60,0.15)]">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-bold text-[#fef3c7] tracking-tight flex items-center gap-2 font-mono">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <h2 className="text-base font-bold text-[#fef3c7] tracking-tight flex items-center flex-wrap gap-2 font-mono">
               <span>Upcoming Milestones & Deadlines (All Sprints)</span>
-              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-[#181410] text-[#e5a93c] border border-[rgba(229,169,60,0.25)]">
+              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-[#181410] text-[#e5a93c] border border-[rgba(229,169,60,0.25)] shrink-0">
                 {upcomingEvents.length} Pending
               </span>
             </h2>
-            <p className="text-xs text-[#a89a8c] font-mono">
+            <p className="text-xs text-[#a89a8c] font-mono leading-relaxed">
               Consolidated chronological deadline feed from all your active hackathons.
             </p>
           </div>
           <Link
             href="/dashboard/calendar"
-            className="text-xs font-mono text-[#e5a93c] hover:underline flex items-center gap-1"
+            className="text-xs font-mono text-[#e5a93c] hover:underline inline-flex items-center gap-1.5 self-start sm:self-auto shrink-0"
           >
             <span>Open Interactive Calendar</span>
             <ArrowRight className="h-3 w-3" />
