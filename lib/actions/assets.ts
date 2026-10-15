@@ -35,6 +35,18 @@ export async function createAsset(payload: CreateAssetPayload) {
       return { success: false, error: "Valid Title and HTTP/HTTPS URL are required." };
     }
 
+    // Verify user is a member of this team
+    const { data: membership } = await supabase
+      .from("team_members")
+      .select("id")
+      .eq("team_id", payload.teamId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!membership) {
+      return { success: false, error: "Forbidden: You must be a squad member to add deliverables." };
+    }
+
     const { data, error } = await supabase
       .from("assets")
       .insert({
@@ -62,6 +74,7 @@ export async function createAsset(payload: CreateAssetPayload) {
 
 /**
  * Update an existing asset.
+ * Enforces: Only the asset creator or the squad captain can edit deliverables.
  */
 export async function updateAsset(
   id: string,
@@ -89,6 +102,28 @@ export async function updateAsset(
       return { success: false, error: "Valid Title and HTTP/HTTPS URL are required." };
     }
 
+    // Verify ownership: author or squad captain
+    const { data: asset, error: fetchErr } = await supabase
+      .from("assets")
+      .select("created_by, team_id, team:teams(captain_id)")
+      .eq("id", id)
+      .single();
+
+    if (fetchErr || !asset) {
+      return { success: false, error: "Asset deliverable not found." };
+    }
+
+    const teamCaptainId = (asset.team as any)?.captain_id;
+    const isAuthor = asset.created_by === user.id;
+    const isCaptain = teamCaptainId === user.id;
+
+    if (!isAuthor && !isCaptain) {
+      return {
+        success: false,
+        error: "Forbidden: Only the asset author or squad captain can edit this deliverable.",
+      };
+    }
+
     const { error } = await supabase
       .from("assets")
       .update({
@@ -113,6 +148,7 @@ export async function updateAsset(
 
 /**
  * Delete an asset.
+ * Enforces: Only the asset creator or the squad captain can delete deliverables.
  */
 export async function deleteAsset(id: string) {
   try {
@@ -123,6 +159,28 @@ export async function deleteAsset(id: string) {
 
     if (!user) {
       return { success: false, error: "Unauthorized: Please sign in." };
+    }
+
+    // Verify ownership: author or squad captain
+    const { data: asset, error: fetchErr } = await supabase
+      .from("assets")
+      .select("created_by, team_id, team:teams(captain_id)")
+      .eq("id", id)
+      .single();
+
+    if (fetchErr || !asset) {
+      return { success: false, error: "Asset deliverable not found." };
+    }
+
+    const teamCaptainId = (asset.team as any)?.captain_id;
+    const isAuthor = asset.created_by === user.id;
+    const isCaptain = teamCaptainId === user.id;
+
+    if (!isAuthor && !isCaptain) {
+      return {
+        success: false,
+        error: "Forbidden: Only the asset author or squad captain can delete this deliverable.",
+      };
     }
 
     const { error } = await supabase

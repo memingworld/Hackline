@@ -249,6 +249,28 @@ export async function updateMemberDuty(memberId: string, duty: string, teamId?: 
       }
     }
 
+    // Verify permission: caller must be the member themselves or the team captain
+    const { data: memberRecord, error: memErr } = await supabase
+      .from("team_members")
+      .select("user_id, team_id, team:teams(captain_id)")
+      .eq("id", memberId)
+      .single();
+
+    if (memErr || !memberRecord) {
+      return { success: false, error: "Squad member not found." };
+    }
+
+    const captainId = (memberRecord.team as any)?.captain_id;
+    const isSelf = memberRecord.user_id === user.id;
+    const isCaptain = captainId === user.id;
+
+    if (!isSelf && !isCaptain) {
+      return {
+        success: false,
+        error: "Forbidden: Only the squad captain or the teammate themselves can update this duty assignment.",
+      };
+    }
+
     const { error } = await supabase
       .from("team_members")
       .update({ duty: cleanDuty })
@@ -310,6 +332,33 @@ export async function removeMemberFromTeam(memberId: string, teamId?: string) {
         revalidatePath("/dashboard/squad");
         return { success: true };
       }
+    }
+
+    // Verify permission: caller must be the member themselves (leaving) or the team captain (kicking)
+    const { data: memberRecord, error: memErr } = await supabase
+      .from("team_members")
+      .select("user_id, team_id, is_captain, team:teams(captain_id)")
+      .eq("id", memberId)
+      .single();
+
+    if (memErr || !memberRecord) {
+      return { success: false, error: "Squad member not found." };
+    }
+
+    const captainId = (memberRecord.team as any)?.captain_id;
+    const isSelf = memberRecord.user_id === user.id;
+    const isCaptain = captainId === user.id;
+
+    if (!isSelf && !isCaptain) {
+      return {
+        success: false,
+        error: "Forbidden: Only the squad captain can remove teammates, or members can leave themselves.",
+      };
+    }
+
+    // Captain cannot be removed unless team is deleted or ownership transferred
+    if (memberRecord.is_captain && !isSelf) {
+      return { success: false, error: "Cannot remove the squad captain." };
     }
 
     const { error } = await supabase

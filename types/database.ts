@@ -128,6 +128,7 @@ export interface ProblemStatement {
   track: string | null;
   source_url: string | null;
   is_selected: boolean;
+  created_by?: string | null;
   vote_count?: number;
   has_voted?: boolean;
 }

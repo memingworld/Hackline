@@ -33,6 +33,36 @@ export async function createTimelineEvent(payload: CreateTimelineEventPayload) {
       return { success: false, error: "Title and deadline are required." };
     }
 
+    // Verify authorization: team captain / member, or hackathon creator
+    if (payload.teamId) {
+      const { data: team } = await supabase
+        .from("teams")
+        .select("captain_id")
+        .eq("id", payload.teamId)
+        .maybeSingle();
+
+      const { data: membership } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("team_id", payload.teamId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!membership && team?.captain_id !== user.id) {
+        return { success: false, error: "Forbidden: You are not a member of this squad." };
+      }
+    } else {
+      const { data: hackathon } = await supabase
+        .from("hackathons")
+        .select("created_by")
+        .eq("id", payload.hackathonId)
+        .maybeSingle();
+
+      if (!hackathon || (hackathon.created_by && hackathon.created_by !== user.id)) {
+        return { success: false, error: "Forbidden: Only the hackathon creator can add global milestones." };
+      }
+    }
+
     const { data, error } = await supabase
       .from("timeline_events")
       .insert({
@@ -113,11 +143,25 @@ export async function deleteTimelineEvent(eventId: string) {
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
-    const { data: deletedEvent } = await supabase
+    const { data: event, error: fetchErr } = await supabase
       .from("timeline_events")
-      .select("hackathon_id")
+      .select("hackathon_id, team_id, team:teams(captain_id), hackathon:hackathons(created_by)")
       .eq("id", eventId)
-      .maybeSingle();
+      .single();
+
+    if (fetchErr || !event) {
+      return { success: false, error: "Milestone not found." };
+    }
+
+    const isTeamCaptain = (event.team as any)?.captain_id === user.id;
+    const isHackathonCreator = (event.hackathon as any)?.created_by === user.id;
+
+    if (!isTeamCaptain && !isHackathonCreator) {
+      return {
+        success: false,
+        error: "Forbidden: Only the squad captain or hackathon creator can delete this milestone.",
+      };
+    }
 
     const { error } = await supabase
       .from("timeline_events")
@@ -131,8 +175,8 @@ export async function deleteTimelineEvent(eventId: string) {
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/calendar");
     revalidatePath("/dashboard/hackathons");
-    if (deletedEvent?.hackathon_id) {
-      revalidatePath(`/dashboard/hackathons/${deletedEvent.hackathon_id}`);
+    if (event?.hackathon_id) {
+      revalidatePath(`/dashboard/hackathons/${event.hackathon_id}`);
     }
     return { success: true };
   } catch (err: any) {

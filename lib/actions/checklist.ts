@@ -156,6 +156,30 @@ export async function deleteChecklistItem(itemId: string) {
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
+    // Verify membership: user must be a member or captain of the team
+    const { data: item, error: fetchErr } = await supabase
+      .from("submission_checklists")
+      .select("team_id, team:teams(captain_id)")
+      .eq("id", itemId)
+      .single();
+
+    if (fetchErr || !item) {
+      return { success: false, error: "Checklist item not found." };
+    }
+
+    const { data: membership } = await supabase
+      .from("team_members")
+      .select("id")
+      .eq("team_id", item.team_id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const isCaptain = (item.team as any)?.captain_id === user.id;
+
+    if (!membership && !isCaptain) {
+      return { success: false, error: "Forbidden: You are not a member of this squad." };
+    }
+
     const { error } = await supabase
       .from("submission_checklists")
       .delete()
