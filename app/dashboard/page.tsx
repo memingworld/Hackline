@@ -18,6 +18,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HackathonCardBanner } from "@/components/dashboard/HackathonCardBanner";
 
 export const metadata: Metadata = {
   title: "Mission Control — Hackline",
@@ -198,20 +199,9 @@ export default async function DashboardPage() {
                   key={h.id}
                   className="rounded-2xl border border-[rgba(229,169,60,0.20)] bg-[#1f1b16] hover:border-[#e5a93c]/50 transition-all flex flex-col justify-between group shadow-lg overflow-hidden"
                 >
-                  {/* Card Cover Banner (Mobile-Friendly) */}
+                  {/* Card Cover Banner (Mobile-Friendly Client Component) */}
                   {h.banner_url && (
-                    <div className="relative w-full h-24 sm:h-28 bg-[#100d0a] overflow-hidden border-b border-[rgba(229,169,60,0.15)] shrink-0">
-                      <img
-                        src={h.banner_url}
-                        alt={h.title}
-                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => {
-                          (e.currentTarget.parentElement as HTMLElement)?.classList.add("hidden");
-                        }}
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#1f1b16] via-transparent to-black/30 pointer-events-none" />
-                    </div>
+                    <HackathonCardBanner bannerUrl={h.banner_url} title={h.title} />
                   )}
 
                   <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
