@@ -153,7 +153,7 @@ export function AssetCard({ asset, onEdit, onRefresh }: AssetCardProps) {
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#e06c75] hover:bg-[#e06c75]/10 transition-colors"
+              className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#e06c75] hover:bg-[#e06c75]/10 transition-colors flex items-center justify-center shrink-0"
               title="Delete asset"
             >
               <Trash2 className="h-3.5 w-3.5" />

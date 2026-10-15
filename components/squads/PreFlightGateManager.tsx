@@ -253,7 +253,7 @@ export function PreFlightGateManager({
                       type="button"
                       onClick={() => handleDeleteGate(item.id, item.title)}
                       disabled={deletingId === item.id}
-                      className="p-1.5 rounded-lg text-[#a89a8c] hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
+                      className="p-1.5 rounded-lg text-[#a89a8c] hover:text-rose-400 hover:bg-rose-950/30 transition-colors flex items-center justify-center shrink-0"
                       title="Delete custom gate"
                     >
                       <Trash2 className="h-3.5 w-3.5" />

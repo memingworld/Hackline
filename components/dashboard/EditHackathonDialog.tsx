@@ -358,7 +358,7 @@ export function EditHackathonDialog({
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-xl bg-[#181410] p-3 text-xs text-[#fef3c7] placeholder:text-[#a89a8c]/50 border border-[rgba(229,169,60,0.20)] outline-none focus:border-[#e5a93c] transition-colors"
+                className="w-full rounded-xl bg-[#181410] p-3 text-xs text-[#fef3c7] placeholder:text-[#a89a8c]/50 border border-[rgba(229,169,60,0.20)] outline-none focus:border-[#e5a93c] transition-colors resize-none min-h-[76px]"
                 placeholder="Brief summary of challenge, problem statement, or track rules..."
               />
             </div>
@@ -397,49 +397,57 @@ export function EditHackathonDialog({
                       key={round.id || `round-${idx}`}
                       className="p-3.5 rounded-xl border border-[rgba(229,169,60,0.18)] bg-[#28231d] space-y-3 hover:border-[rgba(229,169,60,0.35)] transition-colors"
                     >
-                      {/* Top Header of Milestone */}
-                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                      {/* Top Header of Milestone: Badge on Left, Delete on Right */}
+                      <div className="flex items-center justify-between">
                         <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#1f1b16] border border-[rgba(229,169,60,0.20)] text-[#fef3c7]">
                           Milestone #{idx + 1}
                         </span>
 
-                        <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteRound(idx)}
+                          className="h-7 w-7 inline-flex items-center justify-center text-[#a89a8c] hover:text-rose-400 hover:bg-rose-950/30 rounded-lg border border-transparent hover:border-rose-500/30 transition-colors shrink-0"
+                          title="Delete this milestone"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Round Type & Milestone Title */}
+                      <div className="space-y-2">
+                        <div>
+                          <label className="block text-[10px] font-mono text-[#a89a8c] mb-1 uppercase tracking-wider">
+                            Round Category
+                          </label>
                           <select
                             value={round.eventType}
                             onChange={(e) =>
                               handleUpdateRound(idx, { eventType: e.target.value })
                             }
-                            className="h-7 rounded-lg border border-[rgba(229,169,60,0.25)] bg-[#181410] px-2 text-[11px] text-[#fef3c7] font-mono outline-none focus:border-[#e5a93c]"
+                            className="w-full h-8 rounded-lg border border-[rgba(229,169,60,0.25)] bg-[#181410] px-2.5 text-xs text-[#fef3c7] font-mono outline-none focus:border-[#e5a93c] transition-colors"
                           >
                             <option value="pitch_session">🏆 Official Round (Screening/Pitch)</option>
                             <option value="submission_deadline">🏁 Submission Deadline</option>
                             <option value="custom">🎯 Team Work Deadline</option>
                             <option value="results_announcement">🎉 Results Announcement</option>
                           </select>
-
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteRound(idx)}
-                            className="p-1.5 text-[#a89a8c] hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition-colors"
-                            title="Delete this round"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
                         </div>
-                      </div>
 
-                      {/* Milestone Title */}
-                      <div>
-                        <input
-                          type="text"
-                          value={round.title}
-                          onChange={(e) =>
-                            handleUpdateRound(idx, { title: e.target.value })
-                          }
-                          placeholder="e.g. Round 1: PPT Submission or FastAPI Endpoints Frozen"
-                          className="w-full h-8 rounded-lg bg-[#181410] border border-[rgba(229,169,60,0.20)] px-3 text-xs text-[#fef3c7] placeholder:text-[#a89a8c]/50 outline-none focus:border-[#e5a93c] transition-colors"
-                          required
-                        />
+                        <div>
+                          <label className="block text-[10px] font-mono text-[#a89a8c] mb-1 uppercase tracking-wider">
+                            Milestone Title
+                          </label>
+                          <input
+                            type="text"
+                            value={round.title}
+                            onChange={(e) =>
+                              handleUpdateRound(idx, { title: e.target.value })
+                            }
+                            placeholder="e.g. Round 1: PPT Submission or FastAPI Endpoints Frozen"
+                            className="w-full h-8 rounded-lg bg-[#181410] border border-[rgba(229,169,60,0.20)] px-3 text-xs text-[#fef3c7] placeholder:text-[#a89a8c]/50 outline-none focus:border-[#e5a93c] transition-colors"
+                            required
+                          />
+                        </div>
                       </div>
 
                       {/* Date & Teammate Assignment (Clean 2-Column Grid) */}
@@ -500,27 +508,28 @@ export function EditHackathonDialog({
           </div>
 
           {/* Pinned Actions Footer */}
-          <div className="px-5 py-3.5 border-t border-[rgba(229,169,60,0.18)] bg-[#28231d] flex items-center justify-between gap-3 shrink-0">
+          <div className="px-5 py-3.5 border-t border-[rgba(229,169,60,0.18)] bg-[#28231d] flex items-center justify-between gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
             <button
               type="button"
               onClick={handleDelete}
               disabled={isDeleting}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              className={`h-8 inline-flex items-center gap-1.5 px-3 rounded-xl text-xs font-medium border transition-colors shrink-0 ${
                 confirmDelete
                   ? "bg-rose-500 text-white border-rose-600 animate-pulse"
                   : "border-rose-500/30 text-rose-400 hover:bg-rose-500/10"
               }`}
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="h-3.5 w-3.5" />
               <span>{confirmDelete ? "Confirm Delete?" : "Delete Event"}</span>
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={onClose}
+                className="h-8 rounded-xl text-xs"
               >
                 Cancel
               </Button>
@@ -530,6 +539,7 @@ export function EditHackathonDialog({
                 size="sm"
                 isLoading={isSubmitting}
                 loadingText="Saving..."
+                className="h-8 rounded-xl text-xs"
               >
                 Save Changes
               </Button>

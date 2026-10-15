@@ -377,7 +377,7 @@ export function TimelineManager({
                     <button
                       onClick={() => handleDelete(event)}
                       disabled={isDeleting}
-                      className="p-1.5 sm:p-2 rounded-xl text-[#a89a8c] hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
+                      className="h-7 sm:h-8 w-7 sm:w-8 inline-flex items-center justify-center rounded-xl border border-transparent hover:border-rose-500/30 text-[#a89a8c] hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
                       title="Delete milestone"
                     >
                       <Trash2 className="h-3.5 w-3.5" />

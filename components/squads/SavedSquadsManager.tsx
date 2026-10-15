@@ -220,7 +220,7 @@ export function SavedSquadsManager({
                         type="button"
                         onClick={() => handleDelete(squad.id, squad.name)}
                         disabled={isDeleting}
-                        className="p-1.5 rounded-lg text-[#a89a8c] hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
+                        className="p-1.5 rounded-lg text-[#a89a8c] hover:text-rose-400 hover:bg-rose-950/30 transition-colors flex items-center justify-center shrink-0"
                         title="Delete preset"
                       >
                         <Trash2 className="h-4 w-4" />
