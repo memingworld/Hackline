@@ -6,6 +6,123 @@ function cleanString(str?: string | null): string {
   return sanitizePlainText(str);
 }
 
+const DEVNOVATE_MONTHS: Record<string, number> = {
+  jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3, apr: 4, april: 4,
+  may: 5, jun: 6, june: 6, jul: 7, july: 7, aug: 8, august: 8, sep: 9, september: 9,
+  oct: 10, october: 10, nov: 11, november: 11, dec: 12, december: 12,
+};
+
+function parseDevnovateDate(str?: string | null, fallback?: Date | null): Date | null {
+  if (!str || typeof str !== "string") return fallback ?? null;
+  const s = str.trim();
+  // 1. DD-MM-YYYY or DD/MM/YYYY
+  const dmy = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+  if (dmy) {
+    const yr = dmy[3];
+    const mo = dmy[2].padStart(2, "0");
+    const dy = dmy[1].padStart(2, "0");
+    const timeMatch = s.match(/[T\s](\d{1,2}):(\d{2})/);
+    const tm = timeMatch ? `${timeMatch[1].padStart(2, "0")}:${timeMatch[2]}:00` : "00:00:00";
+    return new Date(`${yr}-${mo}-${dy}T${tm}+05:30`);
+  }
+  // 2. YYYY-MM-DD or YYYY/MM/DD with optional time
+  const ymd = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (ymd) {
+    const yr = ymd[1];
+    const mo = ymd[2].padStart(2, "0");
+    const dy = ymd[3].padStart(2, "0");
+    const timeMatch = s.match(/[T\s](\d{1,2}):(\d{2})/);
+    const tm = timeMatch ? `${timeMatch[1].padStart(2, "0")}:${timeMatch[2]}:00` : "00:00:00";
+    return new Date(`${yr}-${mo}-${dy}T${tm}+05:30`);
+  }
+  // 3. Fallback to standard Date
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? (fallback ?? null) : d;
+}
+
+function parseDevnovateScheduleItem(dayStr: string | undefined, timeStr: string | undefined, baseDate: Date): Date {
+  let yr = baseDate.getFullYear();
+  let mo = baseDate.getMonth() + 1;
+  let dy = baseDate.getDate();
+
+  if (dayStr) {
+    const s = dayStr.trim();
+    // 1. Day X (e.g. 'Day 2' or 'Day 1')
+    const dayNumMatch = s.match(/Day\s*(\d+)/i);
+    if (dayNumMatch) {
+      const offset = parseInt(dayNumMatch[1], 10) - 1;
+      const ref = new Date(baseDate.getTime() + Math.max(0, offset) * 86400000);
+      yr = ref.getFullYear();
+      mo = ref.getMonth() + 1;
+      dy = ref.getDate();
+    }
+
+    // 2. '27 October 2026' or '2 Nov 2026'
+    const dmyWord = s.match(/(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)(?:\s+(\d{4}))?/i);
+    if (dmyWord) {
+      const monthKey = dmyWord[2].toLowerCase();
+      if (DEVNOVATE_MONTHS[monthKey]) {
+        dy = parseInt(dmyWord[1], 10);
+        mo = DEVNOVATE_MONTHS[monthKey];
+        if (dmyWord[3]) yr = parseInt(dmyWord[3], 10);
+      }
+    } else {
+      // 3. 'October 23, 2026'
+      const mdyWord = s.match(/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:,\s*(\d{4}))?/i);
+      if (mdyWord) {
+        const monthKey = mdyWord[1].toLowerCase();
+        if (DEVNOVATE_MONTHS[monthKey]) {
+          dy = parseInt(mdyWord[2], 10);
+          mo = DEVNOVATE_MONTHS[monthKey];
+          if (mdyWord[3]) yr = parseInt(mdyWord[3], 10);
+        }
+      }
+    }
+  }
+
+  // Time parsing
+  let hours = 9;
+  let mins = 0;
+
+  if (timeStr) {
+    const t = timeStr.trim();
+    const ampmMatch = t.match(/(\d{1,2})(?:[:.](\d{2}))?\s*(AM|PM)/i);
+    if (ampmMatch) {
+      let h = parseInt(ampmMatch[1], 10);
+      const m = ampmMatch[2] ? parseInt(ampmMatch[2], 10) : 0;
+      const isPM = ampmMatch[3].toUpperCase() === "PM";
+      if (isPM && h < 12) h += 12;
+      if (!isPM && h === 12) h = 0;
+      hours = h;
+      mins = m;
+    } else {
+      const time24 = t.match(/(\d{1,2}):(\d{2})/);
+      if (time24) {
+        hours = parseInt(time24[1], 10);
+        mins = parseInt(time24[2], 10);
+      } else if (/morning/i.test(t)) {
+        hours = 9;
+      } else if (/afternoon/i.test(t)) {
+        hours = 14;
+      } else if (/evening/i.test(t)) {
+        hours = 18;
+      } else if (/deadline|closing|submission/i.test(t)) {
+        hours = 23;
+        mins = 59;
+      }
+    }
+  }
+
+  const yrStr = String(yr);
+  const moStr = String(mo).padStart(2, "0");
+  const dyStr = String(dy).padStart(2, "0");
+  const hrStr = String(hours).padStart(2, "0");
+  const mnStr = String(mins).padStart(2, "0");
+
+  const computed = new Date(`${yrStr}-${moStr}-${dyStr}T${hrStr}:${mnStr}:00+05:30`);
+  return isNaN(computed.getTime()) ? baseDate : computed;
+}
+
 function extractSmartDetailsFromUrl(
   url: string,
   platform: string,
@@ -334,12 +451,13 @@ export async function POST(request: Request) {
         const pathParts = parsed.pathname.split("/").filter(Boolean);
 
         // Devnovate URLs:
+        // https://devnovate.co/event/colossal-a-pitch
+        // https://devnovate.co/events/colossal-a-pitch
         // https://devnovate.co/hackathons/sgu_hackx-10
-        // https://devnovate.co/events/sgu_hackx-10
         // https://devnovate.co/sgu_hackx-10
         let slugCandidate = "";
         if (pathParts.length > 0) {
-          if (pathParts[0] === "hackathons" || pathParts[0] === "events") {
+          if (pathParts[0] === "hackathons" || pathParts[0] === "events" || pathParts[0] === "event" || pathParts[0] === "e") {
             slugCandidate = pathParts[1] || pathParts[0];
           } else {
             slugCandidate = pathParts[pathParts.length - 1];
@@ -408,25 +526,13 @@ export async function POST(request: Request) {
             .replace(/\s+/g, "-")
             .slice(0, 50);
 
-          // Dates: startDate, endDate, registrationDeadline
-          let startsAt = new Date().toISOString();
-          let endsAt = new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString();
+          // Dates: startDate, endDate, registrationDeadline (accurately in IST)
+          const defaultStart = new Date();
+          const parsedStart = parseDevnovateDate(eventData.startDate, defaultStart) || defaultStart;
+          let startsAtDate = parsedStart;
 
-          if (eventData.startDate) {
-            const parsedStart = new Date(eventData.startDate);
-            if (!isNaN(parsedStart.getTime())) {
-              startsAt = parsedStart.toISOString();
-            }
-          }
-
-          if (eventData.endDate) {
-            const parsedEnd = new Date(eventData.endDate);
-            if (!isNaN(parsedEnd.getTime())) {
-              endsAt = parsedEnd.toISOString();
-            }
-          } else {
-            endsAt = new Date(new Date(startsAt).getTime() + 1000 * 60 * 60 * 48).toISOString();
-          }
+          const parsedEnd = parseDevnovateDate(eventData.endDate, null);
+          let endsAtDate = parsedEnd || new Date(parsedStart.getTime() + 1000 * 60 * 60 * 48);
 
           // Prize Pool
           let prizePool = "TBA";
@@ -476,8 +582,8 @@ export async function POST(request: Request) {
           const timelineGates: { title: string; deadline: string; event_type: string }[] = [];
 
           if (eventData.registrationDeadline) {
-            const regDate = new Date(eventData.registrationDeadline);
-            if (!isNaN(regDate.getTime())) {
+            const regDate = parseDevnovateDate(eventData.registrationDeadline, null);
+            if (regDate) {
               timelineGates.push({
                 title: "Registration Deadline",
                 deadline: regDate.toISOString(),
@@ -487,40 +593,85 @@ export async function POST(request: Request) {
           }
 
           if (Array.isArray(eventData.schedule) && eventData.schedule.length > 0) {
+            const scheduledItems: { title: string; deadline: Date; event_type: string }[] = [];
+
             eventData.schedule.forEach((daySchedule: any) => {
               const dayStr = daySchedule.day;
               if (Array.isArray(daySchedule.events)) {
                 daySchedule.events.forEach((ev: any) => {
-                  let gateTime = startsAt;
-                  try {
-                    if (dayStr && ev.time) {
-                      const candidateTime = new Date(`${dayStr} ${ev.time}`);
-                      if (!isNaN(candidateTime.getTime())) {
-                        gateTime = candidateTime.toISOString();
-                      }
-                    }
-                  } catch {}
+                  const itemDate = parseDevnovateScheduleItem(dayStr, ev.time, parsedStart);
+                  const titleStr = cleanString(ev.title) || "Sprint Checkpoint";
+                  const lowerTitle = titleStr.toLowerCase();
 
-                  timelineGates.push({
-                    title: cleanString(ev.title) || "Sprint Checkpoint",
-                    deadline: gateTime,
-                    event_type: "pitch_session",
+                  let eventType = "pitch_session";
+                  if (lowerTitle.includes("registration") || lowerTitle.includes("check-in")) {
+                    eventType = "registration_deadline";
+                  } else if (
+                    lowerTitle.includes("submission") ||
+                    lowerTitle.includes("freeze") ||
+                    lowerTitle.includes("deadline")
+                  ) {
+                    eventType = "submission_deadline";
+                  } else if (
+                    lowerTitle.includes("presentation") ||
+                    lowerTitle.includes("demo") ||
+                    lowerTitle.includes("pitch") ||
+                    lowerTitle.includes("announcement")
+                  ) {
+                    eventType = "pitch_session";
+                  }
+
+                  scheduledItems.push({
+                    title: titleStr,
+                    deadline: itemDate,
+                    event_type: eventType,
                   });
                 });
               }
             });
+
+            // Sort chronologically
+            scheduledItems.sort((a, b) => a.deadline.getTime() - b.deadline.getTime());
+
+            if (scheduledItems.length > 0) {
+              startsAtDate = scheduledItems[0].deadline;
+              const lastItemTime = scheduledItems[scheduledItems.length - 1].deadline;
+              if (parsedEnd && parsedEnd.getTime() > lastItemTime.getTime()) {
+                endsAtDate = parsedEnd;
+              } else {
+                endsAtDate = lastItemTime;
+              }
+            }
+
+            for (const item of scheduledItems) {
+              timelineGates.push({
+                title: item.title,
+                deadline: item.deadline.toISOString(),
+                event_type: item.event_type,
+              });
+            }
           }
 
           // Always ensure final code freeze gate
-          timelineGates.push({
-            title: "Code Freeze & Final Submission",
-            deadline: endsAt,
-            event_type: "submission_deadline",
-          });
+          const hasSubmissionGate = timelineGates.some((g) => g.event_type === "submission_deadline");
+          if (!hasSubmissionGate) {
+            timelineGates.push({
+              title: "Code Freeze & Final Submission",
+              deadline: endsAtDate.toISOString(),
+              event_type: "submission_deadline",
+            });
+          }
 
           // Banner Image
-          const bannerUrl =
-            eventData.bannerImage || eventData.cardImage || eventData.organizationLogo || null;
+          let bannerUrl =
+            eventData.bannerImage ||
+            eventData.mobileBannerImage ||
+            eventData.cardImage ||
+            eventData.organizationLogo ||
+            null;
+          if (bannerUrl && bannerUrl.startsWith("/")) {
+            bannerUrl = `https://devnovate.co${bannerUrl}`;
+          }
 
           return NextResponse.json({
             title,
@@ -530,8 +681,8 @@ export async function POST(request: Request) {
             banner_url: bannerUrl,
             prize_pool: prizePool,
             description,
-            starts_at: startsAt,
-            ends_at: endsAt,
+            starts_at: startsAtDate.toISOString(),
+            ends_at: endsAtDate.toISOString(),
             min_team_size: minTeamSize,
             max_team_size: maxTeamSize,
             timeline_gates: timelineGates,

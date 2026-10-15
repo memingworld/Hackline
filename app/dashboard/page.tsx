@@ -262,7 +262,7 @@ export default async function DashboardPage() {
             <Trophy className="h-10 w-10 mx-auto text-[#e5a93c]" />
             <h3 className="text-base font-bold text-[#fef3c7] font-mono">No Hackathons Tracked Yet</h3>
             <p className="text-xs text-[#a89a8c] max-w-sm mx-auto">
-              Use our Magic Link Scraper to extract events from Devpost, Unstop, Devfolio, or Luma with 1 click.
+              Use our Magic Link Scraper to extract events from Devpost, Unstop, Devfolio, Devnovate, or Luma with 1 click.
             </p>
             <div className="pt-2">
               <Link href="/dashboard/hackathons?action=scrape">

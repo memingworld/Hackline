@@ -347,7 +347,7 @@ export function HackathonsManager({
               No hackathons saved yet
             </h4>
             <p className="text-xs text-[#a89a8c] max-w-sm mx-auto">
-              Use the Magic Link Scraper above to paste a link from Devpost, Devfolio, or Unstop to initialize your workspace.
+              Use the Magic Link Scraper above to paste a link from Devpost, Devfolio, Unstop, Devnovate, or Luma to initialize your workspace.
             </p>
           </div>
         )}

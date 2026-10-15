@@ -14,6 +14,7 @@ const SUPPORTED_PLATFORMS = [
   { name: "Devpost", domain: "devpost.com" },
   { name: "Devfolio", domain: "devfolio.co" },
   { name: "Unstop", domain: "unstop.com" },
+  { name: "Devnovate", domain: "devnovate.co" },
   { name: "Luma", domain: "lu.ma" },
   { name: "Hack2skill", domain: "hack2skill.com" },
 ];
@@ -85,7 +86,7 @@ export function MagicLinkInput({ onScrapeSuccess }: MagicLinkInputProps) {
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="Paste URL from Devpost, Devfolio, Unstop, Luma..."
+            placeholder="Paste URL from Devpost, Devfolio, Unstop, Devnovate, Luma..."
             disabled={isLoading}
             className="w-full h-12 pl-10 pr-32 rounded-xl bg-[#181410] text-xs sm:text-sm text-[#fef3c7] placeholder:text-[#a89a8c]/50 border border-[rgba(229,169,60,0.20)] shadow-sm focus:outline-none focus:border-[#e5a93c] focus:ring-1 focus:ring-[#e5a93c]/30 transition-all font-mono"
           />

@@ -172,14 +172,14 @@ export default function LandingPage() {
                   <Code2 className="h-4 w-4" />
                 </div>
                 <span className="text-[10px] font-mono text-[#7bb4d6] border border-[rgba(74,130,166,0.35)] rounded px-2 py-0.5 bg-[#4a82a6]/15 font-medium">
-                  Devpost, Unstop & Devfolio APIs
+                  Devpost, Unstop, Devfolio & Devnovate APIs
                 </span>
               </div>
               <h3 className="text-base font-bold text-[#fef3c7] tracking-tight">
                 Magic Link Scraper
               </h3>
               <p className="mt-1.5 text-xs text-[#a89a8c] leading-relaxed max-w-lg">
-                Paste any URL from Devpost, Unstop, Devfolio, or Luma. Hackline auto-queries official APIs to extract prize pools, rules, and milestone gates in milliseconds.
+                Paste any URL from Devpost, Unstop, Devfolio, Devnovate, or Luma. Hackline auto-queries official APIs to extract prize pools, rules, and milestone gates in milliseconds.
               </p>
             </div>
 

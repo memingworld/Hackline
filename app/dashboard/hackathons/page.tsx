@@ -5,7 +5,7 @@ import { HackathonsManager } from "@/components/scraper/HackathonsManager";
 
 export const metadata: Metadata = {
   title: "Hackathons Catalog & Magic Scraper — Hackline",
-  description: "Scrape, track, and manage hackathons from Devfolio, Unstop, Devpost, and Luma.",
+  description: "Scrape, track, and manage hackathons from Devfolio, Unstop, Devnovate, Devpost, and Luma.",
 };
 
 export default async function HackathonsPage(props: {
