@@ -11,8 +11,7 @@ import {
   User,
   Sparkles,
   Command,
-  ChevronDown,
-  Trophy,
+  Menu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
@@ -24,6 +23,7 @@ import { NotificationsPopover } from "./NotificationsPopover";
 interface DashboardHeaderProps {
   userEmail: string;
   userName: string;
+  avatarUrl?: string | null;
   hackathons?: Hackathon[];
   activeHackathonId?: string;
   currentTeam?: Team | null;
@@ -32,6 +32,7 @@ interface DashboardHeaderProps {
 export function DashboardHeader({
   userEmail,
   userName,
+  avatarUrl,
   hackathons = [],
   activeHackathonId,
   currentTeam = null,
@@ -79,36 +80,50 @@ export function DashboardHeader({
     }
   };
 
+  const handleToggleMobileSidebar = () => {
+    window.dispatchEvent(new CustomEvent("toggle-mobile-sidebar"));
+  };
+
   const userInitials =
     userName.length >= 2
       ? userName.substring(0, 2).toUpperCase()
       : userName.toUpperCase() || "ME";
 
   return (
-    <header className="h-14 border-b border-white/[0.06] bg-[#07080b]/90 backdrop-blur-2xl px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
-      {/* Left Hackathon Switcher & Context */}
+    <header className="h-14 border-b border-[rgba(229,169,60,0.18)] bg-[#14110e]/95 backdrop-blur-2xl px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20">
+      {/* Left: Mobile Drawer Hamburger Toggle + Context Breadcrumb */}
       <div className="flex items-center gap-3">
+        {/* Mobile Hamburger Button */}
+        <button
+          onClick={handleToggleMobileSidebar}
+          type="button"
+          className="md:hidden p-2 rounded-xl border border-[rgba(229,169,60,0.22)] bg-[#1f1b16] text-[#a89a8c] hover:text-[#fef3c7] hover:border-[#e5a93c]/50 transition-colors"
+          title="Open Navigation Menu"
+        >
+          <Menu className="h-4 w-4" />
+        </button>
+
         {currentWorkspaceHackathon ? (
           <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-            <span className="text-xs font-mono uppercase px-2 py-0.5 rounded border border-zinc-800 bg-zinc-900 text-zinc-300">
+            <span className="flex h-2 w-2 rounded-full bg-[#e5a93c] animate-pulse shadow-[0_0_8px_rgba(229,169,60,0.8)]" />
+            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6] font-semibold">
               {currentWorkspaceHackathon.source_platform}
             </span>
-            <span className="text-xs font-semibold text-white truncate max-w-[200px] sm:max-w-xs">
+            <span className="text-xs font-semibold text-[#fef3c7] truncate max-w-[140px] sm:max-w-xs">
               {currentWorkspaceHackathon.title}
             </span>
           </div>
         ) : (
           <Link
             href="/dashboard"
-            className="flex items-center gap-2.5 text-xs font-mono text-zinc-300 hover:text-white transition-colors group"
+            className="flex items-center gap-2.5 text-xs font-mono text-[#a89a8c] hover:text-[#fef3c7] transition-colors group"
           >
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-            <span className="font-bold tracking-tight text-white group-hover:text-emerald-400 transition-colors">
+            <span className="flex h-2 w-2 rounded-full bg-[#e5a93c] animate-pulse shadow-[0_0_8px_rgba(229,169,60,0.8)]" />
+            <span className="font-bold tracking-tight text-[#fef3c7] group-hover:text-[#e5a93c] transition-colors">
               MISSION CONTROL
             </span>
             {hackathons.length > 0 && (
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-white/[0.08] bg-white/[0.04] text-zinc-400">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-[rgba(229,169,60,0.18)] bg-[#1f1b16] text-[#a89a8c]">
                 {hackathons.length} {hackathons.length === 1 ? "Sprint" : "Sprints"}
               </span>
             )}
@@ -121,11 +136,11 @@ export function DashboardHeader({
         {/* Quick Search Trigger */}
         <button
           onClick={() => setIsCommandPaletteOpen(true)}
-          className="hidden md:flex items-center gap-2.5 h-8 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-zinc-400 hover:text-zinc-200 hover:border-white/[0.18] transition-colors"
+          className="hidden md:flex items-center gap-2.5 h-8 px-3 rounded-xl border border-[rgba(229,169,60,0.18)] bg-[#1f1b16] text-xs text-[#a89a8c] hover:text-[#fef3c7] hover:border-[#e5a93c]/40 transition-colors"
         >
-          <Search className="h-3 w-3 text-zinc-400" />
+          <Search className="h-3 w-3 text-[#a89a8c]" />
           <span>Search command...</span>
-          <kbd className="inline-flex items-center gap-0.5 rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-[10px] text-zinc-300 border border-white/[0.08]">
+          <kbd className="inline-flex items-center gap-0.5 rounded bg-[#28231d] px-1.5 py-0.5 font-mono text-[10px] text-[#fef3c7] border border-[rgba(229,169,60,0.22)]">
             <Command className="h-2.5 w-2.5" /> K
           </kbd>
         </button>
@@ -135,10 +150,11 @@ export function DashboardHeader({
           <Button
             size="sm"
             variant="primary"
-            className="h-8 px-3.5 rounded-xl text-xs gap-1.5 font-semibold shadow-md active:scale-[0.98]"
+            className="h-8 px-3 sm:px-3.5 rounded-xl text-xs gap-1.5 font-bold shadow-md active:scale-[0.98]"
           >
-            <Sparkles className="h-3 w-3 text-zinc-950" />
-            <span>Import Event</span>
+            <Sparkles className="h-3 w-3 text-[#14110e]" />
+            <span className="hidden sm:inline">Import Event</span>
+            <span className="sm:hidden">Import</span>
           </Button>
         </Link>
 
@@ -150,12 +166,12 @@ export function DashboardHeader({
               e.stopPropagation();
               setIsNotificationsOpen((prev) => !prev);
             }}
-            className="relative flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white hover:border-white/[0.18] transition-colors"
+            className="relative flex h-8 w-8 items-center justify-center rounded-xl border border-[rgba(229,169,60,0.18)] bg-[#1f1b16] text-[#a89a8c] hover:text-[#fef3c7] hover:border-[#e5a93c]/40 transition-colors"
             title="System Alerts & Deadlines"
           >
             <Bell className="h-3.5 w-3.5" />
             {hasAlerts && (
-              <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.9)]" />
+              <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-[#e5a93c] shadow-[0_0_6px_rgba(229,169,60,0.9)]" />
             )}
           </button>
 
@@ -171,20 +187,28 @@ export function DashboardHeader({
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 p-0.5 rounded-xl hover:bg-white/[0.04] transition-colors"
+            className="flex items-center gap-2 p-0.5 rounded-xl hover:bg-[#1f1b16] transition-colors"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-b from-white/[0.12] to-white/[0.02] border border-white/[0.08] font-mono text-[11px] font-bold text-zinc-200 shadow-sm">
-              {userInitials}
-            </div>
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={userName}
+                className="h-8 w-8 rounded-xl object-cover border border-[rgba(229,169,60,0.25)] shadow-sm"
+              />
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#28231d] border border-[rgba(229,169,60,0.25)] font-mono text-[11px] font-bold text-[#e5a93c] shadow-sm">
+                {userInitials}
+              </div>
+            )}
           </button>
 
           {showProfileMenu && (
-            <div className="absolute right-0 mt-2 w-56 rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl z-50 animate-fade-in">
-              <div className="px-3 py-2 border-b border-zinc-800 mb-1">
-                <span className="text-xs font-semibold text-white block truncate">
+            <div className="absolute right-0 mt-2 w-56 rounded-xl border border-[rgba(229,169,60,0.22)] bg-[#181410] p-1.5 shadow-2xl z-50 animate-fade-in">
+              <div className="px-3 py-2 border-b border-[rgba(229,169,60,0.15)] mb-1">
+                <span className="text-xs font-semibold text-[#fef3c7] block truncate">
                   {userName}
                 </span>
-                <span className="text-[11px] text-zinc-500 block truncate font-mono">
+                <span className="text-[11px] text-[#a89a8c] block truncate font-mono">
                   {userEmail || "Hacker Profile"}
                 </span>
               </div>
@@ -192,9 +216,9 @@ export function DashboardHeader({
               <Link
                 href="/dashboard/settings"
                 onClick={() => setShowProfileMenu(false)}
-                className="flex items-center gap-2 px-3 py-2 text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-3 py-2 text-xs text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#1f1b16] rounded-lg transition-colors"
               >
-                <User className="h-3.5 w-3.5" />
+                <User className="h-3.5 w-3.5 text-[#e5a93c]" />
                 <span>Profile & Telegram Setup</span>
               </Link>
 
