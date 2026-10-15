@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { sanitizePlainText } from "@/lib/security";
 import {
   extractReservedMembers,
   encodeReservedMembers,
@@ -211,6 +212,8 @@ export async function updateMemberDuty(memberId: string, duty: string, teamId?: 
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
+    const cleanDuty = sanitizePlainText(duty) || "Full-Stack Developer";
+
     // Handle reserved member duty update
     if (memberId.startsWith("reserved-") && teamId) {
       const { data: team } = await supabase
@@ -220,12 +223,16 @@ export async function updateMemberDuty(memberId: string, duty: string, teamId?: 
         .single();
 
       if (team) {
+        if (team.captain_id !== user.id) {
+          return { success: false, error: "Forbidden: Only the squad captain can edit reserved members." };
+        }
+
         const { cleanDescription, reservedMembers } = extractReservedMembers(team.description);
         const updatedReserved = reservedMembers.map((rm, idx) => {
           const expectedId =
             rm.id || `reserved-${idx}-${encodeURIComponent(rm.email || String(idx))}`;
           if (expectedId === memberId || rm.id === memberId) {
-            return { ...rm, duty: duty.trim() };
+            return { ...rm, duty: cleanDuty };
           }
           return rm;
         });
@@ -244,7 +251,7 @@ export async function updateMemberDuty(memberId: string, duty: string, teamId?: 
 
     const { error } = await supabase
       .from("team_members")
-      .update({ duty: duty.trim() })
+      .update({ duty: cleanDuty })
       .eq("id", memberId);
 
     if (error) {
@@ -282,6 +289,10 @@ export async function removeMemberFromTeam(memberId: string, teamId?: string) {
         .single();
 
       if (team) {
+        if (team.captain_id !== user.id) {
+          return { success: false, error: "Forbidden: Only the squad captain can release reserved seats." };
+        }
+
         const { cleanDescription, reservedMembers } = extractReservedMembers(team.description);
         const filtered = reservedMembers.filter((rm, idx) => {
           const expectedId =

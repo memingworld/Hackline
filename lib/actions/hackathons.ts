@@ -46,7 +46,7 @@ export async function updateHackathon(
       return { success: false, error: "Hackathon not found." };
     }
 
-    if (hackathon.created_by && hackathon.created_by !== user.id) {
+    if (!hackathon.created_by || hackathon.created_by !== user.id) {
       return { success: false, error: "Forbidden: Only the hackathon creator can modify this event." };
     }
 
@@ -174,7 +174,7 @@ export async function deleteHackathon(id: string) {
       return { success: false, error: "Hackathon not found." };
     }
 
-    if (hackathon.created_by && hackathon.created_by !== user.id) {
+    if (!hackathon.created_by || hackathon.created_by !== user.id) {
       return { success: false, error: "Forbidden: Only the hackathon creator can delete this event." };
     }
 

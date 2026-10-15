@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
+import { constantTimeCompare } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
   try {
     // Verify CRON authorization to prevent spamming notification dispatch
     const cronSecret = process.env.CRON_SECRET;
+    const isProd = process.env.NODE_ENV === "production";
+
+    // In production, CRON_SECRET is strictly mandatory to prevent open dispatch
+    if (isProd && !cronSecret) {
+      return NextResponse.json(
+        { success: false, error: "Server misconfiguration: CRON_SECRET is required in production." },
+        { status: 500 }
+      );
+    }
+
     if (cronSecret) {
-      const authHeader = req.headers.get("authorization");
-      if (authHeader !== `Bearer ${cronSecret}`) {
+      const authHeader = req.headers.get("authorization") || "";
+      const expected = `Bearer ${cronSecret}`;
+      if (!constantTimeCompare(authHeader, expected)) {
         return NextResponse.json(
           { success: false, error: "Unauthorized: Missing or invalid authorization token." },
           { status: 401 }

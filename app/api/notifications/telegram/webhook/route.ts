@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
+import { constantTimeCompare, sanitizePlainText } from "@/lib/security";
 
 interface TelegramUpdate {
   update_id: number;
@@ -40,8 +41,8 @@ export async function POST(req: NextRequest) {
     // Verify Telegram secret token to prevent spoofed webhook payloads
     const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
     if (webhookSecret) {
-      const incomingSecret = req.headers.get("x-telegram-bot-api-secret-token");
-      if (incomingSecret !== webhookSecret) {
+      const incomingSecret = req.headers.get("x-telegram-bot-api-secret-token") || "";
+      if (!constantTimeCompare(incomingSecret, webhookSecret)) {
         return NextResponse.json(
           { success: false, error: "Unauthorized: Invalid secret token." },
           { status: 401 }

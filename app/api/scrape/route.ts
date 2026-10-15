@@ -3,15 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { isValidPublicHttpUrl, sanitizePlainText } from "@/lib/security";
 
 function cleanString(str?: string | null): string {
-  if (!str) return "";
-  return str
-    .replace(/<[^>]*>/g, "")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .trim();
+  return sanitizePlainText(str);
 }
 
 function extractSmartDetailsFromUrl(
@@ -176,6 +168,7 @@ export async function POST(request: Request) {
             const devpostApiRes = await fetch(
               `https://devpost.com/api/hackathons?search=${encodeURIComponent(query)}`,
               {
+                signal: AbortSignal.timeout(10000),
                 headers: {
                   Accept: "application/json",
                   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -290,6 +283,7 @@ export async function POST(request: Request) {
           const devfolioRes = await fetch(
             `https://api.devfolio.co/api/hackathons/${encodeURIComponent(slugCandidate)}`,
             {
+              signal: AbortSignal.timeout(10000),
               headers: { Accept: "application/json" },
             }
           );
@@ -361,6 +355,7 @@ export async function POST(request: Request) {
 
           for (const ep of idEndpoints) {
             const res = await fetch(ep, {
+              signal: AbortSignal.timeout(10000),
               headers: {
                 "User-Agent":
                   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -387,6 +382,7 @@ export async function POST(request: Request) {
             const res = await fetch(
               `https://unstop.com/api/public/opportunity/search-result?opportunity=hackathons&searchTerm=${encodeURIComponent(q)}&per_page=5`,
               {
+                signal: AbortSignal.timeout(10000),
                 headers: {
                   "User-Agent":
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -493,6 +489,7 @@ export async function POST(request: Request) {
     if (platform === "luma") {
       try {
         const lumaRes = await fetch(cleanUrl, {
+          signal: AbortSignal.timeout(10000),
           headers: {
             "User-Agent":
               "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -564,6 +561,7 @@ export async function POST(request: Request) {
     // ==========================================
     try {
       const res = await fetch(cleanUrl, {
+        signal: AbortSignal.timeout(10000),
         headers: {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",

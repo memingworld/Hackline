@@ -200,6 +200,18 @@ export async function selectProblemStatement(problemId: string, teamId: string) 
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
+    // Verify user is a member of this team (IDOR defense-in-depth)
+    const { data: membership } = await supabase
+      .from("team_members")
+      .select("id")
+      .eq("team_id", teamId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!membership) {
+      return { success: false, error: "Forbidden: You are not a member of this squad." };
+    }
+
     // 1. Reset all others for this team
     await supabase
       .from("problem_statements")

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { sanitizePlainText } from "@/lib/security";
 
 const DEFAULT_GATES = [
   { item_key: "repo_public", title: "Repository is Public with Open-Source License" },
@@ -95,8 +96,21 @@ export async function createChecklistItem(teamId: string, title: string) {
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
-    if (!title.trim()) {
+    const cleanTitle = sanitizePlainText(title);
+    if (!cleanTitle) {
       return { success: false, error: "Title is required." };
+    }
+
+    // Verify caller is a member of this team
+    const { data: membership } = await supabase
+      .from("team_members")
+      .select("id")
+      .eq("team_id", teamId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!membership) {
+      return { success: false, error: "Forbidden: You are not a member of this squad." };
     }
 
     const itemKey = `custom_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
@@ -106,7 +120,7 @@ export async function createChecklistItem(teamId: string, title: string) {
       .insert({
         team_id: teamId,
         item_key: itemKey,
-        title: title.trim(),
+        title: cleanTitle,
         is_completed: false,
       })
       .select()
