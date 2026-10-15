@@ -51,6 +51,10 @@ export async function createTimelineEvent(payload: CreateTimelineEventPayload) {
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/calendar");
+    revalidatePath("/dashboard/hackathons");
+    if (payload.hackathonId) {
+      revalidatePath(`/dashboard/hackathons/${payload.hackathonId}`);
+    }
     return { success: true, event: data };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to create timeline event." };
@@ -71,10 +75,12 @@ export async function toggleTimelineEventCompletion(eventId: string, isCompleted
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
-    const { error } = await supabase
+    const { data: updatedEvent, error } = await supabase
       .from("timeline_events")
       .update({ is_completed: isCompleted })
-      .eq("id", eventId);
+      .eq("id", eventId)
+      .select("hackathon_id")
+      .maybeSingle();
 
     if (error) {
       return { success: false, error: error.message };
@@ -82,6 +88,10 @@ export async function toggleTimelineEventCompletion(eventId: string, isCompleted
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/calendar");
+    revalidatePath("/dashboard/hackathons");
+    if (updatedEvent?.hackathon_id) {
+      revalidatePath(`/dashboard/hackathons/${updatedEvent.hackathon_id}`);
+    }
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to update milestone." };
@@ -102,6 +112,12 @@ export async function deleteTimelineEvent(eventId: string) {
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
+    const { data: deletedEvent } = await supabase
+      .from("timeline_events")
+      .select("hackathon_id")
+      .eq("id", eventId)
+      .maybeSingle();
+
     const { error } = await supabase
       .from("timeline_events")
       .delete()
@@ -113,6 +129,10 @@ export async function deleteTimelineEvent(eventId: string) {
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/calendar");
+    revalidatePath("/dashboard/hackathons");
+    if (deletedEvent?.hackathon_id) {
+      revalidatePath(`/dashboard/hackathons/${deletedEvent.hackathon_id}`);
+    }
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to delete milestone." };

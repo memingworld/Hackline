@@ -1,27 +1,58 @@
 "use client";
 
 import * as React from "react";
-import { Hackathon } from "@/types/database";
+import { Hackathon, TimelineEvent } from "@/types/database";
 import {
   Clock,
   Calendar,
   ExternalLink,
   ArrowUpRight,
   Edit3,
+  Target,
+  Flag,
 } from "lucide-react";
 import { toast } from "sonner";
 import { EditHackathonDialog } from "@/components/dashboard/EditHackathonDialog";
 
 interface CountdownProps {
   hackathon: Hackathon;
+  timelineEvents?: TimelineEvent[];
 }
 
-export function HackathonCountdownBanner({ hackathon }: CountdownProps) {
+export function HackathonCountdownBanner({ hackathon, timelineEvents = [] }: CountdownProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
-  // Dynamic time calculation
+  // Find next uncompleted impending milestone gate across the sprint timeline
+  const nextMilestone = React.useMemo(() => {
+    if (!timelineEvents || timelineEvents.length === 0) return null;
+    const now = Date.now();
+    const upcoming = timelineEvents
+      .filter((ev) => !ev.is_completed)
+      .map((ev) => ({
+        ...ev,
+        time: new Date(ev.deadline).getTime(),
+      }))
+      .filter((ev) => !isNaN(ev.time) && ev.time > now)
+      .sort((a, b) => a.time - b.time);
+
+    return upcoming[0] || null;
+  }, [timelineEvents]);
+
+  // Clock countdown target mode: "milestone" defaults if active milestone exists, else "overall"
+  const [targetMode, setTargetMode] = React.useState<"milestone" | "overall">("milestone");
+
+  const isTargetingMilestone = Boolean(nextMilestone && targetMode === "milestone");
+  const activeTargetDeadline = isTargetingMilestone && nextMilestone
+    ? nextMilestone.deadline
+    : hackathon.ends_at;
+
+  const activeTargetTitle = isTargetingMilestone && nextMilestone
+    ? nextMilestone.title.replace(/\[@.*?\]/, "").trim()
+    : "Final Hackathon Submission";
+
+  // Dynamic time calculation based on active target deadline
   const calculateTimeLeft = React.useCallback(() => {
-    const end = new Date(hackathon.ends_at).getTime();
+    const end = new Date(activeTargetDeadline).getTime();
     const now = Date.now();
     const diff = end - now;
 
@@ -35,7 +66,7 @@ export function HackathonCountdownBanner({ hackathon }: CountdownProps) {
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
     return { days, hours, minutes, seconds, isConcluded: false };
-  }, [hackathon.ends_at]);
+  }, [activeTargetDeadline]);
 
   const [timeLeft, setTimeLeft] = React.useState(calculateTimeLeft);
 
@@ -47,7 +78,7 @@ export function HackathonCountdownBanner({ hackathon }: CountdownProps) {
     return () => clearInterval(timer);
   }, [calculateTimeLeft]);
 
-  // Dynamic sprint progress calculation
+  // Dynamic sprint progress calculation (overall hackathon duration)
   const progressInfo = React.useMemo(() => {
     const start = new Date(hackathon.starts_at).getTime();
     const end = new Date(hackathon.ends_at).getTime();
@@ -75,13 +106,20 @@ export function HackathonCountdownBanner({ hackathon }: CountdownProps) {
       {/* Bauhaus Mustard Yellow Hero Countdown HUD Bar (Signature Palette C) */}
       <div className="bg-[#e5a93c] px-5 py-4 sm:px-6 sm:py-5 text-[#14110e] flex flex-col md:flex-row md:items-center justify-between gap-4 select-none">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="text-[10px] font-mono uppercase tracking-widest font-black px-2 py-0.5 rounded bg-[#14110e] text-[#e5a93c]">
               LIVE SPRINT WORKSPACE
             </span>
-            <span className="text-[10px] font-mono uppercase tracking-widest font-bold opacity-80">
-              {timeLeft.isConcluded ? "Sprint Concluded" : "Countdown In Flight"}
-            </span>
+            {isTargetingMilestone ? (
+              <span className="text-[10px] font-mono uppercase tracking-wider font-extrabold px-2 py-0.5 rounded bg-[#14110e]/20 text-[#14110e] border border-[#14110e]/30 flex items-center gap-1">
+                <span>🎯 NEXT GATE:</span>
+                <span className="underline decoration-dotted">{activeTargetTitle}</span>
+              </span>
+            ) : (
+              <span className="text-[10px] font-mono uppercase tracking-widest font-bold opacity-80">
+                {timeLeft.isConcluded ? "Sprint Concluded" : "🏁 FINAL HACKATHON GATE"}
+              </span>
+            )}
           </div>
           <h2 className="text-xl sm:text-2xl font-black tracking-tight font-sans truncate text-[#14110e]">
             {hackathon.title}
@@ -89,6 +127,35 @@ export function HackathonCountdownBanner({ hackathon }: CountdownProps) {
           <p className="text-[11px] font-mono font-bold uppercase tracking-wider opacity-85 mt-0.5">
             Source: {hackathon.source_platform} • Prize: {hackathon.prize_pool || "TBA"}
           </p>
+
+          {/* Interactive Clock Mode Toggle Pill */}
+          {nextMilestone && (
+            <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[10px] font-mono">
+              <span className="text-[#14110e]/80 font-bold uppercase text-[9px]">Clock Mode:</span>
+              <button
+                type="button"
+                onClick={() => setTargetMode("milestone")}
+                className={`px-2 py-0.5 rounded-md transition-all font-bold cursor-pointer ${
+                  isTargetingMilestone
+                    ? "bg-[#14110e] text-[#e5a93c] shadow-sm"
+                    : "bg-[#14110e]/15 text-[#14110e] hover:bg-[#14110e]/25"
+                }`}
+              >
+                🎯 Next Gate: {nextMilestone.title.replace(/\[@.*?\]/, "").trim()}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTargetMode("overall")}
+                className={`px-2 py-0.5 rounded-md transition-all font-bold cursor-pointer ${
+                  !isTargetingMilestone
+                    ? "bg-[#14110e] text-[#e5a93c] shadow-sm"
+                    : "bg-[#14110e]/15 text-[#14110e] hover:bg-[#14110e]/25"
+                }`}
+              >
+                🏁 Final Submission
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Retro-Precision Digital Clock HUD */}

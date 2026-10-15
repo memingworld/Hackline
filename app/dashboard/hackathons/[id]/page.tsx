@@ -101,7 +101,7 @@ export default async function HackathonWorkspacePage(props: {
       </div>
 
       {/* Countdown and Live Status Banner */}
-      <HackathonCountdownBanner hackathon={hackathon} />
+      <HackathonCountdownBanner hackathon={hackathon} timelineEvents={timelineEvents} />
 
       {/* Primary Grid: Timeline Stepped Milestones & Squad Roster */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

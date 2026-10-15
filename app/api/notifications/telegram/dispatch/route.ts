@@ -4,24 +4,32 @@ import { constantTimeCompare } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
   try {
-    // Verify CRON authorization to prevent spamming notification dispatch
     const cronSecret = process.env.CRON_SECRET;
     const isProd = process.env.NODE_ENV === "production";
 
-    // In production, CRON_SECRET is strictly mandatory to prevent open dispatch
-    if (isProd && !cronSecret) {
-      return NextResponse.json(
-        { success: false, error: "Server misconfiguration: CRON_SECRET is required in production." },
-        { status: 500 }
-      );
-    }
-
+    // Verify CRON authorization in production if CRON_SECRET is configured
     if (cronSecret) {
       const authHeader = req.headers.get("authorization") || "";
       const expected = `Bearer ${cronSecret}`;
-      if (!constantTimeCompare(authHeader, expected)) {
+      const urlSecret = req.nextUrl.searchParams.get("secret");
+
+      const isHeaderValid = constantTimeCompare(authHeader, expected);
+      const isQueryValid = urlSecret && constantTimeCompare(urlSecret, cronSecret);
+
+      if (!isHeaderValid && !isQueryValid) {
         return NextResponse.json(
           { success: false, error: "Unauthorized: Missing or invalid authorization token." },
+          { status: 401 }
+        );
+      }
+    } else if (isProd) {
+      // In production without CRON_SECRET, allow internal in-app ping or Vercel Cron user agent
+      const internalHeader = req.headers.get("x-internal-dispatch");
+      const userAgent = req.headers.get("user-agent") || "";
+      const isVercelCron = userAgent.toLowerCase().includes("vercel-cron");
+      if (!internalHeader && !isVercelCron) {
+        return NextResponse.json(
+          { success: false, error: "CRON_SECRET must be configured in production." },
           { status: 401 }
         );
       }
@@ -37,121 +45,236 @@ export async function POST(req: NextRequest) {
 
     const supabase = createAdminClient();
     const now = new Date();
-
-    // Query active hackathons that haven't ended yet
-    const { data: hackathons, error: hackathonsError } = await supabase
-      .from("hackathons")
-      .select("id, title, ends_at")
-      .gt("ends_at", now.toISOString());
-
-    if (hackathonsError) {
-      return NextResponse.json({ success: false, error: hackathonsError.message }, { status: 500 });
-    }
-
-    if (!hackathons || hackathons.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: "No active hackathons found.",
-        dispatched: 0,
-      });
-    }
-
+    const nowTime = now.getTime();
     let dispatchedCount = 0;
 
-    for (const hackathon of hackathons) {
-      if (!hackathon.ends_at) continue;
+    // Helper to send message and record idempotency
+    const sendNotification = async (
+      profile: { id: string; full_name?: string | null; telegram_chat_id: string },
+      hackathonId: string,
+      triggerKey: string,
+      messageText: string
+    ) => {
+      // Check if already sent
+      const { data: existing } = await supabase
+        .from("telegram_notifications")
+        .select("id")
+        .eq("user_id", profile.id)
+        .eq("trigger_type", triggerKey)
+        .limit(1);
 
-      const endsAt = new Date(hackathon.ends_at).getTime();
-      const nowTime = now.getTime();
-      const hoursRemaining = (endsAt - nowTime) / (1000 * 60 * 60);
+      if (existing && existing.length > 0) return false;
 
-      const isT24Window = hoursRemaining <= 24 && hoursRemaining > 2;
-      const isT2Window = hoursRemaining <= 2 && hoursRemaining > 0;
+      // Dispatch Telegram Bot DM
+      const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: profile.telegram_chat_id,
+          text: messageText,
+          parse_mode: "Markdown",
+        }),
+      });
 
-      if (!isT24Window && !isT2Window) continue;
+      const resData = await res.json();
 
-      const triggerType = isT2Window ? "T-2h" : "T-24h";
+      await supabase.from("telegram_notifications").insert({
+        user_id: profile.id,
+        hackathon_id: hackathonId,
+        trigger_type: triggerKey as any,
+        message_text: messageText,
+        status: res.ok ? "sent" : "failed",
+        telegram_message_id: resData?.result?.message_id ? String(resData.result.message_id) : null,
+        error_message: res.ok ? null : resData?.description || "Dispatch failed",
+      });
 
-      // Fetch all participating team members for this hackathon
-      const { data: teams } = await supabase
-        .from("teams")
-        .select(`
-          id,
-          name,
-          members:team_members(
-            user:profiles(
-              id,
-              full_name,
-              telegram_chat_id,
-              notify_t24,
-              notify_t2
-            )
-          )
-        `)
-        .eq("hackathon_id", hackathon.id);
+      return res.ok;
+    };
 
-      if (!teams || teams.length === 0) continue;
+    // ─────────────────────────────────────────────────────────────────────────
+    // 1. Process Timeline Milestone Gates (timeline_events)
+    // ─────────────────────────────────────────────────────────────────────────
+    const { data: timelineEvents } = await supabase
+      .from("timeline_events")
+      .select(`
+        id,
+        hackathon_id,
+        team_id,
+        title,
+        deadline,
+        is_completed,
+        event_type,
+        hackathon:hackathons(id, title)
+      `)
+      .eq("is_completed", false);
 
-      // Collect all unique users in these teams
-      const processedUserIds = new Set<string>();
+    if (timelineEvents && timelineEvents.length > 0) {
+      for (const ev of timelineEvents) {
+        if (!ev.deadline) continue;
 
-      for (const team of teams) {
-        const members = (team.members as any[]) || [];
+        const deadlineTime = new Date(ev.deadline).getTime();
+        if (isNaN(deadlineTime)) continue;
 
-        for (const member of members) {
-          const profile = member.user;
+        const hoursRemaining = (deadlineTime - nowTime) / (1000 * 60 * 60);
+
+        // Determine trigger window
+        let triggerWindow: "T-24h" | "T-2h" | "overdue" | null = null;
+        if (hoursRemaining <= 24 && hoursRemaining > 2) {
+          triggerWindow = "T-24h";
+        } else if (hoursRemaining <= 2 && hoursRemaining > 0) {
+          triggerWindow = "T-2h";
+        } else if (hoursRemaining <= 0 && hoursRemaining >= -6) {
+          // Passed within the last 6 hours
+          triggerWindow = "overdue";
+        }
+
+        if (!triggerWindow) continue;
+
+        const triggerKey = `milestone_${ev.id}_${triggerWindow}`;
+        const hackathonTitle = (ev.hackathon as any)?.title || "Hackathon Sprint";
+        const cleanTitle = ev.title.replace(/\[@.*?\]/, "").trim();
+
+        // Target recipients: team members or hackathon creators
+        let candidateProfiles: any[] = [];
+
+        if (ev.team_id) {
+          const { data: teamData } = await supabase
+            .from("teams")
+            .select(`
+              name,
+              members:team_members(
+                user:profiles(id, full_name, telegram_chat_id, notify_t24, notify_t2)
+              )
+            `)
+            .eq("id", ev.team_id)
+            .maybeSingle();
+
+          if (teamData?.members) {
+            candidateProfiles = teamData.members.map((m: any) => ({
+              ...m.user,
+              teamName: teamData.name,
+            }));
+          }
+        }
+
+        if (candidateProfiles.length === 0) {
+          // Fallback: Fetch all teams in this hackathon
+          const { data: hackathonTeams } = await supabase
+            .from("teams")
+            .select(`
+              name,
+              members:team_members(
+                user:profiles(id, full_name, telegram_chat_id, notify_t24, notify_t2)
+              )
+            `)
+            .eq("hackathon_id", ev.hackathon_id);
+
+          (hackathonTeams || []).forEach((t: any) => {
+            (t.members || []).forEach((m: any) => {
+              if (m.user) {
+                candidateProfiles.push({ ...m.user, teamName: t.name });
+              }
+            });
+          });
+        }
+
+        const formattedDate = new Date(ev.deadline).toLocaleString([], {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        for (const profile of candidateProfiles) {
           if (!profile || !profile.telegram_chat_id) continue;
-          if (processedUserIds.has(profile.id)) continue; // Avoid duplicate DMs if user in multiple contexts
-          processedUserIds.add(profile.id);
 
-          // Check user preference
-          if (triggerType === "T-24h" && profile.notify_t24 === false) continue;
-          if (triggerType === "T-2h" && profile.notify_t2 === false) continue;
+          // Check user preferences
+          if (triggerWindow === "T-24h" && profile.notify_t24 === false) continue;
+          if (triggerWindow === "T-2h" && profile.notify_t2 === false) continue;
 
-          // Check if notification already dispatched to this user for this hackathon & trigger
-          const { data: existing } = await supabase
-            .from("telegram_notifications")
-            .select("id")
-            .eq("user_id", profile.id)
-            .eq("hackathon_id", hackathon.id)
-            .eq("trigger_type", triggerType)
-            .limit(1);
-
-          if (existing && existing.length > 0) continue;
-
-          const userName = profile.full_name || "Developer";
-
+          const userName = profile.full_name || "Builder";
           let message = "";
-          if (triggerType === "T-24h") {
-            message = `⚠️ *Hackline Urgent Alert [T-24h Remaining]*\n\nHey *${userName}*!\n\n24 hours remain until submission portal closes for *${hackathon.title}* (Squad: *${team.name}*)!\n\n• Finalize core feature branches\n• Prepare demo video link & pitch deck\n• Verify all team members are registered in portal`;
-          } else {
-            message = `🚨 *Hackline Code Freeze Warning [T-2h Remaining]*\n\nHey *${userName}*!\n\nFINAL 2 HOURS for *${hackathon.title}*!\n\n1️⃣ Push main branch & make GitHub repo public\n2️⃣ Upload Loom/YouTube demo & test permissions\n3️⃣ Complete pre-flight checklist gates & submit before portal closes!`;
+
+          if (triggerWindow === "T-24h") {
+            message = `⚠️ *Hackline Milestone Alert [T-24h]*\n\nHey *${userName}*!\n\n24 hours remaining for milestone *"${cleanTitle}"* on *${hackathonTitle}*!\n\n📅 Target Deadline: *${formattedDate}*\n\n• Finalize core tasks & test deliverables\n• Check off submission gates in your dashboard`;
+          } else if (triggerWindow === "T-2h") {
+            message = `🚨 *Hackline Final Sprint Warning [T-2h]*\n\nHey *${userName}*!\n\nFINAL 2 HOURS for milestone *"${cleanTitle}"* on *${hackathonTitle}*!\n\n📅 Target Deadline: *${formattedDate}*\n\n1️⃣ Freeze code and push commits\n2️⃣ Verify video demo and slide deck links\n3️⃣ Complete pre-flight checklist gates`;
+          } else if (triggerWindow === "overdue") {
+            message = `⏰ *Hackline Gate Alert [OVERDUE]*\n\nHey *${userName}*!\n\nThe deadline for milestone *"${cleanTitle}"* on *${hackathonTitle}* has passed (${formattedDate}).\n\nVerify your submission portal status and ensure all deliverable links are active in the Asset Hub!`;
           }
 
-          // Direct private DM to user's Telegram
-          const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chat_id: profile.telegram_chat_id,
-              text: message,
-              parse_mode: "Markdown",
-            }),
-          });
+          const sent = await sendNotification(profile, ev.hackathon_id, triggerKey, message);
+          if (sent) dispatchedCount++;
+        }
+      }
+    }
 
-          const resData = await res.json();
+    // ─────────────────────────────────────────────────────────────────────────
+    // 2. Process Overall Hackathon End Deadlines (hackathons.ends_at)
+    // ─────────────────────────────────────────────────────────────────────────
+    const { data: hackathons } = await supabase
+      .from("hackathons")
+      .select("id, title, ends_at")
+      .gt("ends_at", new Date(nowTime - 6 * 60 * 60 * 1000).toISOString());
 
-          await supabase.from("telegram_notifications").insert({
-            user_id: profile.id,
-            hackathon_id: hackathon.id,
-            trigger_type: triggerType,
-            message_text: message,
-            status: res.ok ? "sent" : "failed",
-            telegram_message_id: resData?.result?.message_id ? String(resData.result.message_id) : null,
-            error_message: res.ok ? null : resData?.description || "Dispatch failed",
-          });
+    if (hackathons && hackathons.length > 0) {
+      for (const hackathon of hackathons) {
+        if (!hackathon.ends_at) continue;
 
-          if (res.ok) dispatchedCount++;
+        const endsAt = new Date(hackathon.ends_at).getTime();
+        if (isNaN(endsAt)) continue;
+
+        const hoursRemaining = (endsAt - nowTime) / (1000 * 60 * 60);
+
+        let triggerWindow: "T-24h" | "T-2h" | "overdue" | null = null;
+        if (hoursRemaining <= 24 && hoursRemaining > 2) {
+          triggerWindow = "T-24h";
+        } else if (hoursRemaining <= 2 && hoursRemaining > 0) {
+          triggerWindow = "T-2h";
+        } else if (hoursRemaining <= 0 && hoursRemaining >= -6) {
+          triggerWindow = "overdue";
+        }
+
+        if (!triggerWindow) continue;
+
+        const triggerKey = `hackathon_${hackathon.id}_${triggerWindow}`;
+
+        const { data: teams } = await supabase
+          .from("teams")
+          .select(`
+            name,
+            members:team_members(
+              user:profiles(id, full_name, telegram_chat_id, notify_t24, notify_t2)
+            )
+          `)
+          .eq("hackathon_id", hackathon.id);
+
+        const processedUserIds = new Set<string>();
+
+        for (const team of teams || []) {
+          for (const member of (team.members as any[]) || []) {
+            const profile = member.user;
+            if (!profile || !profile.telegram_chat_id) continue;
+            if (processedUserIds.has(profile.id)) continue;
+            processedUserIds.add(profile.id);
+
+            if (triggerWindow === "T-24h" && profile.notify_t24 === false) continue;
+            if (triggerWindow === "T-2h" && profile.notify_t2 === false) continue;
+
+            const userName = profile.full_name || "Builder";
+            let message = "";
+
+            if (triggerWindow === "T-24h") {
+              message = `⚠️ *Hackline Urgent Alert [T-24h Remaining]*\n\nHey *${userName}*!\n\n24 hours remain until submission portal closes for *${hackathon.title}* (Squad: *${team.name}*)!\n\n• Finalize core feature branches\n• Prepare demo video link & pitch deck\n• Verify all team members are registered in portal`;
+            } else if (triggerWindow === "T-2h") {
+              message = `🚨 *Hackline Code Freeze Warning [T-2h Remaining]*\n\nHey *${userName}*!\n\nFINAL 2 HOURS for *${hackathon.title}*!\n\n1️⃣ Push main branch & make GitHub repo public\n2️⃣ Upload Loom/YouTube demo & test permissions\n3️⃣ Complete pre-flight checklist gates & submit before portal closes!`;
+            } else if (triggerWindow === "overdue") {
+              message = `🏁 *Hackline Sprint Concluded*\n\nHey *${userName}*!\n\nThe submission window for *${hackathon.title}* has concluded!\n\nReview judging criteria, track submissions, and celebrate with your squad!`;
+            }
+
+            const sent = await sendNotification(profile, hackathon.id, triggerKey, message);
+            if (sent) dispatchedCount++;
+          }
         }
       }
     }

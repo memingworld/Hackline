@@ -90,16 +90,16 @@ export function NotificationsPopover({
       }
     }
 
-    // 2. Squad Roster Alert
+    // 2. Squad Roster Info
     if (activeHackathon && !currentTeam) {
       list.push({
         id: "alert-squad",
         type: "squad",
-        title: "No Squad Assembled",
-        description: `You are flying solo for "${activeHackathon.title}". Form a crew or deploy a squad preset.`,
-        timestamp: "Action Required",
+        title: "Solo Contributor",
+        description: `You are currently registered solo for "${activeHackathon.title}". Form a crew or deploy a squad preset if desired.`,
+        timestamp: "Squad Status",
         href: "/dashboard/squad",
-        urgent: true,
+        urgent: false,
       });
     }
 

@@ -49,20 +49,57 @@ export function DashboardHeader({
   const currentHackathonId = searchParams.get("hackathon") || activeHackathonId || (hackathons[0]?.id ?? "");
   const activeHackathon = hackathons.find((h) => h.id === currentHackathonId) || hackathons[0] || null;
 
-  const hasAlerts = React.useMemo(() => {
-    if (!activeHackathon) return false;
-    if (!currentTeam) return true;
-    if (activeHackathon.ends_at) {
-      const endsTime = new Date(activeHackathon.ends_at).getTime();
-      return !isNaN(endsTime) && endsTime - Date.now() > 0;
-    }
-    return false;
-  }, [activeHackathon, currentTeam]);
+  const [hasViewedAlerts, setHasViewedAlerts] = React.useState(false);
+
+  React.useEffect(() => {
+    try {
+      const viewedTime = localStorage.getItem("hackline_alerts_viewed_at");
+      if (viewedTime) {
+        // If viewed within last 6 hours, treat as viewed
+        if (Date.now() - parseInt(viewedTime, 10) < 6 * 60 * 60 * 1000) {
+          setHasViewedAlerts(true);
+        }
+      }
+    } catch {}
+  }, []);
+
+  const hasUrgentAlerts = React.useMemo(() => {
+    if (hasViewedAlerts) return false;
+    if (!activeHackathon || !activeHackathon.ends_at) return false;
+    const endsTime = new Date(activeHackathon.ends_at).getTime();
+    if (isNaN(endsTime)) return false;
+    const diffHours = (endsTime - Date.now()) / (1000 * 60 * 60);
+    // Only illuminate for actual critical deadline alerts: <= 24 hours remaining and > -6 hours (recent overdue)
+    return diffHours <= 24 && diffHours >= -6;
+  }, [activeHackathon, hasViewedAlerts]);
+
+  const handleOpenAlerts = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsNotificationsOpen((prev) => !prev);
+    setHasViewedAlerts(true);
+    try {
+      localStorage.setItem("hackline_alerts_viewed_at", Date.now().toString());
+    } catch {}
+  };
 
   React.useEffect(() => {
     const handleOpenCommand = () => setIsCommandPaletteOpen(true);
     window.addEventListener("open-command-palette", handleOpenCommand);
     return () => window.removeEventListener("open-command-palette", handleOpenCommand);
+  }, []);
+
+  // Background non-blocking trigger to verify & dispatch pending Telegram deadline alerts
+  React.useEffect(() => {
+    const dispatchTimer = setTimeout(() => {
+      fetch("/api/notifications/telegram/dispatch", {
+        method: "POST",
+        headers: { "x-internal-dispatch": "true" },
+      }).catch(() => {
+        // Non-blocking background ping
+      });
+    }, 2500);
+
+    return () => clearTimeout(dispatchTimer);
   }, []);
 
   const isDedicatedWorkspace = pathname.startsWith("/dashboard/hackathons/") && pathname.split("/").length > 3;
@@ -90,40 +127,40 @@ export function DashboardHeader({
       : userName.toUpperCase() || "ME";
 
   return (
-    <header className="h-14 border-b border-[rgba(229,169,60,0.18)] bg-[#14110e]/95 backdrop-blur-2xl px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20">
+    <header className="h-14 border-b border-[rgba(229,169,60,0.18)] bg-[#14110e]/95 backdrop-blur-2xl px-3 sm:px-6 flex items-center justify-between sticky top-0 z-20">
       {/* Left: Mobile Drawer Hamburger Toggle + Context Breadcrumb */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         {/* Mobile Hamburger Button */}
         <button
           onClick={handleToggleMobileSidebar}
           type="button"
-          className="md:hidden p-2 rounded-xl border border-[rgba(229,169,60,0.22)] bg-[#1f1b16] text-[#a89a8c] hover:text-[#fef3c7] hover:border-[#e5a93c]/50 transition-colors"
+          className="md:hidden p-2 rounded-xl border border-[rgba(229,169,60,0.22)] bg-[#1f1b16] text-[#a89a8c] hover:text-[#fef3c7] hover:border-[#e5a93c]/50 transition-colors shrink-0"
           title="Open Navigation Menu"
         >
           <Menu className="h-4 w-4" />
         </button>
 
         {currentWorkspaceHackathon ? (
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-[#e5a93c] animate-pulse shadow-[0_0_8px_rgba(229,169,60,0.8)]" />
-            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6] font-semibold">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <span className="flex h-2 w-2 rounded-full bg-[#e5a93c] animate-pulse shadow-[0_0_8px_rgba(229,169,60,0.8)] shrink-0" />
+            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6] font-semibold shrink-0">
               {currentWorkspaceHackathon.source_platform}
             </span>
-            <span className="text-xs font-semibold text-[#fef3c7] truncate max-w-[140px] sm:max-w-xs">
+            <span className="text-xs font-semibold text-[#fef3c7] truncate max-w-[120px] sm:max-w-xs">
               {currentWorkspaceHackathon.title}
             </span>
           </div>
         ) : (
           <Link
             href="/dashboard"
-            className="flex items-center gap-2.5 text-xs font-mono text-[#a89a8c] hover:text-[#fef3c7] transition-colors group"
+            className="flex items-center gap-2 text-xs font-mono text-[#a89a8c] hover:text-[#fef3c7] transition-colors group min-w-0"
           >
-            <span className="flex h-2 w-2 rounded-full bg-[#e5a93c] animate-pulse shadow-[0_0_8px_rgba(229,169,60,0.8)]" />
-            <span className="font-bold tracking-tight text-[#fef3c7] group-hover:text-[#e5a93c] transition-colors">
+            <span className="flex h-2 w-2 rounded-full bg-[#e5a93c] animate-pulse shadow-[0_0_8px_rgba(229,169,60,0.8)] shrink-0" />
+            <span className="font-bold tracking-tight text-[#fef3c7] group-hover:text-[#e5a93c] transition-colors whitespace-nowrap">
               MISSION CONTROL
             </span>
             {hackathons.length > 0 && (
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-[rgba(229,169,60,0.18)] bg-[#1f1b16] text-[#a89a8c]">
+              <span className="hidden sm:inline-flex text-[10px] font-mono px-2 py-0.5 rounded-full border border-[rgba(229,169,60,0.18)] bg-[#1f1b16] text-[#a89a8c]">
                 {hackathons.length} {hackathons.length === 1 ? "Sprint" : "Sprints"}
               </span>
             )}
@@ -132,7 +169,7 @@ export function DashboardHeader({
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
         {/* Quick Search Trigger */}
         <button
           onClick={() => setIsCommandPaletteOpen(true)}
@@ -145,16 +182,16 @@ export function DashboardHeader({
           </kbd>
         </button>
 
-        {/* Magic Import CTA */}
+        {/* Magic Import CTA - Icon only on mobile, text on sm+ */}
         <Link href="/dashboard/hackathons?action=scrape">
           <Button
             size="sm"
             variant="primary"
-            className="h-8 px-3 sm:px-3.5 rounded-xl text-xs gap-1.5 font-bold shadow-md active:scale-[0.98]"
+            className="h-8 px-2.5 sm:px-3.5 rounded-xl text-xs gap-1.5 font-bold shadow-md active:scale-[0.98]"
+            title="Import Hackathon"
           >
-            <Sparkles className="h-3 w-3 text-[#14110e]" />
+            <Sparkles className="h-3.5 w-3.5 text-[#14110e]" />
             <span className="hidden sm:inline">Import Event</span>
-            <span className="sm:hidden">Import</span>
           </Button>
         </Link>
 
@@ -162,15 +199,12 @@ export function DashboardHeader({
         <div className="relative">
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsNotificationsOpen((prev) => !prev);
-            }}
+            onClick={handleOpenAlerts}
             className="relative flex h-8 w-8 items-center justify-center rounded-xl border border-[rgba(229,169,60,0.18)] bg-[#1f1b16] text-[#a89a8c] hover:text-[#fef3c7] hover:border-[#e5a93c]/40 transition-colors"
             title="System Alerts & Deadlines"
           >
             <Bell className="h-3.5 w-3.5" />
-            {hasAlerts && (
+            {hasUrgentAlerts && (
               <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-[#e5a93c] shadow-[0_0_6px_rgba(229,169,60,0.9)]" />
             )}
           </button>

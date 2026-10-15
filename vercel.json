@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/notifications/telegram/dispatch",
+      "schedule": "*/10 * * * *"
+    }
+  ],
   "services": {
     "app": {
       "root": ".",
