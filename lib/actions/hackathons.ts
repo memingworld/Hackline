@@ -6,6 +6,7 @@ import { sanitizePlainText, sanitizeSafeUrl } from "@/lib/security";
 import { encodeReservedMembers, ReservedMember } from "@/lib/data/reserved-members";
 import { notifySquadDeployment, notifyTeammateAssignment } from "@/lib/actions/notifications";
 import { parseDateTimeInputToUtc } from "@/lib/utils";
+import { DEFAULT_GATES } from "@/lib/constants/checklist";
 
 export async function updateHackathon(
   id: string,
@@ -421,30 +422,16 @@ export async function createHackathon(payload: {
         await supabase.from("timeline_events").insert(defaultGates);
       }
 
-      // Initialize default submission checklist
-      const defaultChecks = [
-        {
-          team_id: team.id,
-          item_key: "repo_public",
-          title: "Public GitHub repository with open source license",
-        },
-        {
-          team_id: team.id,
-          item_key: "readme_diagram",
-          title: "README documentation with architecture diagram & setup guide",
-        },
-        {
-          team_id: team.id,
-          item_key: "demo_video",
-          title: "3-minute Loom demo walkthrough uploaded",
-        },
-        {
-          team_id: team.id,
-          item_key: "teammates_added",
-          title: "All squad members verified on event portal",
-        },
-      ];
-      await supabase.from("submission_checklists").insert(defaultChecks);
+      // Initialize default submission checklist (unified 5 standardized gates)
+      const defaultChecks = DEFAULT_GATES.map((gate) => ({
+        team_id: team.id,
+        item_key: gate.item_key,
+        title: gate.title,
+        is_completed: false,
+      }));
+      await supabase
+        .from("submission_checklists")
+        .upsert(defaultChecks, { onConflict: "team_id,item_key" });
     }
 
     revalidatePath("/dashboard");

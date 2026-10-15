@@ -4,13 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sanitizePlainText } from "@/lib/security";
 
-const DEFAULT_GATES = [
-  { item_key: "repo_public", title: "Repository is Public with Open-Source License" },
-  { item_key: "demo_video_ready", title: "Demo Walkthrough Video Recorded & Accessible (< 3 mins)" },
-  { item_key: "deck_finalized", title: "Pitch Presentation Slides Finalized & Hosted" },
-  { item_key: "teammates_verified", title: "All Squad Teammates Registered on Portal" },
-  { item_key: "readme_architecture", title: "README Documentation & Architecture Diagram Included" },
-];
+import { DEFAULT_GATES } from "@/lib/constants/checklist";
 
 /**
  * Ensure default pre-flight checklist gates exist for the active team.
