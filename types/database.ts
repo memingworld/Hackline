@@ -26,6 +26,7 @@ export interface Profile {
   telegram_connected_at?: string | null;
   notify_t24?: boolean;
   notify_t2?: boolean;
+  theme?: string | null;
   created_at: string;
   updated_at: string;
 }
