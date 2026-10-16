@@ -18,6 +18,7 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { Hackathon, Team } from "@/types/database";
 import { CommandPalette } from "./CommandPalette";
+import { formatPlatformName } from "@/lib/utils";
 import { NotificationsPopover } from "./NotificationsPopover";
 import { ThemeSelector } from "@/components/theme/ThemeSelector";
 
@@ -145,8 +146,8 @@ export function DashboardHeader({
         {currentWorkspaceHackathon ? (
           <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
             <span className="flex h-2 w-2 rounded-full bg-mustard animate-pulse shadow-[0_0_8px_var(--accent-mustard)] shrink-0" />
-            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-steel/35 bg-steel/15 text-steel font-semibold shrink-0">
-              {currentWorkspaceHackathon.source_platform}
+            <span translate="no" className="text-[10px] font-mono px-2 py-0.5 rounded border border-steel/35 bg-steel/15 text-steel font-semibold shrink-0 notranslate">
+              {formatPlatformName(currentWorkspaceHackathon.source_platform)}
             </span>
             <span className="text-xs font-semibold text-parchment truncate max-w-[120px] sm:max-w-xs">
               {currentWorkspaceHackathon.title}

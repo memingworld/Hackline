@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { joinTeamByInviteCode } from "@/lib/actions/squads";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { formatPlatformName } from "@/lib/utils";
 
 interface InviteJoinCardProps {
   team: InviteTeamDetails;
@@ -101,8 +102,8 @@ export function InviteJoinCard({
               Official Squad Invitation
             </span>
           </div>
-          <span className="text-xs font-mono px-2.5 py-0.5 rounded-full border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6] capitalize font-semibold">
-            {team.hackathon.source_platform}
+          <span translate="no" className="text-xs font-mono px-2.5 py-0.5 rounded-full border border-steel/35 bg-steel/15 text-steel font-semibold notranslate">
+            {formatPlatformName(team.hackathon.source_platform)}
           </span>
         </div>
 

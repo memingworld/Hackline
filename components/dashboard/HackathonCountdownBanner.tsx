@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { EditHackathonDialog } from "@/components/dashboard/EditHackathonDialog";
+import { formatPlatformName } from "@/lib/utils";
 
 interface CountdownProps {
   hackathon: Hackathon;
@@ -116,8 +117,8 @@ export function HackathonCountdownBanner({ hackathon, timelineEvents = [] }: Cou
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1f1b16] via-black/20 to-black/40 pointer-events-none" />
           <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex items-center gap-2 flex-wrap z-10">
-            <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full border border-[rgba(229,169,60,0.4)] bg-black/70 backdrop-blur-md text-[#fef3c7] font-semibold shadow-md">
-              {hackathon.source_platform}
+            <span translate="no" className="text-[10px] font-mono px-2.5 py-0.5 rounded-full border border-mustard/40 bg-black/70 backdrop-blur-md text-parchment font-semibold shadow-md notranslate">
+              {formatPlatformName(hackathon.source_platform)}
             </span>
             {hackathon.prize_pool && (
               <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border border-[#e5a93c]/50 bg-black/70 backdrop-blur-md text-[#e5a93c] shadow-md">
@@ -150,7 +151,7 @@ export function HackathonCountdownBanner({ hackathon, timelineEvents = [] }: Cou
             {hackathon.title}
           </h2>
           <p className="text-[11px] font-mono font-bold uppercase tracking-wider opacity-85 mt-0.5">
-            Source: {hackathon.source_platform} • Prize: {hackathon.prize_pool || "TBA"}
+            Source: <span translate="no" className="notranslate">{formatPlatformName(hackathon.source_platform)}</span> • Prize: {hackathon.prize_pool || "TBA"}
           </p>
 
           {/* Interactive Clock Mode Toggle Pill */}
@@ -262,7 +263,7 @@ export function HackathonCountdownBanner({ hackathon, timelineEvents = [] }: Cou
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 hover:bg-[#4a82a6]/25 text-[#7bb4d6] text-xs font-semibold transition-all active:scale-[0.98]"
             >
-              <span className="capitalize">{hackathon.source_platform} Portal</span>
+              <span translate="no" className="notranslate">{formatPlatformName(hackathon.source_platform)} Portal</span>
               <ExternalLink className="h-3 w-3" />
             </a>
           )}

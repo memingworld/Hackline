@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getActiveHackathons } from "@/lib/data/hackathons";
 import { getUserAllTeams } from "@/lib/data/squads";
 import { getAllUserTimelineEvents } from "@/lib/data/timeline";
-import { formatDateTimeIst } from "@/lib/utils";
+import { formatDateTimeIst, formatPlatformName } from "@/lib/utils";
 import {
   Trophy,
   Users,
@@ -207,8 +207,8 @@ export default async function DashboardPage() {
                   <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6] font-semibold">
-                          {h.source_platform}
+                        <span translate="no" className="text-[10px] font-mono px-2 py-0.5 rounded border border-steel/35 bg-steel/15 text-steel font-semibold notranslate">
+                          {formatPlatformName(h.source_platform)}
                         </span>
                         {h.prize_pool && (
                           <span className="text-[10px] font-mono font-bold text-[#e5a93c] bg-[#e5a93c]/10 border border-[#e5a93c]/25 px-2 py-0.5 rounded">

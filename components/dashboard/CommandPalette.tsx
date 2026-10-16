@@ -19,6 +19,7 @@ import {
   Command,
 } from "lucide-react";
 import { Hackathon } from "@/types/database";
+import { formatPlatformName } from "@/lib/utils";
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -194,7 +195,7 @@ export function CommandPalette({
                             {h.title}
                           </span>
                           <span className="text-[10px] text-clay font-mono">
-                            {h.source_platform.toUpperCase()} &bull; {h.prize_pool || "TBA"}
+                            <span translate="no" className="notranslate">{formatPlatformName(h.source_platform)}</span> &bull; {h.prize_pool || "TBA"}
                           </span>
                         </div>
                       </div>

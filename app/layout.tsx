@@ -8,6 +8,9 @@ import { ThemeSyncProvider } from "@/components/theme/ThemeSyncProvider";
 export const metadata: Metadata = {
   title: "Hackline — Next-Gen Hackathon Management Platform",
   description: "Organize, track, and dominate hackathons with elite team workspaces and smart integrations.",
+  other: {
+    google: "notranslate",
+  },
 };
 
 export default async function RootLayout({
@@ -21,7 +24,12 @@ export default async function RootLayout({
   const isDark = THEMES[activeTheme]?.category === "dark";
 
   return (
-    <html lang="en" data-theme={activeTheme} className={isDark ? "dark" : ""}>
+    <html
+      lang="en"
+      translate="no"
+      data-theme={activeTheme}
+      className={`${isDark ? "dark" : ""} notranslate`}
+    >
       <body className="min-h-screen bg-canvas text-parchment antialiased selection:bg-mustard/30 selection:text-parchment">
         <ThemeSyncProvider />
         {children}

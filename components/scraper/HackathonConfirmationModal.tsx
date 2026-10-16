@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { createHackathonFromScraper } from "@/lib/actions/hackathons";
 import { toast } from "sonner";
 import { SavedSquad } from "@/types/database";
-import { toLocalDatetimeString, parseDateTimeInputToUtc, formatDateTimeIst } from "@/lib/utils";
+import { toLocalDatetimeString, parseDateTimeInputToUtc, formatDateTimeIst, formatPlatformName } from "@/lib/utils";
 import {
   X,
   Sparkles,
@@ -157,8 +157,8 @@ export function HackathonConfirmationModal({
               </h3>
               <p className="text-[11px] text-clay font-mono truncate">
                 Source:{" "}
-                <span className="uppercase text-mustard font-semibold">
-                  {initialData.source_platform}
+                <span translate="no" className="text-mustard font-semibold notranslate">
+                  {formatPlatformName(initialData.source_platform)}
                 </span>{" "}
                 ({initialData.extraction_method || "Direct Engine"})
               </p>

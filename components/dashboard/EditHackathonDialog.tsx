@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { extractReservedMembers } from "@/lib/data/reserved-members";
-import { toLocalDatetimeString, parseDateTimeInputToUtc } from "@/lib/utils";
+import { toLocalDatetimeString, parseDateTimeInputToUtc, formatPlatformName } from "@/lib/utils";
 
 interface EditHackathonDialogProps {
   hackathon: Hackathon;
@@ -300,8 +300,11 @@ export function EditHackathonDialog({
               <h3 className="text-sm font-bold text-parchment tracking-tight truncate font-mono">
                 Edit Hackathon & Rounds
               </h3>
-              <p className="text-[11px] font-mono text-clay uppercase truncate">
-                Platform: <span className="text-mustard font-semibold">{hackathon.source_platform}</span>
+              <p className="text-[11px] font-mono text-clay truncate">
+                Platform:{" "}
+                <span translate="no" className="text-mustard font-semibold notranslate">
+                  {formatPlatformName(hackathon.source_platform)}
+                </span>
               </p>
             </div>
           </div>

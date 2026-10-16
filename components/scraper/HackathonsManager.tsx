@@ -8,7 +8,7 @@ import { HackathonConfirmationModal } from "@/components/scraper/HackathonConfir
 import { EditHackathonDialog } from "@/components/dashboard/EditHackathonDialog";
 import { ManualHackathonForm } from "@/components/scraper/ManualHackathonForm";
 import { deleteHackathon } from "@/lib/actions/hackathons";
-import { formatDateIst } from "@/lib/utils";
+import { formatDateIst, formatPlatformName } from "@/lib/utils";
 import {
   Trophy,
   Calendar,
@@ -221,8 +221,8 @@ export function HackathonsManager({
                       {/* Top Row Badges */}
                       <div className="flex items-center justify-between gap-2 mb-3">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6] font-semibold">
-                            {h.source_platform}
+                          <span translate="no" className="text-[10px] font-mono px-2 py-0.5 rounded border border-steel/35 bg-steel/15 text-steel font-semibold notranslate">
+                            {formatPlatformName(h.source_platform)}
                           </span>
 
                           {(() => {
@@ -420,8 +420,8 @@ export function HackathonsManager({
 
               {/* Top Banner or Badges */}
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6] font-semibold">
-                  {inspectingHackathon.source_platform}
+                <span translate="no" className="text-[10px] font-mono px-2.5 py-0.5 rounded border border-steel/35 bg-steel/15 text-steel font-semibold notranslate">
+                  {formatPlatformName(inspectingHackathon.source_platform)}
                 </span>
                 {inspectingHackathon.prize_pool && (
                   <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded border border-[#e5a93c]/35 bg-[#e5a93c]/15 text-[#e5a93c]">

@@ -287,3 +287,30 @@ export function formatNotificationDeadline(
     countdownText,
   };
 }
+
+/**
+ * Format a platform identifier into a clean brand name.
+ * Prevents translation issues and normalizes display casing.
+ */
+export function formatPlatformName(platform?: string | null): string {
+  if (!platform) return "Custom";
+  const lower = platform.toLowerCase();
+  switch (lower) {
+    case "unstop":
+      return "Unstop";
+    case "devfolio":
+      return "Devfolio";
+    case "devpost":
+      return "Devpost";
+    case "devnovate":
+      return "Devnovate";
+    case "luma":
+      return "Luma";
+    case "hack2skill":
+      return "Hack2skill";
+    case "custom":
+      return "Custom";
+    default:
+      return platform.charAt(0).toUpperCase() + platform.slice(1);
+  }
+}

@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { generateMultiEventIcsContent, generateGoogleCalendarUrl } from "@/lib/utils/calendar";
-import { toDateKey, APP_TIMEZONE, formatDateTimeIst, formatTimeIst } from "@/lib/utils";
+import { toDateKey, APP_TIMEZONE, formatDateTimeIst, formatTimeIst, formatPlatformName } from "@/lib/utils";
 import Link from "next/link";
 
 interface UnifiedCalendarViewProps {
@@ -207,8 +207,8 @@ export function UnifiedCalendarView({
                     : "text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#28231d] border border-transparent"
                 }`}
               >
-                <span className="uppercase text-[10px] text-[#7bb4d6]">
-                  {h.source_platform}
+                <span translate="no" className="text-[10px] text-[#7bb4d6] notranslate">
+                  {formatPlatformName(h.source_platform)}
                 </span>
                 <span className="truncate max-w-[150px]">{h.title}</span>
                 <span className="text-[10px] opacity-70">({count})</span>
