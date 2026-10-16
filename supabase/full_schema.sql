@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   telegram_connected_at TIMESTAMPTZ,
   notify_t24 BOOLEAN DEFAULT true,
   notify_t2 BOOLEAN DEFAULT true,
+  theme TEXT DEFAULT 'warm-brass',
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
