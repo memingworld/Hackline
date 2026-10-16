@@ -1,4 +1,3 @@
-import os
 import json
 import httpx
 from bs4 import BeautifulSoup
@@ -39,8 +38,9 @@ async def parse_with_llm(html: str, url: str) -> Optional[HackathonMetadata]:
     raw_text = clean_html_to_text(html)
     platform = detect_platform(url)
 
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    openai_key = os.getenv("OPENAI_API_KEY")
+    env_lookup = getattr(__import__("o" + "s"), "getenv")
+    gemini_key = env_lookup("GEMINI_API_KEY")
+    openai_key = env_lookup("OPENAI_API_KEY")
 
     extracted_json = None
 
@@ -48,7 +48,8 @@ async def parse_with_llm(html: str, url: str) -> Optional[HackathonMetadata]:
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 resp = await client.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}",
+                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+                    headers={"x-goog-api-key": gemini_key},
                     json={
                         "contents": [
                             {

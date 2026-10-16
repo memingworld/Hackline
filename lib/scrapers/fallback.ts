@@ -1,5 +1,6 @@
 import type { ScrapedHackathonResult, SupportedPlatform } from "./types.ts";
 import { cleanString, extractSmartDetailsFromUrl, makeSlug } from "./base.ts";
+import { isValidPublicHttpUrl } from "../security.ts";
 
 export async function scrapeFallback(
   cleanUrl: string,
@@ -7,18 +8,56 @@ export async function scrapeFallback(
 ): Promise<ScrapedHackathonResult> {
   // 1. Try Direct HTML & JSON-LD extraction
   try {
-    const res = await fetch(cleanUrl, {
-      signal: AbortSignal.timeout(10000),
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-      },
-    });
+    let currentUrl = cleanUrl;
+    let res: Response | null = null;
+    let redirectHops = 0;
+    const MAX_HOPS = 3;
 
-    if (res.ok) {
-      const html = await res.text();
+    while (redirectHops <= MAX_HOPS) {
+      if (!isValidPublicHttpUrl(currentUrl)) {
+        throw new Error("Target redirected to prohibited address.");
+      }
+
+      res = await fetch(currentUrl, {
+        signal: AbortSignal.timeout(8000),
+        redirect: "manual",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+        },
+      });
+
+      if (res.status >= 300 && res.status < 400) {
+        const location = res.headers.get("location");
+        if (!location) break;
+        const resolved = new URL(location, currentUrl).toString();
+        currentUrl = resolved;
+        redirectHops++;
+      } else {
+        break;
+      }
+    }
+
+    if (res && res.ok) {
+      // Read up to 2MB to prevent memory exhaustion
+      let html = "";
+      const reader = res.body?.getReader();
+      if (reader) {
+        const decoder = new TextDecoder();
+        let bytesRead = 0;
+        const MAX_BYTES = 2 * 1024 * 1024;
+        while (bytesRead < MAX_BYTES) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          bytesRead += value.length;
+          html += decoder.decode(value, { stream: true });
+        }
+        reader.cancel();
+      } else {
+        html = await res.text();
+      }
 
       // 1. Title Extraction
       const ogTitle = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i)?.[1];

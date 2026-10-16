@@ -1,5 +1,6 @@
 "use server";
 
+import crypto from "crypto";
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sanitizePlainText } from "@/lib/security";
@@ -403,8 +404,8 @@ export async function regenerateInviteCode(teamId: string) {
       return { success: true, inviteCode: rpcCode };
     }
 
-    // Fallback: Direct update with random 12-char hex
-    const newCode = Math.random().toString(36).substring(2, 8) + Math.random().toString(36).substring(2, 8);
+    // Fallback: Direct update with cryptographically secure random 12-char hex
+    const newCode = crypto.randomBytes(6).toString("hex");
     const { error } = await supabase
       .from("teams")
       .update({ invite_code: newCode, updated_at: new Date().toISOString() })

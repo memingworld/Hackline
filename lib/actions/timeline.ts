@@ -106,6 +106,41 @@ export async function toggleTimelineEventCompletion(eventId: string, isCompleted
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
+    const { data: event, error: fetchErr } = await supabase
+      .from("timeline_events")
+      .select("id, hackathon_id, team_id, team:teams(captain_id), hackathon:hackathons(created_by)")
+      .eq("id", eventId)
+      .maybeSingle();
+
+    if (fetchErr || !event) {
+      return { success: false, error: "Milestone not found." };
+    }
+
+    // Verify authorization: team member, squad captain, or event creator
+    let isAuthorized = false;
+    const isTeamCaptain = (event.team as any)?.captain_id === user.id;
+    const isHackathonCreator = (event.hackathon as any)?.created_by === user.id;
+
+    if (isTeamCaptain || isHackathonCreator) {
+      isAuthorized = true;
+    } else if (event.team_id) {
+      const { data: membership } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("team_id", event.team_id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (membership) isAuthorized = true;
+    }
+
+    if (!isAuthorized) {
+      return {
+        success: false,
+        error: "Forbidden: You do not have permission to modify this milestone.",
+      };
+    }
+
     const { data: updatedEvent, error } = await supabase
       .from("timeline_events")
       .update({ is_completed: isCompleted })

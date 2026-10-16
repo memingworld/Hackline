@@ -1,11 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import {
   isValidPublicHttpUrl,
   sanitizeSafeUrl,
   sanitizePlainText,
   sanitizeSafeRedirectPath,
   constantTimeCompare,
+  escapeTelegramMarkdown,
+  generateTelegramConnectToken,
+  verifyTelegramConnectToken,
 } from "../lib/security.ts";
 
 test("SAST Security Test Suite: SSRF Prevention", async (t) => {
@@ -168,3 +172,70 @@ test("SAST Security Test Suite: Constant-Time Comparison Timing Defense", async 
     assert.equal(constantTimeCompare("", "secret"), false);
   });
 });
+
+test("Telegram Security Suite: Markdown Sanitization", async (t) => {
+  await t.test("escapes formatting entities to prevent Telegram parse crashes", () => {
+    const raw = "Team *Alpha* [Hackathon_2026] `code_snippet`";
+    const escaped = escapeTelegramMarkdown(raw);
+    assert.equal(escaped, "Team \\*Alpha\\* \\[Hackathon\\_2026\\] \\`code\\_snippet\\`");
+  });
+
+  await t.test("handles null, undefined, and empty inputs gracefully", () => {
+    assert.equal(escapeTelegramMarkdown(""), "");
+    assert.equal(escapeTelegramMarkdown(null), "");
+    assert.equal(escapeTelegramMarkdown(undefined), "");
+  });
+});
+
+test("Telegram Security Suite: Cryptographic Account Linking Tokens", async (t) => {
+  const userId = "usr_99aa88bb77cc";
+
+  await t.test("generates and verifies a valid HMAC-signed connect token", () => {
+    const token = generateTelegramConnectToken(userId);
+    assert.ok(token && typeof token === "string");
+    const verified = verifyTelegramConnectToken(token);
+    assert.equal(verified, userId);
+  });
+
+  await t.test("rejects tampered token signature", () => {
+    const token = generateTelegramConnectToken(userId);
+    const decoded = Buffer.from(token, "base64url").toString("utf-8");
+    const parts = decoded.split(":");
+    // Tamper with the incoming signature
+    parts[2] = "00000000000000000000000000000000";
+    const tamperedToken = Buffer.from(parts.join(":")).toString("base64url");
+    assert.equal(verifyTelegramConnectToken(tamperedToken), null);
+  });
+
+  await t.test("rejects tampered user identifier in token payload", () => {
+    const token = generateTelegramConnectToken(userId);
+    const decoded = Buffer.from(token, "base64url").toString("utf-8");
+    const parts = decoded.split(":");
+    // Tamper with the user ID without updating the signature
+    parts[0] = "usr_evil_impersonator";
+    const tamperedToken = Buffer.from(parts.join(":")).toString("base64url");
+    assert.equal(verifyTelegramConnectToken(tamperedToken), null);
+  });
+
+  await t.test("rejects expired tokens older than one hour", () => {
+    // Generate token with timestamp from 2 hours ago
+    const expiredTimestamp = (Date.now() - 2 * 60 * 60 * 1000).toString();
+    const secret = "hackline_telegram_link_secret";
+    const payload = `${userId}:${expiredTimestamp}`;
+    const signature = crypto
+      .createHmac("sha256", secret)
+      .update(payload)
+      .digest("hex")
+      .substring(0, 32);
+    const expiredToken = Buffer.from(`${payload}:${signature}`).toString("base64url");
+    assert.equal(verifyTelegramConnectToken(expiredToken), null);
+  });
+
+  await t.test("rejects invalid, malformed, or blank tokens", () => {
+    assert.equal(verifyTelegramConnectToken(""), null);
+    assert.equal(verifyTelegramConnectToken(null), null);
+    assert.equal(verifyTelegramConnectToken("invalid-base64url-token"), null);
+    assert.equal(verifyTelegramConnectToken("abc:123"), null);
+  });
+});
+

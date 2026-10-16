@@ -90,11 +90,61 @@ export async function uploadAvatar(formData: FormData): Promise<{ success: boole
       return { success: false, error: "Image size must be less than 5MB." };
     }
 
-    // 2. MIME type validation
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-    if (!allowedTypes.includes(file.type)) {
-      return { success: false, error: "Only JPG, PNG, WEBP, or GIF images are allowed." };
+    const arrayBuffer = await file.arrayBuffer();
+    const fileBuffer = Buffer.from(arrayBuffer);
+
+    // 2. Binary magic byte inspection to verify authentic raster images
+    let verifiedExt = "";
+    let verifiedMime = "";
+
+    if (fileBuffer.length > 3 && fileBuffer[0] === 0xff && fileBuffer[1] === 0xd8 && fileBuffer[2] === 0xff) {
+      verifiedExt = "jpg";
+      verifiedMime = "image/jpeg";
+    } else if (
+      fileBuffer.length > 8 &&
+      fileBuffer[0] === 0x89 &&
+      fileBuffer[1] === 0x50 &&
+      fileBuffer[2] === 0x4e &&
+      fileBuffer[3] === 0x47 &&
+      fileBuffer[4] === 0x0d &&
+      fileBuffer[5] === 0x0a &&
+      fileBuffer[6] === 0x1a &&
+      fileBuffer[7] === 0x0a
+    ) {
+      verifiedExt = "png";
+      verifiedMime = "image/png";
+    } else if (
+      fileBuffer.length > 6 &&
+      fileBuffer[0] === 0x47 &&
+      fileBuffer[1] === 0x49 &&
+      fileBuffer[2] === 0x46 &&
+      fileBuffer[3] === 0x38 &&
+      (fileBuffer[4] === 0x37 || fileBuffer[4] === 0x39) &&
+      fileBuffer[5] === 0x61
+    ) {
+      verifiedExt = "gif";
+      verifiedMime = "image/gif";
+    } else if (
+      fileBuffer.length > 12 &&
+      fileBuffer[0] === 0x52 &&
+      fileBuffer[1] === 0x49 &&
+      fileBuffer[2] === 0x46 &&
+      fileBuffer[3] === 0x46 &&
+      fileBuffer[8] === 0x57 &&
+      fileBuffer[9] === 0x45 &&
+      fileBuffer[10] === 0x42 &&
+      fileBuffer[11] === 0x50
+    ) {
+      verifiedExt = "webp";
+      verifiedMime = "image/webp";
+    } else {
+      return {
+        success: false,
+        error: "Invalid file contents. Only authentic JPG, PNG, WEBP, or GIF images are allowed.",
+      };
     }
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
     // 3. Ensure avatars bucket exists
     try {
@@ -112,18 +162,14 @@ export async function uploadAvatar(formData: FormData): Promise<{ success: boole
       console.warn("Storage bucket ensure check notice:", bErr);
     }
 
-    // 4. File extension and target path
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const filePath = `${user.id}/avatar-${Date.now()}.${ext}`;
-
-    const arrayBuffer = await file.arrayBuffer();
-    const fileBuffer = Buffer.from(arrayBuffer);
+    // 4. File extension and target path derived strictly from verified binary bytes
+    const filePath = `${user.id}/avatar-${Date.now()}.${verifiedExt}`;
 
     // Attempt upload with user client first
     let uploadResult = await supabase.storage
       .from("avatars")
       .upload(filePath, fileBuffer, {
-        contentType: file.type,
+        contentType: verifiedMime,
         upsert: true,
       });
 
@@ -133,7 +179,7 @@ export async function uploadAvatar(formData: FormData): Promise<{ success: boole
       uploadResult = await adminClient.storage
         .from("avatars")
         .upload(filePath, fileBuffer, {
-          contentType: file.type,
+          contentType: verifiedMime,
           upsert: true,
         });
     }

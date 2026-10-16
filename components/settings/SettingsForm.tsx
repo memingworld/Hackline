@@ -34,6 +34,7 @@ import {
   saveTelegramSettings,
   disconnectTelegram,
   sendTestTelegramNotification,
+  getTelegramConnectLink,
 } from "@/lib/actions/notifications";
 import {
   updateUserProfile,
@@ -341,6 +342,24 @@ export function SettingsForm({
       toast.error("Error disconnecting Telegram");
     } finally {
       setIsDisconnecting(false);
+    }
+  };
+
+  const [isGeneratingConnectLink, setIsGeneratingConnectLink] = React.useState(false);
+
+  const handleConnectTelegram = async () => {
+    setIsGeneratingConnectLink(true);
+    try {
+      const res = await getTelegramConnectLink();
+      if (res.success && res.url) {
+        window.open(res.url, "_blank");
+      } else {
+        toast.error(res.error || "Failed to generate connection link.");
+      }
+    } catch {
+      toast.error("Error creating connection link.");
+    } finally {
+      setIsGeneratingConnectLink(false);
     }
   };
 
@@ -859,16 +878,16 @@ export function SettingsForm({
                     </p>
                   </div>
 
-                  <a
-                    href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "HacklineAlertsBot"}?start=${profile?.id || ""}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-mustard hover:bg-mustard-hover text-canvas font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shrink-0"
+                  <button
+                    type="button"
+                    onClick={handleConnectTelegram}
+                    disabled={isGeneratingConnectLink}
+                    className="inline-flex items-center gap-2 bg-mustard hover:bg-mustard-hover disabled:opacity-50 text-canvas font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shrink-0 cursor-pointer"
                   >
                     <Send className="h-3.5 w-3.5 fill-current" />
-                    <span>Connect via Telegram</span>
+                    <span>{isGeneratingConnectLink ? "Preparing..." : "Connect via Telegram"}</span>
                     <ExternalLink className="h-3 w-3 opacity-60" />
-                  </a>
+                  </button>
                 </div>
 
                 {/* Manual Chat ID Fallback */}

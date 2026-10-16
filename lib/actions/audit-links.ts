@@ -1,5 +1,8 @@
 "use server";
 
+import { createClient } from "@/utils/supabase/server";
+import { isValidPublicHttpUrl } from "@/lib/security";
+
 export interface LinkAuditResult {
   url: string;
   type: "repo" | "demo" | "deck" | "live";
@@ -8,7 +11,7 @@ export interface LinkAuditResult {
 }
 
 /**
- * Audit deliverable URLs to prevent common submission disasters (e.g. private repos, restricted Google Slides).
+ * Audit deliverable URLs to prevent common submission mistakes (such as restricted decks or invalid links).
  */
 export async function auditSubmissionLinks(links: {
   repoUrl?: string;
@@ -16,24 +19,40 @@ export async function auditSubmissionLinks(links: {
   deckUrl?: string;
   liveAppUrl?: string;
 }): Promise<LinkAuditResult[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return [
+      {
+        url: "",
+        type: "repo",
+        status: "error",
+        message: "Authentication required to audit submission links.",
+      },
+    ];
+  }
+
   const results: LinkAuditResult[] = [];
 
   // 1. Audit Slide Deck URL
   if (links.deckUrl?.trim()) {
     const deck = links.deckUrl.trim();
-    if (deck.includes("docs.google.com") && deck.includes("/edit")) {
+    if (!isValidPublicHttpUrl(deck)) {
+      results.push({
+        url: deck,
+        type: "deck",
+        status: "error",
+        message: "Invalid or prohibited destination. Only public web pitch decks are permitted.",
+      });
+    } else if (deck.includes("docs.google.com") && deck.includes("/edit")) {
       results.push({
         url: deck,
         type: "deck",
         status: "warning",
         message: "Deck link has '/edit' in URL. Ensure sharing is set to 'Anyone with link can view'.",
-      });
-    } else if (!deck.startsWith("http://") && !deck.startsWith("https://")) {
-      results.push({
-        url: deck,
-        type: "deck",
-        status: "error",
-        message: "Invalid URL format (missing https://).",
       });
     } else {
       results.push({
@@ -48,12 +67,12 @@ export async function auditSubmissionLinks(links: {
   // 2. Audit GitHub Repository URL
   if (links.repoUrl?.trim()) {
     const repo = links.repoUrl.trim();
-    if (!repo.startsWith("http://") && !repo.startsWith("https://")) {
+    if (!isValidPublicHttpUrl(repo)) {
       results.push({
         url: repo,
         type: "repo",
         status: "error",
-        message: "Invalid URL format (missing https://).",
+        message: "Invalid or prohibited destination. Only public web repositories are permitted.",
       });
     } else {
       try {
@@ -63,6 +82,7 @@ export async function auditSubmissionLinks(links: {
           method: "HEAD",
           headers: { "User-Agent": "HackLine-Auditor/1.0" },
           signal: controller.signal,
+          redirect: "manual",
         });
         clearTimeout(timeout);
 
@@ -73,7 +93,14 @@ export async function auditSubmissionLinks(links: {
             status: "warning",
             message: "Repository returned 404. Ensure repo is set to Public before deadline.",
           });
-        } else if (res.ok || res.status === 301 || res.status === 302) {
+        } else if (res.status >= 300 && res.status < 400) {
+          results.push({
+            url: repo,
+            type: "repo",
+            status: "valid",
+            message: "Public repository responded with redirection.",
+          });
+        } else if (res.ok) {
           results.push({
             url: repo,
             type: "repo",
@@ -102,12 +129,12 @@ export async function auditSubmissionLinks(links: {
   // 3. Audit Demo Video URL
   if (links.demoVideoUrl?.trim()) {
     const video = links.demoVideoUrl.trim();
-    if (!video.startsWith("http://") && !video.startsWith("https://")) {
+    if (!isValidPublicHttpUrl(video)) {
       results.push({
         url: video,
         type: "demo",
         status: "error",
-        message: "Invalid URL format (missing https://).",
+        message: "Invalid or prohibited destination. Only public streaming URLs are permitted.",
       });
     } else if (video.includes("loom.com") || video.includes("youtube.com") || video.includes("youtu.be")) {
       results.push({
@@ -129,12 +156,12 @@ export async function auditSubmissionLinks(links: {
   // 4. Audit Live Web App / Deployed URL
   if (links.liveAppUrl?.trim()) {
     const live = links.liveAppUrl.trim();
-    if (!live.startsWith("http://") && !live.startsWith("https://")) {
+    if (!isValidPublicHttpUrl(live)) {
       results.push({
         url: live,
         type: "live",
         status: "error",
-        message: "Invalid URL format (missing https://).",
+        message: "Invalid or prohibited destination. Only public web addresses are permitted.",
       });
     } else {
       try {
@@ -144,6 +171,7 @@ export async function auditSubmissionLinks(links: {
           method: "HEAD",
           headers: { "User-Agent": "HackLine-Auditor/1.0" },
           signal: controller.signal,
+          redirect: "manual",
         });
         clearTimeout(timeout);
 

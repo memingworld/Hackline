@@ -3,11 +3,36 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { formatNotificationDeadline } from "@/lib/utils";
+import { escapeTelegramMarkdown, generateTelegramConnectToken } from "@/lib/security";
 
 export interface TelegramSettingsPayload {
   chatId?: string;
   enableT24: boolean;
   enableT2: boolean;
+}
+
+/**
+ * Generates an HMAC-signed, time-bounded Telegram bot connection URL for the authenticated user.
+ */
+export async function getTelegramConnectLink(): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: "Unauthorized: Please sign in." };
+    }
+
+    const token = generateTelegramConnectToken(user.id);
+    const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "HacklineAlertsBot";
+    const url = `https://t.me/${botUsername}?start=${token}`;
+
+    return { success: true, url };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to generate connection link." };
+  }
 }
 
 /**
@@ -89,6 +114,7 @@ export async function disconnectTelegram() {
 
 /**
  * Dispatch an instant test Telegram notification to verify connectivity.
+ * Rate-limited and restricted exclusively to the authenticated user's own linked chat ID.
  */
 export async function sendTestTelegramNotification(customChatId?: string) {
   try {
@@ -99,6 +125,23 @@ export async function sendTestTelegramNotification(customChatId?: string) {
 
     if (!user) {
       return { success: false, error: "Unauthorized: Please sign in." };
+    }
+
+    // Rate-limiting check: prevent notification spamming
+    const recentWindow = new Date(Date.now() - 20000).toISOString();
+    const { data: recentDispatches } = await supabase
+      .from("telegram_notifications")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("trigger_type", "test")
+      .gte("created_at", recentWindow)
+      .limit(1);
+
+    if (recentDispatches && recentDispatches.length > 0) {
+      return {
+        success: false,
+        error: "Rate limit reached. Please wait 20 seconds before dispatching another test alert.",
+      };
     }
 
     // Fetch user profile
@@ -112,12 +155,13 @@ export async function sendTestTelegramNotification(customChatId?: string) {
       return { success: false, error: "Profile not found." };
     }
 
-    const targetChatId = customChatId?.trim() || profile.telegram_chat_id;
+    // Target chat must strictly be the user's registered chat ID to prevent abuse against third parties
+    const targetChatId = profile.telegram_chat_id;
 
     if (!targetChatId) {
       return {
         success: false,
-        error: "No Telegram Chat ID found. Click 'Connect via Telegram' or enter a Chat ID first.",
+        error: "No verified Telegram Chat ID found. Please connect your Telegram account first.",
       };
     }
 
@@ -125,11 +169,11 @@ export async function sendTestTelegramNotification(customChatId?: string) {
     if (!botToken) {
       return {
         success: false,
-        error: "TELEGRAM_BOT_TOKEN is not configured in Vercel / environment variables.",
+        error: "TELEGRAM_BOT_TOKEN is not configured in live deployment.",
       };
     }
 
-    const userName = profile.full_name || "Developer";
+    const userName = escapeTelegramMarkdown(profile.full_name || "Developer");
 
     const message = `🚨 *Hackline Alert [TEST DISPATCH]* 🚨\n\nHey *${userName}*!\n\n✅ Your personal Telegram notification pipeline is active! You will receive high-priority direct alerts on your phone at T-24h and T-2h before any of your hackathon submission gates close.`;
 
@@ -240,12 +284,19 @@ export async function notifySquadDeployment(params: {
         params.deployedMembers.find((m) => m.userId === profile.id)?.duty ||
         "Core Contributor";
 
+      const safeCaptain = escapeTelegramMarkdown(params.captainName);
+      const safeSquad = escapeTelegramMarkdown(params.squadName);
+      const safeHackathon = escapeTelegramMarkdown(params.hackathonTitle);
+      const safeMember = escapeTelegramMarkdown(profile.full_name || "Builder");
+      const safeDuty = escapeTelegramMarkdown(memberDuty);
+      const safePlatform = escapeTelegramMarkdown(params.sourcePlatform || "Sprint");
+
       const message =
         `🚀 *Hackline Sprint Deployment!* 🚀\n\n` +
-        `Hey *${profile.full_name || "Builder"}*!\n\n` +
-        `*[Captain ${params.captainName}]* has deployed your squad (*${params.squadName}*) to:\n` +
-        `🏆 *${params.hackathonTitle}* (${(params.sourcePlatform || "Sprint").toUpperCase()})\n\n` +
-        `🎯 *Your Assigned Role:* \`${memberDuty}\`\n` +
+        `Hey *${safeMember}*!\n\n` +
+        `*[Captain ${safeCaptain}]* has deployed your squad (*${safeSquad}*) to:\n` +
+        `🏆 *${safeHackathon}* (${safePlatform.toUpperCase()})\n\n` +
+        `🎯 *Your Assigned Role:* \`${safeDuty}\`\n` +
         `⏳ *Submission Deadline:* ${timeInfo.displayString}\n\n` +
         `Your workspace, deliverables tracker, and pre-flight checklist are live. Tap below to inspect!`;
 
@@ -346,12 +397,17 @@ export async function notifyTeammateAssignment(params: {
       referenceTimeMs: Date.now(),
     });
 
+    const safeCaptain = escapeTelegramMarkdown(params.captainName);
+    const safeHackathon = escapeTelegramMarkdown(params.hackathonTitle);
+    const safeTask = escapeTelegramMarkdown(params.taskTitle);
+    const safeName = escapeTelegramMarkdown(profile.full_name || params.assignedName);
+
     const message =
       `🎯 *Hackline Milestone Assigned!* 🎯\n\n` +
-      `Hey *${profile.full_name || params.assignedName}*!\n\n` +
-      `*[Captain ${params.captainName}]* assigned you to an upcoming sprint milestone in:\n` +
-      `🏆 *${params.hackathonTitle}*\n\n` +
-      `📌 *Milestone:* \`${params.taskTitle}\`\n` +
+      `Hey *${safeName}*!\n\n` +
+      `*[Captain ${safeCaptain}]* assigned you to an upcoming sprint milestone in:\n` +
+      `🏆 *${safeHackathon}*\n\n` +
+      `📌 *Milestone:* \`${safeTask}\`\n` +
       `⏳ *Target Deadline:* ${timeInfo.displayString}\n\n` +
       `Tap below to open your sprint workspace and track deliverables:`;
 

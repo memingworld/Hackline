@@ -1,5 +1,6 @@
 "use server";
 
+import crypto from "crypto";
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sanitizePlainText } from "@/lib/security";
@@ -195,7 +196,7 @@ export async function createChecklistItem(teamId: string, title: string) {
       return { success: false, error: "Forbidden: You are not a member of this squad." };
     }
 
-    const itemKey = `custom_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const itemKey = `custom_${Date.now()}_${crypto.randomBytes(3).toString("hex")}`;
 
     const { data, error } = await supabase
       .from("submission_checklists")

@@ -1,5 +1,6 @@
 "use server";
 
+import crypto from "crypto";
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sanitizePlainText, sanitizeSafeUrl } from "@/lib/security";
@@ -273,7 +274,7 @@ export async function createHackathon(payload: {
       payload.team_name?.trim() ||
       savedSquad?.name ||
       `${payload.title.trim().slice(0, 30)} Squad`;
-    const squadSlug = `${squadName.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${Math.random().toString(36).slice(2, 6)}`;
+    const squadSlug = `${squadName.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${crypto.randomBytes(3).toString("hex")}`;
 
     // Partition preset squad members into registered users vs placeholder/reserved seats
     const registeredSquadMembers: Array<{

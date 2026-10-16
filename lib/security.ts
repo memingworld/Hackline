@@ -348,3 +348,68 @@ export function constantTimeCompare(a: string, b: string): boolean {
 
   return crypto.timingSafeEqual(bufA, bufB);
 }
+
+/**
+ * Escapes characters for Telegram standard Markdown formatting to prevent parsing crashes.
+ */
+export function escapeTelegramMarkdown(text?: string | null): string {
+  if (!text || typeof text !== "string") return "";
+  return text.replace(/([*_`\[\]])/g, "\\$1");
+}
+
+/**
+ * Generates an HMAC-signed, time-bounded token for Telegram account linking.
+ * Mitigates unauthorized identifier linking on the notification channel.
+ */
+export function generateTelegramConnectToken(userId: string): string {
+  if (!userId) return "";
+  const secret = process.env.TELEGRAM_WEBHOOK_SECRET || process.env.CRON_SECRET || "hackline_telegram_link_secret";
+  const timestamp = Date.now().toString();
+  const payload = `${userId}:${timestamp}`;
+  const signature = crypto
+    .createHmac("sha256", secret)
+    .update(payload)
+    .digest("hex")
+    .substring(0, 32);
+
+  return Buffer.from(`${payload}:${signature}`).toString("base64url");
+}
+
+/**
+ * Verifies an HMAC-signed Telegram connection token. Returns userId if valid and not expired (1 hour).
+ */
+export function verifyTelegramConnectToken(token: string): string | null {
+  if (!token || typeof token !== "string") return null;
+
+  try {
+    const decoded = Buffer.from(token, "base64url").toString("utf-8");
+    const parts = decoded.split(":");
+    if (parts.length !== 3) return null;
+
+    const [userId, timestampStr, incomingSig] = parts;
+    const timestamp = parseInt(timestampStr, 10);
+    if (isNaN(timestamp)) return null;
+
+    // Check expiration: 1 hour (3600000 ms)
+    const MAX_AGE_MS = 60 * 60 * 1000;
+    if (Date.now() - timestamp > MAX_AGE_MS || timestamp > Date.now() + 60000) {
+      return null;
+    }
+
+    const secret = process.env.TELEGRAM_WEBHOOK_SECRET || process.env.CRON_SECRET || "hackline_telegram_link_secret";
+    const payload = `${userId}:${timestampStr}`;
+    const expectedSig = crypto
+      .createHmac("sha256", secret)
+      .update(payload)
+      .digest("hex")
+      .substring(0, 32);
+
+    if (constantTimeCompare(incomingSig, expectedSig)) {
+      return userId;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}

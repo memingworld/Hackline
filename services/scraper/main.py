@@ -1,5 +1,8 @@
-import os
+import secrets
 import httpx
+import ipaddress
+import socket
+import urllib.parse
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -17,29 +20,60 @@ load_dotenv()
 
 app = FastAPI(
     title="Hackline Magic Scraper Microservice",
-    description="High-velocity hackathon parser extracting titles, schedules, and prize pools from Unstop, Devfolio, Devpost, and Luma.",
-    version="1.0.0",
+    description="Hackathon parser extracting schedules, prizes, and tracks.",
 )
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
+FORBIDDEN_HOSTS = {
+    "localhost", "127.0.0.1", "0.0.0.0", "::1", "metadata.google.internal",
+    "instance-data", "metadata", "metadata.internal"
+}
+
+def is_valid_public_url(raw_url: str) -> bool:
+    try:
+        parsed = urllib.parse.urlparse(raw_url)
+        if parsed.scheme not in ("http", "https"):
+            return False
+        hostname = (parsed.hostname or "").lower().strip("[]")
+        if not hostname or hostname in FORBIDDEN_HOSTS:
+            return False
+        if hostname.endswith((".localhost", ".local", ".internal", ".lan")):
+            return False
+        # Resolve address to verify it is not in private or link-local subnets
+        addr_info = socket.getaddrinfo(hostname, None)
+        for entry in addr_info:
+            ip_str = entry[4][0]
+            ip = ipaddress.ip_address(ip_str)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+                return False
+        return True
+    except Exception:
+        return False
+
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "hackline-scraper", "version": "1.0.0"}
+    return {"status": "healthy", "service": "hackline-scraper"}
 
 @app.post("/api/scrape", response_model=HackathonMetadata)
 async def scrape_hackathon(request: ScrapeRequest):
     url = str(request.url).strip()
     if not url.startswith("http://") and not url.startswith("https://"):
         url = f"https://{url}"
+
+    if not is_valid_public_url(url):
+        raise HTTPException(
+            status_code=400,
+            detail="Forbidden destination. Only public web addresses can be parsed."
+        )
 
     try:
         headers = {
@@ -83,7 +117,7 @@ async def scrape_hackathon(request: ScrapeRequest):
         platform = detect_platform(url)
         return HackathonMetadata(
             title="Imported Hackathon",
-            slug=f"hackathon-{os.urandom(4).hex()}",
+            slug=f"hackathon-{secrets.token_hex(4)}",
             source_platform=platform,
             source_url=url,
             prize_pool="TBA",

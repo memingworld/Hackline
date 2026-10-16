@@ -208,6 +208,34 @@ export async function toggleProblemVote(problemId: string) {
       return { success: false, error: "Unauthorized: Please sign in." };
     }
 
+    // Verify that the problem statement exists and caller belongs to this squad
+    const { data: statement, error: stmtErr } = await supabase
+      .from("problem_statements")
+      .select("team_id")
+      .eq("id", problemId)
+      .maybeSingle();
+
+    if (stmtErr || !statement) {
+      return { success: false, error: "Problem statement not found." };
+    }
+
+    const { data: membership } = await supabase
+      .from("team_members")
+      .select("id")
+      .eq("team_id", statement.team_id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const { data: team } = await supabase
+      .from("teams")
+      .select("captain_id")
+      .eq("id", statement.team_id)
+      .maybeSingle();
+
+    if (!membership && team?.captain_id !== user.id) {
+      return { success: false, error: "Forbidden: You must be a squad member to vote on this idea." };
+    }
+
     // Check if vote already exists
     const { data: existingVote } = await supabase
       .from("problem_votes")
@@ -277,6 +305,21 @@ export async function selectProblemStatement(problemId: string, teamId: string) 
       };
     }
 
+    // Verify problemId belongs to this team (cross-squad IDOR defense)
+    const { data: statement, error: stmtErr } = await supabase
+      .from("problem_statements")
+      .select("id")
+      .eq("id", problemId)
+      .eq("team_id", teamId)
+      .maybeSingle();
+
+    if (stmtErr || !statement) {
+      return {
+        success: false,
+        error: "Problem statement does not belong to this squad.",
+      };
+    }
+
     // 1. Reset all others for this team
     await supabase
       .from("problem_statements")
@@ -287,7 +330,8 @@ export async function selectProblemStatement(problemId: string, teamId: string) 
     const { error } = await supabase
       .from("problem_statements")
       .update({ is_selected: true, updated_at: new Date().toISOString() })
-      .eq("id", problemId);
+      .eq("id", problemId)
+      .eq("team_id", teamId);
 
     if (error) {
       return { success: false, error: error.message };

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
-import { constantTimeCompare, sanitizePlainText } from "@/lib/security";
+import { constantTimeCompare, sanitizePlainText, verifyTelegramConnectToken } from "@/lib/security";
 
 interface TelegramUpdate {
   update_id: number;
@@ -48,6 +48,11 @@ export async function POST(req: NextRequest) {
           { status: 401 }
         );
       }
+    } else if (process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: TELEGRAM_WEBHOOK_SECRET must be configured in live deployment." },
+        { status: 401 }
+      );
     }
 
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -67,24 +72,35 @@ export async function POST(req: NextRequest) {
     const rawText = message.text.trim();
     const supabase = createAdminClient();
 
-    // 1. Handle 1-Click User Profile Connect: /start <user_id>
+    // 1. Handle Verified User Account Connect: /start <signed_token>
     if (rawText.startsWith("/start")) {
       const parts = rawText.split(" ");
-      const userId = parts.length > 1 ? parts[1].trim() : null;
+      const rawToken = parts.length > 1 ? parts[1].trim() : null;
 
-      if (userId) {
+      if (rawToken) {
+        const verifiedUserId = verifyTelegramConnectToken(rawToken);
+
+        if (!verifiedUserId) {
+          await sendTelegramMessage(
+            botToken,
+            chatId,
+            `⚠️ *Connection Link Invalid or Expired*\n\nThis connection link has expired or is invalid.\n\nPlease open your **Hackline Dashboard** $\\rightarrow$ **Settings & Alerts** and click **"Connect via Telegram"** to generate a fresh link.`
+          );
+          return NextResponse.json({ ok: true });
+        }
+
         // Query user profile from Supabase
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("id, full_name, email")
-          .eq("id", userId)
+          .eq("id", verifiedUserId)
           .single();
 
         if (profileError || !profile) {
           await sendTelegramMessage(
             botToken,
             chatId,
-            `⚠️ *Account Not Found*\n\nCould not find a user profile with ID \`${userId}\`. Please verify your connection link in the Hackline dashboard.`
+            `⚠️ *Account Not Found*\n\nCould not find a user profile matching this connection token. Please verify your account in the Hackline dashboard.`
           );
           return NextResponse.json({ ok: true });
         }
@@ -103,7 +119,7 @@ export async function POST(req: NextRequest) {
         await sendTelegramMessage(
           botToken,
           chatId,
-          `🚀 *Hackline Connected!*\n\nHey *${userName}*! Your personal Telegram account is now linked to Hackline.\n\nWhenever any hackathon you participate in approaches its submission deadline (*T-24h* and *T-2h*), you will receive a direct 1-on-1 private alert right here on your phone.\n\nKeep building and stay locked in! 🔥`
+          `🚀 *Hackline Connected!*\n\nHey *${userName}*! Your personal Telegram account is now linked to Hackline.\n\nWhenever any hackathon you participate in approaches its submission deadline (*T-24h* and *T-2h*), you will receive a direct alert right here on your phone.\n\nKeep building and stay locked in! 🔥`
         );
 
         return NextResponse.json({ ok: true });
