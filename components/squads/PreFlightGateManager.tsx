@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { Team, SubmissionChecklistItem } from "@/types/database";
-import { ShieldCheck, Plus, Trash2, CheckCircle2, RefreshCw, Sparkles } from "lucide-react";
+import { ShieldCheck, Plus, Trash2, CheckCircle2, RefreshCw, Sparkles, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { SubmissionKitModal } from "@/components/squads/SubmissionKitModal";
 import {
   createChecklistItem,
   deleteChecklistItem,
@@ -32,6 +33,7 @@ export function PreFlightGateManager({
   const [isInitializing, setIsInitializing] = React.useState(false);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [togglingId, setTogglingId] = React.useState<string | null>(null);
+  const [isSubmissionKitOpen, setIsSubmissionKitOpen] = React.useState(false);
 
   // Sync state when props change from server
   React.useEffect(() => {
@@ -195,27 +197,40 @@ export function PreFlightGateManager({
           </div>
         </div>
 
-        {/* Readiness Pill (only rendered when gates exist, avoiding 0/0 glitch) */}
-        {hasGates ? (
-          <div className="flex items-center gap-2 self-start sm:self-auto bg-[#181410] border border-[rgba(229,169,60,0.25)] px-3 py-1.5 rounded-xl font-mono text-xs">
-            <span className="text-[#a89a8c]">Readiness:</span>
-            <span className="text-[#e5a93c] font-bold">
-              {completedCount}/{items.length} ({progressPercent}%)
-            </span>
-          </div>
-        ) : (
+        {/* Actions & Readiness */}
+        <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
           <Button
             type="button"
             size="sm"
-            variant="outline"
-            onClick={handleInitializeDefaults}
-            disabled={isInitializing}
-            className="rounded-xl text-xs gap-1.5 border-[rgba(229,169,60,0.3)] hover:border-[#e5a93c] text-[#fef3c7]"
+            onClick={() => setIsSubmissionKitOpen(true)}
+            className="rounded-xl text-xs gap-1.5 bg-[#e5a93c] hover:bg-[#f3b74a] text-[#14110e] font-bold shadow-sm h-8 px-3 transition-colors"
           >
-            <RefreshCw className={`h-3.5 w-3.5 text-[#e5a93c] ${isInitializing ? "animate-spin" : ""}`} />
-            <span>{isInitializing ? "Initializing..." : "Auto-Seed 5 Gates"}</span>
+            <FileText className="h-3.5 w-3.5" />
+            <span>Export Portal Kit</span>
           </Button>
-        )}
+
+          {/* Readiness Pill (only rendered when gates exist, avoiding 0/0 glitch) */}
+          {hasGates ? (
+            <div className="flex items-center gap-2 bg-[#181410] border border-[rgba(229,169,60,0.25)] px-3 py-1.5 rounded-xl font-mono text-xs">
+              <span className="text-[#a89a8c]">Readiness:</span>
+              <span className="text-[#e5a93c] font-bold">
+                {completedCount}/{items.length} ({progressPercent}%)
+              </span>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handleInitializeDefaults}
+              disabled={isInitializing}
+              className="rounded-xl text-xs gap-1.5 border-[rgba(229,169,60,0.3)] hover:border-[#e5a93c] text-[#fef3c7]"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 text-[#e5a93c] ${isInitializing ? "animate-spin" : ""}`} />
+              <span>{isInitializing ? "Initializing..." : "Auto-Seed 5 Gates"}</span>
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Checkpoints List or Empty Callout */}
@@ -312,13 +327,20 @@ export function PreFlightGateManager({
           type="submit"
           variant="outline"
           size="sm"
-          disabled={isAddingGate || !newGateTitle.trim()}
           className="h-10 px-4 rounded-xl text-xs gap-1.5 shrink-0 border-[rgba(229,169,60,0.25)] hover:border-[#e5a93c] text-[#fef3c7]"
         >
           <Plus className="h-3.5 w-3.5 text-[#e5a93c]" />
           <span>{isAddingGate ? "Adding..." : "Add Gate"}</span>
         </Button>
       </form>
+
+      {/* Submission Kit Modal */}
+      <SubmissionKitModal
+        isOpen={isSubmissionKitOpen}
+        onClose={() => setIsSubmissionKitOpen(false)}
+        teamId={activeTeam.id}
+        hackathonId={activeTeam.hackathon_id}
+      />
     </div>
   );
 }
