@@ -153,11 +153,11 @@ export function SettingsForm({
   const strength = getPasswordStrength(newPassword);
 
   const getStrengthLabel = (score: number) => {
-    if (!newPassword) return { label: "Enter password", color: "bg-[#28231d]", text: "text-[#a89a8c]" };
+    if (!newPassword) return { label: "Enter password", color: "bg-surface-elevated", text: "text-clay" };
     if (score <= 1) return { label: "Weak", color: "bg-rose-500", text: "text-rose-400" };
-    if (score === 2) return { label: "Fair", color: "bg-[#e5a93c]/60", text: "text-[#e5a93c]" };
-    if (score === 3) return { label: "Good", color: "bg-[#4a82a6]", text: "text-[#7bb4d6]" };
-    return { label: "Bulletproof", color: "bg-[#e5a93c]", text: "text-[#e5a93c]" };
+    if (score === 2) return { label: "Fair", color: "bg-mustard/60", text: "text-mustard" };
+    if (score === 3) return { label: "Good", color: "bg-accent-steel", text: "text-accent-steel" };
+    return { label: "Bulletproof", color: "bg-mustard", text: "text-mustard" };
   };
 
   const strengthInfo = getStrengthLabel(strength);
@@ -369,7 +369,7 @@ export function SettingsForm({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-6xl">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
       {/* Left Column (Desktop 7 cols): Identity & Account Security */}
       <div className="lg:col-span-7 space-y-8">
         {/* 1. Profile Settings */}
@@ -389,9 +389,9 @@ export function SettingsForm({
           </div>
 
         {/* Avatar & Visual Representation */}
-        <div className="mt-6 flex flex-col sm:flex-row items-center sm:items-start gap-5 p-4 rounded-xl bg-[#181410] border border-[rgba(229,169,60,0.18)]">
+        <div className="mt-6 flex flex-col sm:flex-row items-center sm:items-start gap-5 p-4 rounded-xl bg-surface-sunken border border-surface-border">
           <div className="relative group shrink-0">
-            <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-2xl overflow-hidden border-2 border-[rgba(229,169,60,0.30)] bg-[#28231d] shadow-md flex items-center justify-center">
+            <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-2xl overflow-hidden border-2 border-surface-border bg-surface-elevated shadow-md flex items-center justify-center">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
@@ -399,7 +399,7 @@ export function SettingsForm({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="font-mono text-2xl font-black text-[#e5a93c]">
+                <span className="font-mono text-2xl font-black text-mustard">
                   {fullName ? fullName.substring(0, 2).toUpperCase() : "ME"}
                 </span>
               )}
@@ -409,14 +409,14 @@ export function SettingsForm({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploadingAvatar || isRemovingAvatar}
-                className="absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 text-[#fef3c7] cursor-pointer disabled:cursor-not-allowed"
+                className="absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 text-parchment cursor-pointer disabled:cursor-not-allowed"
                 title="Upload new photo"
               >
                 {isUploadingAvatar ? (
-                  <Loader2 className="h-6 w-6 animate-spin text-[#e5a93c]" />
+                  <Loader2 className="h-6 w-6 animate-spin text-mustard" />
                 ) : (
                   <>
-                    <Camera className="h-5 w-5 text-[#e5a93c]" />
+                    <Camera className="h-5 w-5 text-mustard" />
                     <span className="text-[10px] font-mono font-medium">Change</span>
                   </>
                 )}
@@ -427,19 +427,19 @@ export function SettingsForm({
           <div className="flex-1 text-center sm:text-left space-y-2">
             <div>
               <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-                <h3 className="text-sm font-semibold text-[#fef3c7] font-mono">Profile Avatar</h3>
+                <h3 className="text-sm font-semibold text-parchment font-mono">Profile Avatar</h3>
                 {avatarUrl && isOauth && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#4a82a6]/20 border border-[rgba(74,130,166,0.35)] text-[#7bb4d6]">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-steel/20 border border-steel/35 text-steel">
                     OAuth Account Photo
                   </span>
                 )}
                 {avatarUrl && !isOauth && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#e5a93c]/15 border border-[rgba(229,169,60,0.30)] text-[#e5a93c]">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-mustard/15 border border-mustard/30 text-mustard">
                     Custom Storage Avatar
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#a89a8c] mt-0.5">
+              <p className="text-xs text-clay mt-0.5">
                 Upload a custom photo or avatar to represent your identity across squad rosters, hackathon teams, and navigation.
               </p>
             </div>
@@ -491,7 +491,7 @@ export function SettingsForm({
                 </Button>
               )}
 
-              <span className="text-[11px] font-mono text-[#a89a8c]/80 block w-full sm:w-auto">
+              <span className="text-[11px] font-mono text-clay/80 block w-full sm:w-auto">
                 JPG, PNG, WEBP, or GIF (max 5MB)
               </span>
             </div>
@@ -501,7 +501,7 @@ export function SettingsForm({
         <form onSubmit={handleUpdateProfile} className="mt-6 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#a89a8c] font-mono">Full Name</label>
+              <label className="text-xs font-medium text-clay font-mono">Full Name</label>
               <Input
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -510,7 +510,7 @@ export function SettingsForm({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#a89a8c] font-mono">Email Address</label>
+              <label className="text-xs font-medium text-clay font-mono">Email Address</label>
               <Input
                 value={userEmail}
                 disabled
@@ -519,7 +519,7 @@ export function SettingsForm({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#a89a8c] font-mono">GitHub Handle</label>
+              <label className="text-xs font-medium text-clay font-mono">GitHub Handle</label>
               <Input
                 value={githubHandle}
                 onChange={(e) => setGithubHandle(e.target.value)}
@@ -529,7 +529,7 @@ export function SettingsForm({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#a89a8c] font-mono">Primary Specialization</label>
+              <label className="text-xs font-medium text-clay font-mono">Primary Specialization</label>
               <Input
                 value={primaryRole}
                 onChange={(e) => setPrimaryRole(e.target.value)}
@@ -552,23 +552,23 @@ export function SettingsForm({
       </div>
 
       {/* 2. Security & Password Management */}
-      <div className="rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.20)] p-5 sm:p-7 shadow-xl">
-        <div className="flex items-center gap-3 pb-5 border-b border-[rgba(229,169,60,0.15)]">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#28231d] border border-[rgba(229,169,60,0.25)] text-[#e5a93c] shadow-sm">
+      <div className="rounded-2xl bg-surface border border-surface-border p-5 sm:p-7 shadow-xl">
+        <div className="flex items-center gap-3 pb-5 border-b border-surface-border">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-elevated border border-surface-border text-mustard shadow-sm">
             <Lock className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-base font-bold text-[#fef3c7] tracking-tight font-mono">
+              <h2 className="text-base font-bold text-parchment tracking-tight font-mono">
                 {hasPassword ? "Security & Password Management" : "Set Account Password"}
               </h2>
               {!hasPassword && (
-                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md border border-[rgba(229,169,60,0.35)] bg-[#e5a93c]/15 text-[#e5a93c]">
+                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md border border-mustard/35 bg-mustard/15 text-mustard">
                   Authenticated via {oauthProvider || "OAuth"}
                 </span>
               )}
             </div>
-            <p className="text-xs text-[#a89a8c] mt-0.5">
+            <p className="text-xs text-clay mt-0.5">
               {hasPassword
                 ? "Update your login credentials. We verify your current password before committing changes."
                 : `Your account was created via ${oauthProvider || "OAuth"}. Set a secure password below to enable direct email & password sign-in alongside your OAuth login.`}
@@ -581,7 +581,7 @@ export function SettingsForm({
             {/* Current Password - Only shown if user has an existing password */}
             {hasPassword && (
               <div className="space-y-1.5 relative">
-                <label className="text-xs font-medium text-[#a89a8c] font-mono">Current Password</label>
+                <label className="text-xs font-medium text-clay font-mono">Current Password</label>
                 <div className="relative">
                   <Input
                     type={showCurrent ? "text" : "password"}
@@ -594,7 +594,7 @@ export function SettingsForm({
                   <button
                     type="button"
                     onClick={() => setShowCurrent(!showCurrent)}
-                    className="absolute right-3 top-2.5 text-[#a89a8c] hover:text-[#fef3c7]"
+                    className="absolute right-3 top-2.5 text-clay hover:text-parchment"
                     tabIndex={-1}
                   >
                     {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -605,7 +605,7 @@ export function SettingsForm({
 
             {/* New Password */}
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-medium text-[#a89a8c] font-mono">
+              <label className="text-xs font-medium text-clay font-mono">
                 {hasPassword ? "New Password" : "Create Password"}
               </label>
               <div className="relative">
@@ -620,7 +620,7 @@ export function SettingsForm({
                 <button
                   type="button"
                   onClick={() => setShowNew(!showNew)}
-                  className="absolute right-3 top-2.5 text-[#a89a8c] hover:text-[#fef3c7]"
+                  className="absolute right-3 top-2.5 text-clay hover:text-parchment"
                   tabIndex={-1}
                 >
                   {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -630,7 +630,7 @@ export function SettingsForm({
 
             {/* Confirm New Password */}
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-medium text-[#a89a8c] font-mono">
+              <label className="text-xs font-medium text-clay font-mono">
                 {hasPassword ? "Confirm New Password" : "Confirm Password"}
               </label>
               <div className="relative">
@@ -645,7 +645,7 @@ export function SettingsForm({
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-2.5 text-[#a89a8c] hover:text-[#fef3c7]"
+                  className="absolute right-3 top-2.5 text-clay hover:text-parchment"
                   tabIndex={-1}
                 >
                   {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -658,7 +658,7 @@ export function SettingsForm({
           {newPassword && (
             <div className="space-y-1.5 pt-1 max-w-sm">
               <div className="flex items-center justify-between text-[11px] font-mono">
-                <span className="text-[#a89a8c]">Password Strength:</span>
+                <span className="text-clay">Password Strength:</span>
                 <span className={strengthInfo.text}>{strengthInfo.label}</span>
               </div>
               <div className="grid grid-cols-4 gap-1.5 h-1">
@@ -666,7 +666,7 @@ export function SettingsForm({
                   <div
                     key={step}
                     className={`rounded-full transition-all duration-300 ${
-                      strength >= step ? strengthInfo.color : "bg-[#28231d]"
+                      strength >= step ? strengthInfo.color : "bg-surface-elevated"
                     }`}
                   />
                 ))}
@@ -674,8 +674,8 @@ export function SettingsForm({
             </div>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[rgba(229,169,60,0.12)]">
-            <span className="text-[11px] text-[#a89a8c] font-mono">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-surface-border">
+            <span className="text-[11px] text-clay font-mono">
               Must be at least 8 characters with 1 uppercase & 1 number
             </span>
 
@@ -683,9 +683,9 @@ export function SettingsForm({
               type="submit"
               variant="outline"
               disabled={isChangingPassword || !newPassword || !confirmPassword || (hasPassword && !currentPassword)}
-              className="text-xs rounded-xl px-5 gap-1.5 border-[rgba(229,169,60,0.30)] hover:border-[#e5a93c] text-[#fef3c7]"
+              className="text-xs rounded-xl px-5 gap-1.5 border-surface-border hover:border-mustard text-parchment"
             >
-              <KeyRound className="h-3.5 w-3.5 text-[#e5a93c]" />
+              <KeyRound className="h-3.5 w-3.5 text-mustard" />
               <span>
                 {isChangingPassword
                   ? hasPassword
@@ -715,11 +715,11 @@ export function SettingsForm({
                 Interface Theme & Visual Style
               </h2>
               <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md border border-steel/30 bg-steel/15 text-steel">
-                Cross-Device Sync
+                Instant Tab Sync
               </span>
             </div>
             <p className="text-xs text-clay mt-0.5">
-              Choose your squad workspace aesthetic. Preserved across devices and logouts.
+              Choose your squad workspace aesthetic for this device. Synced across all active tabs.
             </p>
           </div>
         </div>
@@ -791,13 +791,13 @@ export function SettingsForm({
       <div className="rounded-2xl bg-surface border border-surface-border p-5 sm:p-7 shadow-xl">
         <div className="flex items-center justify-between pb-5 border-b border-surface-border flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-elevated border border-[rgba(74,130,166,0.35)] text-[#7bb4d6] shadow-sm">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-elevated border border-steel/35 text-steel shadow-sm">
               <Send className="h-5 w-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-parchment tracking-tight flex items-center gap-2 flex-wrap font-mono">
                 <span>Personal Telegram Deadline Alerts</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6]">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-steel/35 bg-steel/15 text-steel">
                   Direct 1-on-1 DMs &bull; Free Forever
                 </span>
               </h2>
@@ -812,22 +812,22 @@ export function SettingsForm({
           <div className="space-y-4">
             {/* Connection Status Card */}
             {profile?.telegram_chat_id ? (
-              <div className="rounded-2xl border border-[rgba(229,169,60,0.30)] bg-[#28231d]/60 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#e5a93c] opacity-75" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#e5a93c]" />
+              <div className="rounded-2xl border border-surface-border bg-surface-elevated/70 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="relative flex h-3 w-3 shrink-0 mt-1">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-mustard opacity-75" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-mustard" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-bold text-[#fef3c7]">
+                      <span className="text-xs font-bold text-parchment">
                         Personal Telegram Connected
                       </span>
-                      <span className="text-[10px] font-mono bg-[#181410] border border-[rgba(229,169,60,0.20)] px-2 py-0.5 rounded text-[#e5a93c]">
+                      <span className="text-[10px] font-mono bg-canvas border border-surface-border px-2 py-0.5 rounded text-mustard">
                         Chat ID: {profile.telegram_chat_id}
                       </span>
                     </div>
-                    <p className="text-[11px] text-[#a89a8c] mt-0.5">
+                    <p className="text-[11px] text-clay mt-0.5">
                       Your account is paired. You will receive private DMs with sound and push notifications for your hackathon deadlines.
                     </p>
                   </div>
@@ -840,7 +840,7 @@ export function SettingsForm({
                     size="sm"
                     onClick={handleDisconnectTelegram}
                     disabled={isDisconnecting}
-                    className="text-xs rounded-xl h-8 px-3 text-[#a89a8c] hover:text-rose-400 hover:border-rose-500/30"
+                    className="text-xs rounded-xl h-8 px-3 text-clay hover:text-rose-400 hover:border-rose-500/30"
                   >
                     <Unlink className="h-3.5 w-3.5 mr-1" />
                     <span>{isDisconnecting ? "Disconnecting..." : "Disconnect"}</span>
@@ -848,13 +848,13 @@ export function SettingsForm({
                 </div>
               </div>
             ) : (
-              <div className="rounded-2xl border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/10 p-5 space-y-4">
+              <div className="rounded-2xl border border-steel/35 bg-steel/10 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div>
-                    <span className="text-xs font-semibold text-[#fef3c7] block">
+                    <span className="text-xs font-semibold text-parchment block">
                       Connect Your Telegram (1-Click)
                     </span>
-                    <p className="text-[11px] text-[#a89a8c] mt-0.5">
+                    <p className="text-[11px] text-clay mt-0.5">
                       Tap the button below to open Telegram and press <strong>Start</strong>. Your account links instantly to receive direct DMs on your phone.
                     </p>
                   </div>
@@ -863,7 +863,7 @@ export function SettingsForm({
                     href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "HacklineAlertsBot"}?start=${profile?.id || ""}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-[#e5a93c] hover:bg-[#f3c768] text-[#14110e] font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shrink-0"
+                    className="inline-flex items-center gap-2 bg-mustard hover:bg-mustard-hover text-canvas font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shrink-0"
                   >
                     <Send className="h-3.5 w-3.5 fill-current" />
                     <span>Connect via Telegram</span>
@@ -872,8 +872,8 @@ export function SettingsForm({
                 </div>
 
                 {/* Manual Chat ID Fallback */}
-                <div className="pt-3 border-t border-[rgba(74,130,166,0.20)]">
-                  <label className="text-[11px] font-medium text-[#fef3c7] block mb-1.5 font-mono">
+                <div className="pt-3 border-t border-steel/20">
+                  <label className="text-[11px] font-medium text-parchment block mb-1.5 font-mono">
                     Or enter your Telegram Chat ID manually:
                   </label>
                   <div className="flex items-center gap-2 max-w-md">
@@ -889,12 +889,12 @@ export function SettingsForm({
                       size="sm"
                       onClick={handleSaveTelegram}
                       disabled={isSavingTelegram || !telegramChatId.trim()}
-                      className="text-xs rounded-xl h-9 shrink-0 border-[rgba(229,169,60,0.30)] text-[#fef3c7]"
+                      className="text-xs rounded-xl h-9 shrink-0 border-surface-border hover:border-mustard text-parchment"
                     >
                       {isSavingTelegram ? "Saving..." : "Pair Chat ID"}
                     </Button>
                   </div>
-                  <p className="text-[10px] text-[#a89a8c] font-mono mt-1">
+                  <p className="text-[10px] text-clay font-mono mt-1">
                     Tip: You can get your personal Chat ID from @userinfobot on Telegram or by pressing start on our bot.
                   </p>
                 </div>
@@ -904,51 +904,51 @@ export function SettingsForm({
             {/* Form for toggling T-24h / T-2h and sending test alert */}
             <form onSubmit={handleSaveTelegram} className="space-y-4 pt-2">
               <div className="space-y-2.5">
-                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-[rgba(229,169,60,0.18)] bg-[#181410] hover:border-[rgba(229,169,60,0.35)] transition-colors cursor-pointer select-none">
+                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-surface-border bg-surface-sunken hover:border-mustard/40 transition-colors cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={enableT24}
                     onChange={(e) => setEnableT24(e.target.checked)}
-                    className="mt-0.5 rounded border-[rgba(229,169,60,0.30)] bg-[#28231d] text-[#e5a93c] focus:ring-0"
+                    className="mt-0.5 rounded border-surface-border bg-surface text-mustard focus:ring-0"
                   />
                   <div>
-                    <span className="text-xs font-semibold text-[#fef3c7] block">
+                    <span className="text-xs font-semibold text-parchment block">
                       T-24h Emergency Warning (24 Hours Remaining)
                     </span>
-                    <span className="text-[11px] text-[#a89a8c] block mt-0.5">
+                    <span className="text-[11px] text-clay block mt-0.5">
                       Direct ping to freeze feature branches, initiate slide deck drafts, and verify teammate registrations.
                     </span>
                   </div>
                 </label>
 
-                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-[rgba(229,169,60,0.18)] bg-[#181410] hover:border-[rgba(229,169,60,0.35)] transition-colors cursor-pointer select-none">
+                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-surface-border bg-surface-sunken hover:border-mustard/40 transition-colors cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={enableT2}
                     onChange={(e) => setEnableT2(e.target.checked)}
-                    className="mt-0.5 rounded border-[rgba(229,169,60,0.30)] bg-[#28231d] text-[#e5a93c] focus:ring-0"
+                    className="mt-0.5 rounded border-surface-border bg-surface text-mustard focus:ring-0"
                   />
                   <div>
-                    <span className="text-xs font-semibold text-[#fef3c7] block">
+                    <span className="text-xs font-semibold text-parchment block">
                       T-2h Final Code Freeze Alert (2 Hours Remaining)
                     </span>
-                    <span className="text-[11px] text-[#a89a8c] block mt-0.5">
+                    <span className="text-[11px] text-clay block mt-0.5">
                       Urgent direct DM to push main, make repo public, upload Loom demo, and complete portal submission gates.
                     </span>
                   </div>
                 </label>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[rgba(229,169,60,0.12)]">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-surface-border">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={handleTestTelegram}
                   disabled={isTestingTelegram || (!profile?.telegram_chat_id && !telegramChatId.trim())}
-                  className="text-xs rounded-xl gap-1.5 border-[rgba(74,130,166,0.35)] text-[#7bb4d6] hover:bg-[#4a82a6]/15"
+                  className="text-xs rounded-xl gap-1.5 border-steel/35 text-steel hover:bg-steel/15"
                 >
-                  <Send className="h-3.5 w-3.5 text-[#7bb4d6]" />
+                  <Send className="h-3.5 w-3.5 text-steel" />
                   <span>{isTestingTelegram ? "Dispatching..." : "Send Test Telegram Alert"}</span>
                 </Button>
 

@@ -44,7 +44,7 @@ export default async function SettingsPage() {
     : null;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300 max-w-6xl">
+    <div className="space-y-8 animate-in fade-in duration-300 w-full">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-surface-border">
         <div>
