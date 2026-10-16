@@ -113,9 +113,9 @@ export function LoginForm({ onSuccess, redirectPath = "/dashboard" }: LoginFormP
           size="md"
           isLoading={isOauthLoading === "github"}
           onClick={() => handleOAuthLogin("github")}
-          className="w-full bg-[#181410] border-[rgba(229,169,60,0.2)] text-[#fef3c7] hover:border-[rgba(229,169,60,0.4)] hover:bg-[#28231d]"
+          className="w-full bg-canvas border-surface-border text-parchment hover:border-mustard/40 hover:bg-surface-elevated"
         >
-          <GithubIcon className="h-4 w-4" />
+          <GithubIcon className="h-4 w-4 shrink-0" />
           <span className="text-xs font-medium">GitHub</span>
         </Button>
 
