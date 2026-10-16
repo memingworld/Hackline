@@ -715,15 +715,29 @@ export async function joinTeamByInviteCode(inviteCode: string, duty?: string) {
       }
     }
 
-    const { error: insertErr } = await supabase.from("team_members").insert({
-      team_id: team.id,
-      user_id: user.id,
-      duty: assignedDuty,
-      is_captain: false,
+    // Execute join via SECURITY DEFINER RPC to bypass RLS safely and enforce invite verification
+    const { data: rpcData, error: rpcErr } = await supabase.rpc("join_team_with_invite", {
+      invite_code_input: inviteCode,
+      member_duty: assignedDuty,
     });
 
-    if (insertErr) {
-      return { success: false, error: insertErr.message };
+    if (rpcErr) {
+      // Fallback: If RPC is unavailable or fails, attempt direct insert
+      const { error: insertErr } = await supabase.from("team_members").insert({
+        team_id: team.id,
+        user_id: user.id,
+        duty: assignedDuty,
+        is_captain: false,
+      });
+
+      if (insertErr) {
+        return { success: false, error: insertErr.message || rpcErr.message };
+      }
+    } else if (rpcData && typeof rpcData === "object") {
+      const res = rpcData as { success?: boolean; error?: string; message?: string };
+      if (res.success === false) {
+        return { success: false, error: res.error || "Failed to join squad." };
+      }
     }
 
     revalidatePath("/dashboard");
