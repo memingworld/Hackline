@@ -137,3 +137,117 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-mustard-hover, #d99b2e);
 }
+
+/* ==============================================================================
+   UNIVERSAL THEME OVERRIDES FOR LEGACY ARBITRARY HEX CLASSES
+   Cascades active theme tokens to all 1,035 hardcoded instances across
+   modals, popovers, navigation, badges, inputs, and layout containers.
+   ============================================================================== */
+[data-theme="sakura-alabaster"],
+[data-theme="midnight-sakura"],
+[data-theme="glacier-wine"] {
+  /* Canvas Backdrops */
+  .bg-\[\#14110e\],
+  .bg-\[\#14110E\],
+  .bg-\[\#100d0a\],
+  .bg-\[\#0a0806\],
+  .bg-\[\#1D1813\],
+  .bg-\[\#1d1813\] {
+    background-color: var(--bg-canvas) !important;
+  }
+
+  /* Card Surfaces & Modals */
+  .bg-\[\#1f1b16\],
+  .bg-\[\#1F1B16\],
+  .bg-\[\#181410\],
+  .bg-\[\#1a1511\],
+  .bg-\[\#1A1511\] {
+    background-color: var(--bg-surface) !important;
+  }
+
+  /* Elevated Surfaces, Table Rows, Inputs */
+  .bg-\[\#28231d\],
+  .bg-\[\#28231D\],
+  .bg-\[\#2a231c\],
+  .bg-\[\#2A231C\],
+  .bg-\[\#382f26\],
+  .bg-\[\#382F26\],
+  .bg-\[\#383129\] {
+    background-color: var(--bg-surface-elevated) !important;
+  }
+
+  /* Sunken Surfaces */
+  .bg-\[\#100d0a\],
+  .bg-\[\#100D0A\] {
+    background-color: var(--bg-surface-sunken) !important;
+  }
+
+  /* Headings & High-Contrast Typography */
+  .text-\[\#fef3c7\],
+  .text-\[\#FEF3C7\],
+  .text-\[\#f5ecd0\] {
+    color: var(--text-parchment) !important;
+  }
+
+  /* Muted Text & Secondary Metadata */
+  .text-\[\#a89a8c\],
+  .text-\[\#A89A8C\],
+  .text-\[\#6e6256\],
+  .text-\[\#c5b8ab\] {
+    color: var(--text-clay) !important;
+  }
+
+  /* Primary Signal (Buttons, Badges, Icons) */
+  .text-\[\#e5a93c\],
+  .text-\[\#E5A93C\],
+  .text-\[\#d4a042\] {
+    color: var(--accent-mustard) !important;
+  }
+
+  .bg-\[\#e5a93c\],
+  .bg-\[\#E5A93C\],
+  .bg-\[\#d4a042\] {
+    background-color: var(--accent-mustard) !important;
+  }
+
+  /* Text on Primary Signal Buttons */
+  .text-\[\#14110e\],
+  .text-\[\#14110E\] {
+    color: var(--bg-canvas) !important;
+  }
+
+  /* Tactical Steel Blue / Accent Secondary */
+  .text-\[\#4a82a6\],
+  .text-\[\#7bb4d6\] {
+    color: var(--accent-steel) !important;
+  }
+
+  .bg-\[\#4a82a6\] {
+    background-color: var(--accent-steel) !important;
+  }
+
+  /* Subtle Brass & Mustard Glows / Badges */
+  [class*="bg-\[\#e5a93c\]\/"],
+  [class*="bg-\[\#E5A93C\]\/"] {
+    background-color: var(--accent-brass-subtle) !important;
+  }
+
+  [class*="bg-\[\#4a82a6\]\/"] {
+    background-color: var(--accent-steel-muted) !important;
+  }
+
+  /* Borders: Hairlines, Divider Bars, Input Borders, Cards */
+  [class*="border-\[rgba(229,169,60,"],
+  [class*="border-\[rgba(229, 169, 60,"],
+  [class*="border-\[rgba(74,130,166,"],
+  [class*="border-\[rgba(74, 130, 166,"],
+  .border-\[\#2a231c\],
+  .border-\[\#2A231C\],
+  .border-\[\#382f26\],
+  .border-\[\#382F26\],
+  .border-\[\#e5a93c\],
+  .border-\[\#E5A93C\] {
+    border-color: var(--border-primary) !important;
+  }
+}
+
