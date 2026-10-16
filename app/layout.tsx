@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { DEFAULT_THEME, isValidTheme, THEMES } from "@/lib/theme";
+import { ThemeSyncProvider } from "@/components/theme/ThemeSyncProvider";
 
 export const metadata: Metadata = {
   title: "Hackline — Next-Gen Hackathon Management Platform",
@@ -22,6 +23,7 @@ export default async function RootLayout({
   return (
     <html lang="en" data-theme={activeTheme} className={isDark ? "dark" : ""}>
       <body className="min-h-screen bg-canvas text-parchment antialiased selection:bg-mustard/30 selection:text-parchment">
+        <ThemeSyncProvider />
         {children}
         <Toaster
           position="top-right"

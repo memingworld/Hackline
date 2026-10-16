@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { THEME_LIST, ThemeId, DEFAULT_THEME, THEMES, isValidTheme } from "@/lib/theme";
 import { setThemeAction } from "@/lib/actions/theme";
+import { broadcastThemeChange } from "@/components/theme/ThemeSyncProvider";
 import {
   saveTelegramSettings,
   disconnectTelegram,
@@ -130,8 +131,8 @@ export function SettingsForm({
     }
     setActiveThemeId(themeId);
 
-    // 2. Broadcast to header switcher
-    window.dispatchEvent(new CustomEvent("hackline-theme-changed", { detail: themeId }));
+    // 2. Broadcast event to current window and other open tabs on this device
+    broadcastThemeChange(themeId);
 
     // 3. Persist to 1-year cookie and Supabase profile
     setThemeAction(themeId).catch(() => {});

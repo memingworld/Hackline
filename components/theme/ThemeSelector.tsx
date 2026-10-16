@@ -4,6 +4,7 @@ import * as React from "react";
 import { Palette, Check, ChevronDown } from "lucide-react";
 import { THEME_LIST, ThemeId, DEFAULT_THEME, THEMES, isValidTheme } from "@/lib/theme";
 import { setThemeAction } from "@/lib/actions/theme";
+import { broadcastThemeChange } from "@/components/theme/ThemeSyncProvider";
 import { toast } from "sonner";
 
 interface ThemeSelectorProps {
@@ -73,8 +74,8 @@ export function ThemeSelector({
     setActiveThemeId(themeId);
     setIsOpen(false);
 
-    // 2. Dispatch event for other selectors (e.g. Settings page)
-    window.dispatchEvent(new CustomEvent("hackline-theme-changed", { detail: themeId }));
+    // 2. Broadcast event to current window and other open tabs on this device
+    broadcastThemeChange(themeId);
 
     // 3. Persist to 1-year cookie and Supabase profile in background
     setThemeAction(themeId).catch(() => {
