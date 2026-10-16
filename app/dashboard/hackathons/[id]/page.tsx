@@ -14,6 +14,7 @@ import { HackathonCountdownBanner } from "@/components/dashboard/HackathonCountd
 import { TimelineManager } from "@/components/timeline/TimelineManager";
 import { ActiveSquadRoster } from "@/components/squads/ActiveSquadRoster";
 import { PreFlightGateManager } from "@/components/squads/PreFlightGateManager";
+import { SquadRealtimeSync } from "@/components/squads/SquadRealtimeSync";
 import {
   ArrowLeft,
   ExternalLink,
@@ -70,6 +71,9 @@ export default async function HackathonWorkspacePage(props: {
 
   return (
     <div className="space-y-6 pb-12 animate-fade-in w-full">
+      {/* Silent Realtime Collab Sync */}
+      <SquadRealtimeSync teamId={teamId} hackathonId={hackathon.id} />
+
       {/* Top Breadcrumb & Actions Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[rgba(229,169,60,0.15)]">
         <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap min-w-0">

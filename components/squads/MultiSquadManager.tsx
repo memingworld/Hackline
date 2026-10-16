@@ -7,6 +7,7 @@ import { PreFlightGateManager } from "./PreFlightGateManager";
 import { Users, ShieldCheck, Trophy, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useSquadRealtime } from "@/hooks/useSquadRealtime";
 
 interface MultiSquadManagerProps {
   teams: (Team & { checklistItems?: SubmissionChecklistItem[] })[];
@@ -53,6 +54,12 @@ export function MultiSquadManager({
 
   const selectedTeam = teams.find((t) => t.id === selectedTeamId) || teams[0];
   const isCaptain = selectedTeam.captain_id === currentUserId;
+
+  // Silent Realtime Sync across squads
+  useSquadRealtime({
+    teamId: selectedTeam?.id,
+    hackathonId: selectedTeam?.hackathon_id,
+  });
 
   return (
     <div className="space-y-6">
