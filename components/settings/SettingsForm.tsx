@@ -22,10 +22,13 @@ import {
   Upload,
   Trash2,
   Loader2,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { THEME_LIST, ThemeId, DEFAULT_THEME, THEMES, isValidTheme } from "@/lib/theme";
+import { setThemeAction } from "@/lib/actions/theme";
 import {
   saveTelegramSettings,
   disconnectTelegram,
@@ -88,6 +91,53 @@ export function SettingsForm({
   const [isSavingTelegram, setIsSavingTelegram] = React.useState(false);
   const [isTestingTelegram, setIsTestingTelegram] = React.useState(false);
   const [isDisconnecting, setIsDisconnecting] = React.useState(false);
+
+  // Theme selection state & synchronization
+  const [activeThemeId, setActiveThemeId] = React.useState<ThemeId>(() => {
+    if (typeof window !== "undefined") {
+      const domTheme = document.documentElement.getAttribute("data-theme");
+      if (isValidTheme(domTheme)) return domTheme;
+    }
+    return isValidTheme(profile?.theme) ? profile.theme : DEFAULT_THEME;
+  });
+
+  React.useEffect(() => {
+    const domTheme = document.documentElement.getAttribute("data-theme");
+    if (isValidTheme(domTheme)) {
+      setActiveThemeId(domTheme);
+    }
+
+    const handleThemeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      if (customEvent.detail && isValidTheme(customEvent.detail)) {
+        setActiveThemeId(customEvent.detail);
+      }
+    };
+
+    window.addEventListener("hackline-theme-changed", handleThemeChange);
+    return () => window.removeEventListener("hackline-theme-changed", handleThemeChange);
+  }, []);
+
+  const handleThemeSelect = (themeId: ThemeId) => {
+    if (themeId === activeThemeId) return;
+
+    // 1. Instant optimistic visual update
+    document.documentElement.setAttribute("data-theme", themeId);
+    if (THEMES[themeId].category === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    setActiveThemeId(themeId);
+
+    // 2. Broadcast to header switcher
+    window.dispatchEvent(new CustomEvent("hackline-theme-changed", { detail: themeId }));
+
+    // 3. Persist to 1-year cookie and Supabase profile
+    setThemeAction(themeId).catch(() => {});
+
+    toast.success(`Theme updated to ${THEMES[themeId].name}`);
+  };
 
   // Calculate password strength
   const getPasswordStrength = (pwd: string) => {
@@ -498,7 +548,91 @@ export function SettingsForm({
         </form>
       </div>
 
-      {/* 2. Security & Password Management */}
+      {/* 2. Interface Theme & Visual Style */}
+      <div className="rounded-2xl bg-surface border border-surface-border p-5 sm:p-7 shadow-xl">
+        <div className="flex items-center gap-3 pb-5 border-b border-surface-border">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-elevated border border-surface-border text-mustard shadow-sm">
+            <Palette className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-base font-bold text-parchment tracking-tight font-mono">
+                Interface Theme & Visual Style
+              </h2>
+              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md border border-steel/30 bg-steel/15 text-steel">
+                Cross-Device Sync
+              </span>
+            </div>
+            <p className="text-xs text-clay mt-0.5">
+              Choose your squad workspace aesthetic. Saved to your profile and preserved across devices and logouts.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {THEME_LIST.map((theme) => {
+            const isSelected = theme.id === activeThemeId;
+            return (
+              <button
+                key={theme.id}
+                type="button"
+                onClick={() => handleThemeSelect(theme.id)}
+                className={`relative flex flex-col justify-between p-4 rounded-xl border text-left transition-all duration-200 select-none ${
+                  isSelected
+                    ? "bg-surface-elevated border-mustard shadow-md ring-1 ring-mustard/40"
+                    : "bg-surface-sunken/60 border-surface-border hover:border-mustard/40 hover:bg-surface-elevated/40"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-parchment font-mono">
+                        {theme.name}
+                      </span>
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-mustard/15 text-mustard uppercase font-medium">
+                        {theme.category}
+                      </span>
+                    </div>
+
+                    <div
+                      className={`h-5 w-5 rounded-full border flex items-center justify-center transition-colors ${
+                        isSelected
+                          ? "border-mustard bg-mustard text-canvas"
+                          : "border-clay/40 bg-surface"
+                      }`}
+                    >
+                      {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-clay leading-relaxed mb-4">
+                    {theme.description}
+                  </p>
+                </div>
+
+                {/* 5 Swatches Preview Bar */}
+                <div className="pt-3 border-t border-surface-border flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase text-clay/80 tracking-wider">
+                    Palette
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {theme.swatches.map((color, i) => (
+                      <span
+                        key={i}
+                        className="w-4 h-4 rounded-full border border-surface shadow-xs transition-transform hover:scale-125"
+                        style={{ backgroundColor: color }}
+                        title={color}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3. Security & Password Management */}
       <div className="rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.20)] p-5 sm:p-7 shadow-xl">
         <div className="flex items-center gap-3 pb-5 border-b border-[rgba(229,169,60,0.15)]">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#28231d] border border-[rgba(229,169,60,0.25)] text-[#e5a93c] shadow-sm">
