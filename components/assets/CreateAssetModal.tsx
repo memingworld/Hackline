@@ -133,18 +133,18 @@ export function CreateAssetModal({
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm overflow-y-auto">
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] my-auto rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10 text-[#fef3c7]">
+      <div className="relative w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] my-auto rounded-2xl bg-surface border border-surface-border shadow-2xl overflow-hidden flex flex-col z-10 text-parchment">
         {/* Pinned Header */}
-        <div className="p-5 border-b border-[rgba(229,169,60,0.2)] flex items-center justify-between shrink-0 bg-[#1f1b16]">
+        <div className="p-5 border-b border-surface-border flex items-center justify-between shrink-0 bg-surface">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#28231d] border border-[rgba(229,169,60,0.25)] text-[#e5a93c]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-elevated border border-surface-border text-mustard">
               <FolderGit2 className="h-4 w-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-[#fef3c7] tracking-tight">
+              <h2 className="text-sm font-bold text-parchment tracking-tight">
                 {isEditing ? "Edit Asset" : "Link Project Deliverable"}
               </h2>
-              <p className="text-xs text-[#a89a8c]">
+              <p className="text-xs text-clay">
                 Connect code repos, design prototypes, pitch slides, or video demos.
               </p>
             </div>
@@ -152,7 +152,7 @@ export function CreateAssetModal({
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#28231d] transition-colors"
+            className="p-1.5 rounded-lg text-clay hover:text-parchment hover:bg-surface-elevated transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -163,7 +163,7 @@ export function CreateAssetModal({
           <div className="p-5 overflow-y-auto space-y-4 flex-1">
             {/* Category selection */}
             <div className="space-y-1.5">
-              <label className="text-xs font-mono font-medium text-[#fef3c7]">Deliverable Category</label>
+              <label className="text-xs font-mono font-medium text-parchment">Deliverable Category</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {CATEGORIES.map((cat) => {
                   const Icon = cat.icon;
@@ -175,8 +175,8 @@ export function CreateAssetModal({
                       onClick={() => setCategory(cat.id)}
                       className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-mono transition-all text-left ${
                         isSelected
-                          ? "border-[#e5a93c] bg-[#e5a93c]/20 text-[#e5a93c] font-semibold shadow-sm"
-                          : "border-[rgba(229,169,60,0.2)] bg-[#181410] text-[#a89a8c] hover:border-[rgba(229,169,60,0.35)] hover:text-[#fef3c7]"
+                          ? "border-mustard bg-mustard/20 text-mustard font-semibold shadow-sm"
+                          : "border-surface-border bg-canvas text-clay hover:border-mustard/40 hover:text-parchment"
                       }`}
                     >
                       <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -188,47 +188,47 @@ export function CreateAssetModal({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-mono font-medium text-[#fef3c7]">Title / Label</label>
+              <label className="text-xs font-mono font-medium text-parchment">Title / Label</label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Primary GitHub Monorepo or Figma System"
                 required
-                className="bg-[#181410] border-[rgba(229,169,60,0.2)] text-xs text-[#fef3c7] focus:border-[#e5a93c]"
+                className="bg-canvas border-surface-border text-xs text-parchment focus:border-mustard"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-mono font-medium text-[#fef3c7]">Target URL</label>
+              <label className="text-xs font-mono font-medium text-parchment">Target URL</label>
               <Input
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://github.com/..."
                 type="url"
                 required
-                className="bg-[#181410] border-[rgba(229,169,60,0.2)] text-xs font-mono text-[#fef3c7] focus:border-[#e5a93c]"
+                className="bg-canvas border-surface-border text-xs font-mono text-parchment focus:border-mustard"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-mono font-medium text-[#fef3c7]">Notes / Instructions (Optional)</label>
+              <label className="text-xs font-mono font-medium text-parchment">Notes / Instructions (Optional)</label>
               <Input
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g. Branch main contains the Next.js and FastAPI services"
-                className="bg-[#181410] border-[rgba(229,169,60,0.2)] text-xs text-[#fef3c7] focus:border-[#e5a93c]"
+                className="bg-canvas border-surface-border text-xs text-parchment focus:border-mustard"
               />
             </div>
           </div>
 
           {/* Pinned Footer */}
-          <div className="flex items-center justify-end gap-2.5 p-4 sm:p-5 border-t border-[rgba(229,169,60,0.2)] bg-[#1f1b16] shrink-0">
+          <div className="flex items-center justify-end gap-2.5 p-4 sm:p-5 border-t border-surface-border bg-surface shrink-0">
             <Button
               type="button"
               variant="ghost"
               onClick={onClose}
               disabled={isSubmitting}
-              className="text-xs rounded-xl text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#28231d]"
+              className="text-xs rounded-xl text-clay hover:text-parchment hover:bg-surface-elevated"
             >
               Cancel
             </Button>
@@ -241,9 +241,9 @@ export function CreateAssetModal({
               {isSubmitting ? (
                 <>
                   <span className="flex gap-1 items-center">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#14110e] animate-bounce" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#14110e] animate-bounce [animation-delay:0.2s]" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#14110e] animate-bounce [animation-delay:0.4s]" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-canvas animate-bounce" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-canvas animate-bounce [animation-delay:0.2s]" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-canvas animate-bounce [animation-delay:0.4s]" />
                   </span>
                   <span>Saving...</span>
                 </>

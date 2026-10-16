@@ -164,18 +164,18 @@ export function CreateSavedSquadModal({
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-black/80 backdrop-blur-md overflow-y-auto">
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] my-auto rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10">
+      <div className="relative w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] my-auto rounded-2xl bg-surface border border-surface-border shadow-2xl overflow-hidden flex flex-col z-10 text-parchment">
         {/* Pinned Header */}
-        <div className="px-5 py-4 border-b border-[rgba(229,169,60,0.18)] flex items-center justify-between shrink-0 bg-[#28231d]">
+        <div className="px-5 py-4 border-b border-surface-border flex items-center justify-between shrink-0 bg-surface-elevated">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] text-[#e5a93c]">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-surface border border-surface-border text-mustard">
               <Users className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-sm font-bold text-[#fef3c7] tracking-tight font-mono truncate">
+              <h2 className="text-sm font-bold text-parchment tracking-tight font-mono truncate">
                 {isEditing ? "Edit Squad Preset" : "Create Reusable Squad Preset"}
               </h2>
-              <p className="text-xs text-[#a89a8c] truncate">
+              <p className="text-xs text-clay truncate">
                 Pre-assemble your 4-person dream roster for 1-click deployment.
               </p>
             </div>
@@ -184,7 +184,7 @@ export function CreateSavedSquadModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="p-1.5 text-[#a89a8c] hover:text-[#fef3c7] rounded-lg hover:bg-[#181410] transition-colors shrink-0"
+            className="p-1.5 text-clay hover:text-parchment rounded-lg hover:bg-surface transition-colors shrink-0"
           >
             <X className="h-4 w-4" />
           </button>
@@ -196,7 +196,7 @@ export function CreateSavedSquadModal({
             {/* Squad Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-[#a89a8c] font-mono">Preset Name</label>
+                <label className="text-xs font-medium text-clay font-mono">Preset Name</label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -205,7 +205,7 @@ export function CreateSavedSquadModal({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-[#a89a8c] font-mono">Description (Optional)</label>
+                <label className="text-xs font-medium text-clay font-mono">Description (Optional)</label>
                 <Input
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -217,28 +217,28 @@ export function CreateSavedSquadModal({
             {/* 4-Person Member Roster */}
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-[#fef3c7] uppercase tracking-wider font-mono">
+                <label className="text-xs font-semibold text-parchment uppercase tracking-wider font-mono">
                   4-Person Roster & Assigned Duties
                 </label>
-                <span className="text-[11px] font-mono text-[#a89a8c]">Max 4 Members</span>
+                <span className="text-[11px] font-mono text-clay">Max 4 Members</span>
               </div>
 
               <div className="space-y-3">
                 {members.map((member, idx) => (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-xl border border-[rgba(229,169,60,0.18)] bg-[#181410] space-y-2.5"
+                    className="p-3.5 rounded-xl border border-surface-border bg-canvas space-y-2.5"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#28231d] text-[10px] font-mono font-bold text-[#e5a93c]">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-elevated text-[10px] font-mono font-bold text-mustard">
                           {idx + 1}
                         </span>
-                        <span className="text-xs font-medium text-[#fef3c7]">
+                        <span className="text-xs font-medium text-parchment">
                           {idx === 0 ? "Captain / Lead" : `Teammate Slot #${idx + 1}`}
                         </span>
                       </div>
-                      <span className="text-[10px] font-mono font-medium text-[#7bb4d6] bg-[#4a82a6]/15 border border-[rgba(74,130,166,0.35)] px-2 py-0.5 rounded-md">
+                      <span className="text-[10px] font-mono font-medium text-steel bg-steel/15 border border-steel/35 px-2 py-0.5 rounded-md">
                         {member.duty || "Custom"}
                       </span>
                     </div>
@@ -260,7 +260,7 @@ export function CreateSavedSquadModal({
                       <select
                         value={member.duty}
                         onChange={(e) => handleMemberChange(idx, "duty", e.target.value)}
-                        className="h-9 rounded-xl border border-[rgba(229,169,60,0.20)] bg-[#181410] px-2.5 text-xs text-[#fef3c7] font-mono focus:outline-none focus:border-[#e5a93c]"
+                        className="h-9 rounded-xl border border-surface-border bg-surface px-2.5 text-xs text-parchment font-mono focus:outline-none focus:border-mustard"
                       >
                         {COMMON_DUTIES.map((duty) => (
                           <option key={duty} value={duty}>
@@ -276,7 +276,7 @@ export function CreateSavedSquadModal({
           </div>
 
           {/* Pinned Actions Footer */}
-          <div className="px-5 py-3.5 border-t border-[rgba(229,169,60,0.18)] bg-[#28231d] flex items-center justify-end gap-3 shrink-0">
+          <div className="px-5 py-3.5 border-t border-surface-border bg-surface-elevated flex items-center justify-end gap-3 shrink-0">
             <Button
               type="button"
               variant="outline"

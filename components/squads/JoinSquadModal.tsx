@@ -75,18 +75,18 @@ export function JoinSquadModal({ isOpen, onClose, onSuccess }: JoinSquadModalPro
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto">
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-md max-h-[88vh] my-auto rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col z-10">
+      <div className="relative w-full max-w-md max-h-[88vh] my-auto rounded-2xl bg-surface border border-surface-border shadow-2xl overflow-hidden flex flex-col z-10 text-parchment">
         {/* Header */}
-        <div className="p-5 border-b border-[rgba(229,169,60,0.18)] flex items-center justify-between shrink-0 bg-[#28231d]">
+        <div className="p-5 border-b border-surface-border flex items-center justify-between shrink-0 bg-surface-elevated">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] text-[#e5a93c] shadow-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface border border-surface-border text-mustard shadow-sm">
               <KeyRound className="h-4 w-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-[#fef3c7] tracking-tight font-mono">
+              <h2 className="text-sm font-bold text-parchment tracking-tight font-mono">
                 Join Squad with Code
               </h2>
-              <p className="text-xs text-[#a89a8c]">
+              <p className="text-xs text-clay">
                 Enter the invite code or link provided by your captain.
               </p>
             </div>
@@ -95,7 +95,7 @@ export function JoinSquadModal({ isOpen, onClose, onSuccess }: JoinSquadModalPro
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="p-1.5 rounded-lg text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#181410] transition-colors"
+            className="p-1.5 rounded-lg text-clay hover:text-parchment hover:bg-surface transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -113,13 +113,13 @@ export function JoinSquadModal({ isOpen, onClose, onSuccess }: JoinSquadModalPro
           />
 
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-mono font-medium text-[#a89a8c] tracking-wider uppercase">
+            <label className="block text-[11px] font-mono font-medium text-clay tracking-wider uppercase">
               Your Sprint Duty
             </label>
             <select
               value={duty}
               onChange={(e) => setDuty(e.target.value)}
-              className="w-full h-9 rounded-xl border border-[rgba(229,169,60,0.20)] bg-[#181410] px-3 text-xs text-[#fef3c7] focus:outline-none focus:border-[#e5a93c] font-mono"
+              className="w-full h-9 rounded-xl border border-surface-border bg-canvas px-3 text-xs text-parchment focus:outline-none focus:border-mustard font-mono"
             >
               {COMMON_DUTIES.map((d) => (
                 <option key={d} value={d}>

@@ -36,13 +36,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary:
-        "bg-[#e5a93c] text-[#14110e] font-bold hover:bg-[#d99b2e] border border-[#f3c768]/40 shadow-sm shadow-black/40",
+        "bg-mustard text-canvas font-bold hover:bg-mustard-hover border border-mustard/40 shadow-sm shadow-black/20",
       secondary:
-        "bg-[#1f1b16] text-[#fef3c7] hover:bg-[#28231d] border border-[rgba(229,169,60,0.22)] shadow-sm",
+        "bg-surface text-parchment hover:bg-surface-elevated border border-surface-border shadow-sm",
       outline:
-        "bg-transparent text-[#fef3c7] hover:text-white border border-[rgba(229,169,60,0.25)] hover:border-[rgba(229,169,60,0.45)] hover:bg-[#1f1b16]/60",
+        "bg-transparent text-parchment hover:text-parchment border border-surface-border hover:border-mustard/40 hover:bg-surface/60",
       ghost:
-        "bg-transparent text-[#a89a8c] hover:text-[#fef3c7] hover:bg-[#1f1b16]",
+        "bg-transparent text-clay hover:text-parchment hover:bg-surface",
       destructive:
         "bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20",
     };

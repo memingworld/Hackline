@@ -285,23 +285,23 @@ export function SubmissionKitModal({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-sm overflow-hidden animate-in fade-in duration-200">
-      <div className="relative flex flex-col w-full max-w-5xl h-[92vh] md:h-[88vh] bg-[#16120E] border border-[#2E2822] rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative flex flex-col w-full max-w-5xl h-[92vh] md:h-[88vh] bg-surface border border-surface-border rounded-2xl shadow-2xl overflow-hidden">
         {/* HEADER BAR */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#2A231C] bg-[#1C1712]/60">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-surface-border bg-surface-elevated/60">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[#E5A93C]/15 border border-[#E5A93C]/30 text-[#E5A93C]">
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-mustard/15 border border-mustard/30 text-mustard">
               <FileText className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-bold text-[#FEF3C7] tracking-tight">
+                <h2 className="text-base sm:text-lg font-bold text-parchment tracking-tight">
                   1-Click Submission Kit
                 </h2>
-                <span className="hidden sm:inline-flex px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/40">
+                <span className="hidden sm:inline-flex px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded bg-mustard/20 text-mustard border border-mustard/40">
                   Universal Exporter
                 </span>
               </div>
-              <p className="text-xs text-[#A89A8C]">
+              <p className="text-xs text-clay">
                 Pre-filled from your squad data. Fully customizable and ready to paste in 5 seconds.
               </p>
             </div>
@@ -309,20 +309,20 @@ export function SubmissionKitModal({
 
           <button
             onClick={onClose}
-            className="p-2 text-[#A89A8C] hover:text-[#FEF3C7] hover:bg-[#251E17] rounded-lg transition-colors"
+            className="p-2 text-clay hover:text-parchment hover:bg-surface-elevated rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* TOP TAB NAVIGATION (MOBILE FRIENDLY) */}
-        <div className="flex items-center gap-1 px-4 py-2 bg-[#120F0C] border-b border-[#2A231C] overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1 px-4 py-2 bg-surface-elevated border-b border-surface-border overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab("edit")}
             className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all shrink-0 ${
               activeTab === "edit"
-                ? "bg-[#E5A93C] text-[#14110E] shadow-sm font-bold"
-                : "text-[#A89A8C] hover:text-[#FEF3C7] hover:bg-[#1E1914]"
+                ? "bg-mustard text-canvas shadow-sm font-bold"
+                : "text-clay hover:text-parchment hover:bg-surface-sunken"
             }`}
           >
             <Edit3 className="w-3.5 h-3.5" />
@@ -333,8 +333,8 @@ export function SubmissionKitModal({
             onClick={() => setActiveTab("export")}
             className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all shrink-0 ${
               activeTab === "export"
-                ? "bg-[#E5A93C] text-[#14110E] shadow-sm font-bold"
-                : "text-[#A89A8C] hover:text-[#FEF3C7] hover:bg-[#1E1914]"
+                ? "bg-mustard text-canvas shadow-sm font-bold"
+                : "text-clay hover:text-parchment hover:bg-surface-sunken"
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
@@ -345,8 +345,8 @@ export function SubmissionKitModal({
             onClick={() => setActiveTab("quickcopy")}
             className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all shrink-0 ${
               activeTab === "quickcopy"
-                ? "bg-[#E5A93C] text-[#14110E] shadow-sm font-bold"
-                : "text-[#A89A8C] hover:text-[#FEF3C7] hover:bg-[#1E1914]"
+                ? "bg-mustard text-canvas shadow-sm font-bold"
+                : "text-clay hover:text-parchment hover:bg-surface-sunken"
             }`}
           >
             <Copy className="w-3.5 h-3.5" />
@@ -363,8 +363,8 @@ export function SubmissionKitModal({
             }}
             className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all shrink-0 ${
               activeTab === "audit"
-                ? "bg-[#E5A93C] text-[#14110E] shadow-sm font-bold"
-                : "text-[#A89A8C] hover:text-[#FEF3C7] hover:bg-[#1E1914]"
+                ? "bg-mustard text-canvas shadow-sm font-bold"
+                : "text-clay hover:text-parchment hover:bg-surface-sunken"
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
@@ -376,66 +376,66 @@ export function SubmissionKitModal({
         </div>
 
         {/* MAIN BODY AREA */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 text-sm text-[#FEF3C7]">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 text-sm text-parchment">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-64 gap-3 text-[#A89A8C]">
-              <RefreshCw className="w-6 h-6 animate-spin text-[#E5A93C]" />
+            <div className="flex flex-col items-center justify-center h-64 gap-3 text-clay">
+              <RefreshCw className="w-6 h-6 animate-spin text-mustard" />
               <p>Aggregating squad deliverables and Idea Vault...</p>
             </div>
           ) : activeTab === "edit" ? (
             /* TAB 1: EDIT FORM */
             <div className="space-y-6 max-w-4xl mx-auto">
               {/* SECTION: PROJECT IDENTITY */}
-              <div className="p-4 rounded-xl bg-[#1D1813] border border-[#2A231C] space-y-4">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#E5A93C] uppercase tracking-wider">
+              <div className="p-4 rounded-xl bg-surface border border-surface-border space-y-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-mustard uppercase tracking-wider">
                   <Layers className="w-4 h-4" />
                   <span>Project Identity</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-[#A89A8C] mb-1">
+                    <label className="block text-xs font-medium text-clay mb-1">
                       Project Name *
                     </label>
                     <Input
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                       placeholder="e.g. HackLine"
-                      className="bg-[#14110E] border-[#382F26] text-[#FEF3C7] focus:border-[#E5A93C]"
+                      className="bg-canvas border-surface-border text-parchment focus:border-mustard"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-[#A89A8C] mb-1">
+                    <label className="block text-xs font-medium text-clay mb-1">
                       Hackathon Track / Category (Optional)
                     </label>
                     <Input
                       value={formData.track || ""}
                       onChange={(e) => setFormData({ ...formData, track: e.target.value })}
                       placeholder="e.g. AI & Automation, Open Innovation"
-                      className="bg-[#14110E] border-[#382F26] text-[#FEF3C7] focus:border-[#E5A93C]"
+                      className="bg-canvas border-surface-border text-parchment focus:border-mustard"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[#A89A8C] mb-1">
+                  <label className="block text-xs font-medium text-clay mb-1">
                     Tagline / One-Line Elevator Pitch
                   </label>
                   <Input
                     value={formData.tagline}
                     onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
                     placeholder="e.g. Collaborative sprint workspace for hackathon squads."
-                    className="bg-[#14110E] border-[#382F26] text-[#FEF3C7] focus:border-[#E5A93C]"
+                    className="bg-canvas border-surface-border text-parchment focus:border-mustard"
                   />
                 </div>
               </div>
 
               {/* SECTION: PROBLEM & SOLUTION */}
-              <div className="p-4 rounded-xl bg-[#1D1813] border border-[#2A231C] space-y-4">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#E5A93C] uppercase tracking-wider">
+              <div className="p-4 rounded-xl bg-surface border border-surface-border space-y-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-mustard uppercase tracking-wider">
                   <Sparkles className="w-4 h-4" />
                   <span>Problem & Solution</span>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[#A89A8C] mb-1">
+                  <label className="block text-xs font-medium text-clay mb-1">
                     The Problem & Inspiration (Pre-filled from Idea Vault)
                   </label>
                   <textarea
@@ -443,11 +443,11 @@ export function SubmissionKitModal({
                     value={formData.problemDescription}
                     onChange={(e) => setFormData({ ...formData, problemDescription: e.target.value })}
                     placeholder="Describe what pain point sparked this build..."
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#14110E] border border-[#382F26] text-[#FEF3C7] focus:outline-none focus:border-[#E5A93C] resize-none"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-canvas border border-surface-border text-parchment focus:outline-none focus:border-mustard resize-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[#A89A8C] mb-1">
+                  <label className="block text-xs font-medium text-clay mb-1">
                     The Solution & Key Features (What It Does)
                   </label>
                   <textarea
@@ -455,76 +455,76 @@ export function SubmissionKitModal({
                     value={formData.solutionDescription}
                     onChange={(e) => setFormData({ ...formData, solutionDescription: e.target.value })}
                     placeholder="Describe how your project solves this problem and its primary features..."
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#14110E] border border-[#382F26] text-[#FEF3C7] focus:outline-none focus:border-[#E5A93C] resize-none"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-canvas border border-surface-border text-parchment focus:outline-none focus:border-mustard resize-none"
                   />
                 </div>
               </div>
 
               {/* SECTION: DELIVERABLES & LINKS */}
-              <div className="p-4 rounded-xl bg-[#1D1813] border border-[#2A231C] space-y-4">
+              <div className="p-4 rounded-xl bg-surface border border-surface-border space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-[#E5A93C] uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-xs font-bold text-mustard uppercase tracking-wider">
                     <ExternalLink className="w-4 h-4" />
                     <span>Submission Deliverable URLs</span>
                   </div>
-                  <span className="text-[11px] text-[#A89A8C]">Pre-filled from Asset Hub & Gates</span>
+                  <span className="text-[11px] text-clay">Pre-filled from Asset Hub & Gates</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-[#A89A8C] mb-1">
+                    <label className="block text-xs font-medium text-clay mb-1">
                       GitHub Repository URL
                     </label>
                     <Input
                       value={formData.repoUrl}
                       onChange={(e) => setFormData({ ...formData, repoUrl: e.target.value })}
                       placeholder="https://github.com/org/repo"
-                      className="bg-[#14110E] border-[#382F26] text-[#FEF3C7]"
+                      className="bg-canvas border-surface-border text-parchment"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-[#A89A8C] mb-1">
+                    <label className="block text-xs font-medium text-clay mb-1">
                       Live App / Deployed URL
                     </label>
                     <Input
                       value={formData.liveAppUrl}
                       onChange={(e) => setFormData({ ...formData, liveAppUrl: e.target.value })}
                       placeholder="https://your-hackathon-demo.vercel.app"
-                      className="bg-[#14110E] border-[#382F26] text-[#FEF3C7]"
+                      className="bg-canvas border-surface-border text-parchment"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-[#A89A8C] mb-1">
+                    <label className="block text-xs font-medium text-clay mb-1">
                       Demo Video Link (Loom / YouTube)
                     </label>
                     <Input
                       value={formData.demoVideoUrl}
                       onChange={(e) => setFormData({ ...formData, demoVideoUrl: e.target.value })}
                       placeholder="https://www.loom.com/share/..."
-                      className="bg-[#14110E] border-[#382F26] text-[#FEF3C7]"
+                      className="bg-canvas border-surface-border text-parchment"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-[#A89A8C] mb-1">
+                    <label className="block text-xs font-medium text-clay mb-1">
                       Slide Deck / Presentation URL
                     </label>
                     <Input
                       value={formData.deckUrl}
                       onChange={(e) => setFormData({ ...formData, deckUrl: e.target.value })}
                       placeholder="https://pitch.com/... or Google Slides"
-                      className="bg-[#14110E] border-[#382F26] text-[#FEF3C7]"
+                      className="bg-canvas border-surface-border text-parchment"
                     />
                   </div>
                 </div>
               </div>
 
               {/* SECTION: TECH STACK */}
-              <div className="p-4 rounded-xl bg-[#1D1813] border border-[#2A231C] space-y-4">
+              <div className="p-4 rounded-xl bg-surface border border-surface-border space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-[#E5A93C] uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-xs font-bold text-mustard uppercase tracking-wider">
                     <Code2 className="w-4 h-4" />
                     <span>Tech Stack & Frameworks</span>
                   </div>
-                  <span className="text-[11px] text-[#A89A8C]">Interactive Tags</span>
+                  <span className="text-[11px] text-clay">Interactive Tags</span>
                 </div>
                 <div className="flex gap-2">
                   <Input
@@ -537,12 +537,12 @@ export function SubmissionKitModal({
                       }
                     }}
                     placeholder="Type a technology and press Enter (e.g. Next.js, Supabase)..."
-                    className="bg-[#14110E] border-[#382F26] text-[#FEF3C7]"
+                    className="bg-canvas border-surface-border text-parchment"
                   />
                   <Button
                     type="button"
                     onClick={() => handleAddTag()}
-                    className="bg-[#2A231C] hover:bg-[#382F26] text-[#FEF3C7]"
+                    className="bg-surface-elevated hover:bg-surface-elevated/80 text-parchment border border-surface-border"
                   >
                     Add
                   </Button>
@@ -553,7 +553,7 @@ export function SubmissionKitModal({
                   {formData.techStack.map((tech) => (
                     <span
                       key={tech}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full bg-[#E5A93C]/15 text-[#E5A93C] border border-[#E5A93C]/30"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full bg-mustard/15 text-mustard border border-mustard/30"
                     >
                       {tech}
                       <button
@@ -566,13 +566,13 @@ export function SubmissionKitModal({
                     </span>
                   ))}
                   {formData.techStack.length === 0 && (
-                    <p className="text-xs text-[#A89A8C] italic">No technologies added yet.</p>
+                    <p className="text-xs text-clay italic">No technologies added yet.</p>
                   )}
                 </div>
 
                 {/* SUGGESTIONS */}
-                <div className="pt-2 border-t border-[#2A231C]">
-                  <p className="text-[11px] text-[#A89A8C] mb-2 font-medium">Quick Suggestions:</p>
+                <div className="pt-2 border-t border-surface-border">
+                  <p className="text-[11px] text-clay mb-2 font-medium">Quick Suggestions:</p>
                   <div className="flex flex-wrap gap-1.5">
                     {COMMON_TECH_STACK_SUGGESTIONS.filter((s) => !formData.techStack.includes(s)).map(
                       (suggestion) => (
@@ -580,7 +580,7 @@ export function SubmissionKitModal({
                           key={suggestion}
                           type="button"
                           onClick={() => handleAddTag(suggestion)}
-                          className="px-2 py-0.5 text-[11px] rounded bg-[#16120E] border border-[#2A231C] text-[#A89A8C] hover:text-[#FEF3C7] hover:border-[#E5A93C]/40 transition-colors"
+                          className="px-2 py-0.5 text-[11px] rounded bg-canvas border border-surface-border text-clay hover:text-parchment hover:border-mustard/40 transition-colors"
                         >
                           + {suggestion}
                         </button>
@@ -591,9 +591,9 @@ export function SubmissionKitModal({
               </div>
 
               {/* SECTION: SQUAD ROSTER WITH GITHUB & LINKEDIN */}
-              <div className="p-4 rounded-xl bg-[#1D1813] border border-[#2A231C] space-y-4">
+              <div className="p-4 rounded-xl bg-surface border border-surface-border space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-[#E5A93C] uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-xs font-bold text-mustard uppercase tracking-wider">
                     <ShieldCheck className="w-4 h-4" />
                     <span>Squad Roster & Social Credits</span>
                   </div>
@@ -602,7 +602,7 @@ export function SubmissionKitModal({
                     size="sm"
                     variant="outline"
                     onClick={handleAddMember}
-                    className="h-7 text-xs border-[#382F26] text-[#A89A8C] hover:text-[#FEF3C7]"
+                    className="h-7 text-xs border-surface-border text-clay hover:text-parchment"
                   >
                     <Plus className="w-3.5 h-3.5 mr-1" /> Add Member
                   </Button>
@@ -612,7 +612,7 @@ export function SubmissionKitModal({
                   {formData.members.map((member, index) => (
                     <div
                       key={member.id}
-                      className="p-3 rounded-lg bg-[#14110E] border border-[#2A231C] space-y-2.5"
+                      className="p-3 rounded-lg bg-canvas border border-surface-border space-y-2.5"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -624,9 +624,9 @@ export function SubmissionKitModal({
                               updated[index].include = e.target.checked;
                               setFormData({ ...formData, members: updated });
                             }}
-                            className="rounded border-[#382F26] bg-[#1E1914] text-[#E5A93C] focus:ring-[#E5A93C]"
+                            className="rounded border-surface-border bg-surface text-mustard focus:ring-mustard"
                           />
-                          <span className="text-xs font-bold text-[#FEF3C7]">
+                          <span className="text-xs font-bold text-parchment">
                             Teammate #{index + 1}
                           </span>
                         </div>
@@ -638,7 +638,7 @@ export function SubmissionKitModal({
                               members: prev.members.filter((m) => m.id !== member.id),
                             }));
                           }}
-                          className="text-[#A89A8C] hover:text-red-400 p-1"
+                          className="text-clay hover:text-red-400 p-1"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -653,7 +653,7 @@ export function SubmissionKitModal({
                             setFormData({ ...formData, members: updated });
                           }}
                           placeholder="Full Name"
-                          className="bg-[#1C1712] border-[#2A231C] text-xs h-8 text-[#FEF3C7]"
+                          className="bg-surface border-surface-border text-xs h-8 text-parchment"
                         />
                         <Input
                           value={member.duty}
@@ -663,13 +663,13 @@ export function SubmissionKitModal({
                             setFormData({ ...formData, members: updated });
                           }}
                           placeholder="Role (e.g. AI Engineer, UI Designer)"
-                          className="bg-[#1C1712] border-[#2A231C] text-xs h-8 text-[#FEF3C7]"
+                          className="bg-surface border-surface-border text-xs h-8 text-parchment"
                         />
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div className="relative">
-                          <GithubIcon className="absolute left-2.5 top-2 w-3.5 h-3.5 text-[#A89A8C]" />
+                          <GithubIcon className="absolute left-2.5 top-2 w-3.5 h-3.5 text-clay" />
                           <Input
                             value={member.githubUrl || ""}
                             onChange={(e) => {
@@ -678,11 +678,11 @@ export function SubmissionKitModal({
                               setFormData({ ...formData, members: updated });
                             }}
                             placeholder="GitHub Profile / Handle"
-                            className="bg-[#1C1712] border-[#2A231C] text-xs h-8 pl-8 text-[#FEF3C7]"
+                            className="bg-surface border-surface-border text-xs h-8 pl-8 text-parchment"
                           />
                         </div>
                         <div className="relative">
-                          <LinkedinIcon className="absolute left-2.5 top-2 w-3.5 h-3.5 text-[#A89A8C]" />
+                          <LinkedinIcon className="absolute left-2.5 top-2 w-3.5 h-3.5 text-clay" />
                           <Input
                             value={member.linkedinUrl || ""}
                             onChange={(e) => {
@@ -691,7 +691,7 @@ export function SubmissionKitModal({
                               setFormData({ ...formData, members: updated });
                             }}
                             placeholder="LinkedIn Profile URL"
-                            className="bg-[#1C1712] border-[#2A231C] text-xs h-8 pl-8 text-[#FEF3C7]"
+                            className="bg-surface border-surface-border text-xs h-8 pl-8 text-parchment"
                           />
                         </div>
                       </div>
@@ -699,19 +699,19 @@ export function SubmissionKitModal({
                   ))}
 
                   {formData.members.length === 0 && (
-                    <p className="text-xs text-[#A89A8C] italic">No members listed.</p>
+                    <p className="text-xs text-clay italic">No members listed.</p>
                   )}
                 </div>
               </div>
 
               {/* SECTION: CHALLENGES & ROADMAP */}
-              <div className="p-4 rounded-xl bg-[#1D1813] border border-[#2A231C] space-y-4">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#E5A93C] uppercase tracking-wider">
+              <div className="p-4 rounded-xl bg-surface border border-surface-border space-y-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-mustard uppercase tracking-wider">
                   <Layers className="w-4 h-4" />
                   <span>Challenges & Learnings (Optional)</span>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[#A89A8C] mb-1">
+                  <label className="block text-xs font-medium text-clay mb-1">
                     Challenges We Ran Into (Devpost Prompt)
                   </label>
                   <textarea
@@ -719,11 +719,11 @@ export function SubmissionKitModal({
                     value={formData.challenges}
                     onChange={(e) => setFormData({ ...formData, challenges: e.target.value })}
                     placeholder="Technical obstacles overcome during the sprint..."
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#14110E] border border-[#382F26] text-[#FEF3C7] focus:outline-none focus:border-[#E5A93C] resize-none"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-canvas border border-surface-border text-parchment focus:outline-none focus:border-mustard resize-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[#A89A8C] mb-1">
+                  <label className="block text-xs font-medium text-clay mb-1">
                     What We Learned & Next Steps
                   </label>
                   <textarea
@@ -731,15 +731,15 @@ export function SubmissionKitModal({
                     value={formData.nextSteps}
                     onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
                     placeholder="Future roadmap milestones and key learnings..."
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#14110E] border border-[#382F26] text-[#FEF3C7] focus:outline-none focus:border-[#E5A93C] resize-none"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-canvas border border-surface-border text-parchment focus:outline-none focus:border-mustard resize-none"
                   />
                 </div>
               </div>
 
               {/* SECTION: CUSTOM FIELDS */}
-              <div className="p-4 rounded-xl bg-[#1D1813] border border-[#2A231C] space-y-4">
+              <div className="p-4 rounded-xl bg-surface border border-surface-border space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-[#E5A93C] uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-xs font-bold text-mustard uppercase tracking-wider">
                     <Plus className="w-4 h-4" />
                     <span>Custom Specifications / Extra Links</span>
                   </div>
@@ -748,7 +748,7 @@ export function SubmissionKitModal({
                     size="sm"
                     variant="outline"
                     onClick={handleAddCustomField}
-                    className="h-7 text-xs border-[#382F26] text-[#A89A8C] hover:text-[#FEF3C7]"
+                    className="h-7 text-xs border-surface-border text-clay hover:text-parchment"
                   >
                     <Plus className="w-3.5 h-3.5 mr-1" /> Add Field
                   </Button>
@@ -763,7 +763,7 @@ export function SubmissionKitModal({
                         setFormData({ ...formData, customFields: updated });
                       }}
                       placeholder="Field Label (e.g. Contract Address)"
-                      className="bg-[#14110E] border-[#2A231C] text-xs h-8 w-1/3 text-[#FEF3C7]"
+                      className="bg-canvas border-surface-border text-xs h-8 w-1/3 text-parchment"
                     />
                     <Input
                       value={cf.value}
@@ -773,19 +773,19 @@ export function SubmissionKitModal({
                         setFormData({ ...formData, customFields: updated });
                       }}
                       placeholder="Value or URL"
-                      className="bg-[#14110E] border-[#2A231C] text-xs h-8 flex-1 text-[#FEF3C7]"
+                      className="bg-canvas border-surface-border text-xs h-8 flex-1 text-parchment"
                     />
                     <button
                       type="button"
                       onClick={() => handleRemoveCustomField(cf.id)}
-                      className="text-[#A89A8C] hover:text-red-400 p-1"
+                      className="text-clay hover:text-red-400 p-1"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 ))}
                 {formData.customFields.length === 0 && (
-                  <p className="text-xs text-[#A89A8C] italic">No custom fields added.</p>
+                  <p className="text-xs text-clay italic">No custom fields added.</p>
                 )}
               </div>
             </div>
@@ -793,7 +793,7 @@ export function SubmissionKitModal({
             /* TAB 2: PLATFORM EXPORT PREVIEW */
             <div className="flex flex-col h-full space-y-4 max-w-4xl mx-auto">
               {/* PLATFORM SELECTOR TABS */}
-              <div className="flex items-center gap-2 p-1.5 bg-[#1A1510] border border-[#2E2822] rounded-xl overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-2 p-1.5 bg-surface-elevated border border-surface-border rounded-xl overflow-x-auto no-scrollbar">
                 {(
                   [
                     { id: "devpost", label: "Devpost (.md)" },
@@ -808,8 +808,8 @@ export function SubmissionKitModal({
                     onClick={() => setActivePlatform(p.id)}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 ${
                       activePlatform === p.id
-                        ? "bg-[#E5A93C] text-[#14110E] shadow"
-                        : "text-[#A89A8C] hover:text-[#FEF3C7] hover:bg-[#251E17]"
+                        ? "bg-mustard text-canvas shadow"
+                        : "text-clay hover:text-parchment hover:bg-surface"
                     }`}
                   >
                     {p.label}
@@ -818,20 +818,20 @@ export function SubmissionKitModal({
               </div>
 
               {/* LIVE CODE / MARKDOWN CONTAINER */}
-              <div className="flex-1 min-h-[380px] p-4 rounded-xl bg-[#0F0C0A] border border-[#2A231C] font-mono text-xs text-[#E6E1DC] overflow-y-auto whitespace-pre-wrap selection:bg-[#E5A93C]/30">
+              <div className="flex-1 min-h-[380px] p-4 rounded-xl bg-canvas border border-surface-border font-mono text-xs text-parchment overflow-y-auto whitespace-pre-wrap selection:bg-mustard/30">
                 {compiledExport.content}
               </div>
 
               {/* ACTION BAR */}
               <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                <span className="text-xs text-[#A89A8C]">
+                <span className="text-xs text-clay">
                   Length: {compiledExport.content.length} characters •{" "}
                   {compiledExport.content.split("\n").length} lines
                 </span>
                 <div className="flex items-center gap-2">
                   <Button
                     onClick={() => handleCopyText(compiledExport.content, "export-full")}
-                    className="bg-[#E5A93C] hover:bg-[#F3B74A] text-[#14110E] font-bold text-xs h-9 px-4"
+                    className="bg-mustard hover:bg-mustard-hover text-canvas font-bold text-xs h-9 px-4"
                   >
                     {copiedKey === "export-full" ? (
                       <>
@@ -852,7 +852,7 @@ export function SubmissionKitModal({
                       )
                     }
                     variant="outline"
-                    className="border-[#382F26] text-[#FEF3C7] hover:bg-[#241E18] text-xs h-9 px-4"
+                    className="border-surface-border text-parchment hover:bg-surface-elevated text-xs h-9 px-4"
                   >
                     <Download className="w-4 h-4 mr-1.5" /> Download File
                   </Button>
@@ -862,11 +862,11 @@ export function SubmissionKitModal({
           ) : activeTab === "quickcopy" ? (
             /* TAB 3: FIELD BY FIELD QUICK COPY DRAWER */
             <div className="space-y-4 max-w-3xl mx-auto">
-              <div className="p-3.5 rounded-xl bg-[#1A1510] border border-[#2E2822]">
-                <h3 className="text-xs font-bold text-[#E5A93C] uppercase tracking-wider mb-1">
+              <div className="p-3.5 rounded-xl bg-surface-elevated border border-surface-border">
+                <h3 className="text-xs font-bold text-mustard uppercase tracking-wider mb-1">
                   1-Click Field-by-Field Copy Drawer
                 </h3>
-                <p className="text-xs text-[#A89A8C]">
+                <p className="text-xs text-clay">
                   Submitting via Google Forms, Typeform, or custom portal? Click any button to copy that exact item to your clipboard.
                 </p>
               </div>
@@ -875,13 +875,13 @@ export function SubmissionKitModal({
                 {quickCopyFields.map((field, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between p-3 rounded-lg bg-[#1D1813] border border-[#2A231C] gap-3"
+                    className="flex items-center justify-between p-3 rounded-lg bg-surface border border-surface-border gap-3"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-bold text-[#A89A8C] uppercase tracking-wider">
+                      <p className="text-[11px] font-bold text-clay uppercase tracking-wider">
                         {field.label}
                       </p>
-                      <p className="text-xs text-[#FEF3C7] truncate font-mono mt-0.5">
+                      <p className="text-xs text-parchment truncate font-mono mt-0.5">
                         {field.value}
                       </p>
                     </div>
@@ -891,7 +891,7 @@ export function SubmissionKitModal({
                       className={`h-8 px-3 text-xs shrink-0 ${
                         copiedKey === `field-${idx}`
                           ? "bg-emerald-600 text-white"
-                          : "bg-[#2A231C] hover:bg-[#382F26] text-[#FEF3C7]"
+                          : "bg-surface-elevated hover:bg-surface-elevated/80 text-parchment border border-surface-border"
                       }`}
                     >
                       {copiedKey === `field-${idx}` ? (
@@ -911,19 +911,19 @@ export function SubmissionKitModal({
           ) : (
             /* TAB 4: LINK SANITY AUDIT */
             <div className="space-y-4 max-w-3xl mx-auto">
-              <div className="flex items-center justify-between p-4 rounded-xl bg-[#1A1510] border border-[#2E2822]">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-surface-elevated border border-surface-border">
                 <div>
-                  <h3 className="text-xs font-bold text-[#E5A93C] uppercase tracking-wider mb-1">
+                  <h3 className="text-xs font-bold text-mustard uppercase tracking-wider mb-1">
                     Pre-Flight Link Sanity Auditor
                   </h3>
-                  <p className="text-xs text-[#A89A8C]">
+                  <p className="text-xs text-clay">
                     Prevents zero-point penalties caused by private GitHub repos, expired Loom links, or restricted Google Drive decks.
                   </p>
                 </div>
                 <Button
                   onClick={handleRunAudit}
                   disabled={isAuditing}
-                  className="bg-[#E5A93C] hover:bg-[#F3B74A] text-[#14110E] font-bold text-xs h-9 px-4 shrink-0"
+                  className="bg-mustard hover:bg-mustard-hover text-canvas font-bold text-xs h-9 px-4 shrink-0"
                 >
                   {isAuditing ? (
                     <>
@@ -960,17 +960,17 @@ export function SubmissionKitModal({
                           <span className="text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-black/40">
                             {result.type}
                           </span>
-                          <span className="text-xs truncate font-mono text-[#FEF3C7]">
+                          <span className="text-xs truncate font-mono text-parchment">
                             {result.url}
                           </span>
                         </div>
-                        <p className="text-xs mt-1 text-[#E6E1DC]">{result.message}</p>
+                        <p className="text-xs mt-1 text-parchment/90">{result.message}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 text-[#A89A8C] border border-dashed border-[#2A231C] rounded-xl">
+                <div className="text-center py-12 text-clay border border-dashed border-surface-border rounded-xl">
                   <ShieldCheck className="w-8 h-8 mx-auto mb-2 opacity-50" />
                   <p className="text-xs">Click "Run Audit" to verify your deliverable URLs before submission.</p>
                 </div>
@@ -980,8 +980,8 @@ export function SubmissionKitModal({
         </div>
 
         {/* BOTTOM GLOBAL ACTION BAR */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-t border-[#2A231C] bg-[#14100C]">
-          <div className="text-xs text-[#A89A8C] hidden sm:block">
+        <div className="flex items-center justify-between px-5 py-3.5 border-t border-surface-border bg-surface-elevated">
+          <div className="text-xs text-clay hidden sm:block">
             {formData.title ? `Project: "${formData.title}"` : "Draft Project"}
           </div>
 
@@ -989,7 +989,7 @@ export function SubmissionKitModal({
             <Button
               variant="outline"
               onClick={onClose}
-              className="border-[#382F26] text-[#A89A8C] hover:text-[#FEF3C7] text-xs h-9 px-4"
+              className="border-surface-border text-clay hover:text-parchment text-xs h-9 px-4"
             >
               Close
             </Button>
@@ -998,7 +998,7 @@ export function SubmissionKitModal({
                 setActiveTab("export");
                 handleCopyText(compiledExport.content, "bottom-copy");
               }}
-              className="bg-[#E5A93C] hover:bg-[#F3B74A] text-[#14110E] font-bold text-xs h-9 px-4 flex-1 sm:flex-initial"
+              className="bg-mustard hover:bg-mustard-hover text-canvas font-bold text-xs h-9 px-4 flex-1 sm:flex-initial"
             >
               <Copy className="w-3.5 h-3.5 mr-1.5" />
               Copy Final Submission
