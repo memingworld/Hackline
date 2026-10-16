@@ -521,18 +521,49 @@ CREATE POLICY "Users can update their own profile"
   WITH CHECK (auth.uid() = id);
 
 -- 7.2 HACKATHONS POLICIES
+-- Helper functions to avoid infinite circular recursion between hackathons and teams
+CREATE OR REPLACE FUNCTION public.is_hackathon_organizer(target_hackathon_id uuid, target_user_id uuid)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+  SELECT CASE
+    WHEN target_hackathon_id IS NULL OR target_user_id IS NULL THEN false
+    ELSE EXISTS (
+      SELECT 1 FROM public.hackathons
+      WHERE id = target_hackathon_id
+      AND created_by = target_user_id
+    )
+  END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_hackathon_squad_member(target_hackathon_id uuid, target_user_id uuid)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+  SELECT CASE
+    WHEN target_hackathon_id IS NULL OR target_user_id IS NULL THEN false
+    ELSE EXISTS (
+      SELECT 1 FROM public.teams t
+      LEFT JOIN public.team_members tm ON tm.team_id = t.id
+      WHERE t.hackathon_id = target_hackathon_id
+      AND (t.captain_id = target_user_id OR tm.user_id = target_user_id)
+    )
+  END;
+$$;
+
 DROP POLICY IF EXISTS "Users can only view hackathons they created or participate in" ON public.hackathons;
 CREATE POLICY "Users can only view hackathons they created or participate in"
   ON public.hackathons FOR SELECT
   TO authenticated
   USING (
     created_by = auth.uid() OR
-    EXISTS (
-      SELECT 1 FROM public.teams t
-      JOIN public.team_members tm ON tm.team_id = t.id
-      WHERE t.hackathon_id = hackathons.id
-      AND tm.user_id = auth.uid()
-    )
+    public.is_hackathon_squad_member(id, auth.uid())
   );
 
 DROP POLICY IF EXISTS "Authenticated users can create/scrape hackathons" ON public.hackathons;
@@ -566,11 +597,7 @@ CREATE POLICY "Users can view their squads or hackathon squads"
       WHERE tm.team_id = teams.id
       AND tm.user_id = auth.uid()
     ) OR
-    EXISTS (
-      SELECT 1 FROM public.hackathons h
-      WHERE h.id = teams.hackathon_id
-      AND h.created_by = auth.uid()
-    )
+    public.is_hackathon_organizer(hackathon_id, auth.uid())
   );
 
 DROP POLICY IF EXISTS "Authenticated users can insert teams" ON public.teams;
@@ -897,11 +924,7 @@ CREATE POLICY "Squad members and leaders manage timeline events"
       )
     ))
     OR
-    (team_id IS NULL AND EXISTS (
-      SELECT 1 FROM public.hackathons h
-      WHERE h.id = timeline_events.hackathon_id
-      AND h.created_by = auth.uid()
-    ))
+    (team_id IS NULL AND public.is_hackathon_organizer(hackathon_id, auth.uid()))
   );
 
 CREATE POLICY "Captains and creators delete timeline events"
@@ -914,11 +937,7 @@ CREATE POLICY "Captains and creators delete timeline events"
       AND t.captain_id = auth.uid()
     ))
     OR
-    (team_id IS NULL AND EXISTS (
-      SELECT 1 FROM public.hackathons h
-      WHERE h.id = timeline_events.hackathon_id
-      AND h.created_by = auth.uid()
-    ))
+    (team_id IS NULL AND public.is_hackathon_organizer(hackathon_id, auth.uid()))
   );
 
 CREATE POLICY "Captains and creators insert timeline events"
@@ -931,11 +950,7 @@ CREATE POLICY "Captains and creators insert timeline events"
       AND t.captain_id = auth.uid()
     ))
     OR
-    (team_id IS NULL AND EXISTS (
-      SELECT 1 FROM public.hackathons h
-      WHERE h.id = timeline_events.hackathon_id
-      AND h.created_by = auth.uid()
-    ))
+    (team_id IS NULL AND public.is_hackathon_organizer(hackathon_id, auth.uid()))
   );
 
 -- 7.10 SUBMISSION CHECKLISTS POLICIES
