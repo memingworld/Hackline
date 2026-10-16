@@ -97,10 +97,10 @@
   --accent-mustard-hover: #60a5fa;
   --accent-mustard-light: #bfdbfe;
   --accent-mustard-muted: rgba(147, 197, 253, 0.14);
-  --accent-steel: #831843;
-  --accent-steel-hover: #701a28;
-  --accent-steel-light: #9f1239;
-  --accent-steel-muted: rgba(131, 24, 67, 0.18);
+  --accent-steel: #e11d48;
+  --accent-steel-hover: #be123c;
+  --accent-steel-light: #fb7185;
+  --accent-steel-muted: rgba(225, 29, 72, 0.16);
   --text-parchment: #f0f9ff;
   --text-parchment-muted: #e0f2fe;
   --text-clay: #94a3b8;
@@ -227,12 +227,18 @@ body {
   }
 
   /* Subtle Brass & Mustard Glows / Badges */
-  [class*="bg-\[\#e5a93c\]\/"],
-  [class*="bg-\[\#E5A93C\]\/"] {
+  .bg-\[\#e5a93c\]\/15,
+  .bg-\[\#e5a93c\]\/20,
+  .bg-\[\#e5a93c\]\/30,
+  .bg-\[\#E5A93C\]\/15,
+  .bg-\[\#E5A93C\]\/20,
+  .bg-\[\#E5A93C\]\/30 {
     background-color: var(--accent-brass-subtle) !important;
   }
 
-  [class*="bg-\[\#4a82a6\]\/"] {
+  .bg-\[\#4a82a6\]\/15,
+  .bg-\[\#4a82a6\]\/20,
+  .bg-\[\#4a82a6\]\/30 {
     background-color: var(--accent-steel-muted) !important;
   }
 

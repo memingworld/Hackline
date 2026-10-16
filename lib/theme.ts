@@ -41,8 +41,8 @@ export const THEME_LIST: ThemeConfig[] = [
     name: "Glacier Wine",
     category: "dark",
     tag: "Editorial Dark",
-    description: "Nordic midnight slate, soothing powder light blue, and deep velvet wine accents.",
-    swatches: ["#0F131D", "#171D2A", "#93C5FD", "#831843", "#F0F9FF"],
+    description: "Nordic midnight slate, soothing powder light blue, and vibrant ruby wine accents.",
+    swatches: ["#0F131D", "#171D2A", "#93C5FD", "#E11D48", "#F0F9FF"],
   },
 ];
 
