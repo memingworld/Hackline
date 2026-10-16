@@ -586,11 +586,10 @@ CREATE POLICY "Anyone authenticated can view team members"
 
 DROP POLICY IF EXISTS "Captains or self can insert team members" ON public.team_members;
 DROP POLICY IF EXISTS "Captains can insert team members" ON public.team_members;
-CREATE POLICY "Captains or self can insert team members"
+CREATE POLICY "Captains can insert team members"
   ON public.team_members FOR INSERT
   TO authenticated
   WITH CHECK (
-    user_id = auth.uid() OR
     EXISTS (
       SELECT 1 FROM public.teams
       WHERE id = team_members.team_id
