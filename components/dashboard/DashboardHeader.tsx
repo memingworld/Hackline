@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { Hackathon, Team } from "@/types/database";
 import { CommandPalette } from "./CommandPalette";
 import { NotificationsPopover } from "./NotificationsPopover";
+import { ThemeSelector } from "@/components/theme/ThemeSelector";
 
 interface DashboardHeaderProps {
   userEmail: string;
@@ -195,6 +196,9 @@ export function DashboardHeader({
             <span className="hidden sm:inline">Import Event</span>
           </Button>
         </Link>
+
+        {/* Theme Switcher */}
+        <ThemeSelector />
 
         {/* System Notifications Popover */}
         <div className="relative">
