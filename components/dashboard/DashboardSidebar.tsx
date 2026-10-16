@@ -161,7 +161,7 @@ export function DashboardSidebar({
     try {
       await supabase.auth.signOut({ scope: "local" });
       toast.success("Signed out successfully");
-      router.push("/login");
+      router.push("/");
       router.refresh();
     } catch {
       toast.error("Error signing out");
