@@ -2,44 +2,138 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+:root,
+[data-theme="warm-brass"] {
   --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --bg-canvas: #14110e;
   --bg-surface: #1f1b16;
   --bg-surface-elevated: #28231d;
+  --bg-surface-sunken: #100d0a;
+  --border-primary: rgba(229, 169, 60, 0.18);
   --border-brass: rgba(229, 169, 60, 0.18);
   --border-brass-hover: rgba(229, 169, 60, 0.38);
+  --accent-brass-subtle: rgba(229, 169, 60, 0.20);
+  --accent-brass-hover: rgba(229, 169, 60, 0.38);
+  --accent-brass-solid: #d4a042;
   --accent-mustard: #e5a93c;
+  --accent-mustard-hover: #d99b2e;
+  --accent-mustard-light: #f3c768;
+  --accent-mustard-muted: rgba(229, 169, 60, 0.12);
   --accent-steel: #4a82a6;
+  --accent-steel-hover: #3d6f8f;
+  --accent-steel-light: #7bb4d6;
+  --accent-steel-muted: rgba(74, 130, 166, 0.16);
   --text-parchment: #fef3c7;
+  --text-parchment-muted: #f5ecd0;
   --text-clay: #a89a8c;
+  --text-clay-dark: #6e6256;
+  --text-clay-light: #c5b8ab;
+}
+
+[data-theme="sakura-alabaster"] {
+  --bg-canvas: #faf6f4;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f5edea;
+  --bg-surface-sunken: #f0e6e2;
+  --border-primary: rgba(232, 121, 168, 0.20);
+  --border-brass: rgba(232, 121, 168, 0.20);
+  --border-brass-hover: rgba(232, 121, 168, 0.40);
+  --accent-brass-subtle: rgba(232, 121, 168, 0.15);
+  --accent-brass-hover: rgba(232, 121, 168, 0.30);
+  --accent-brass-solid: #e879a8;
+  --accent-mustard: #e879a8;
+  --accent-mustard-hover: #db6b9b;
+  --accent-mustard-light: #f4a2c5;
+  --accent-mustard-muted: rgba(232, 121, 168, 0.12);
+  --accent-steel: #5e9c87;
+  --accent-steel-hover: #4e8573;
+  --accent-steel-light: #7cb8a4;
+  --accent-steel-muted: rgba(94, 156, 135, 0.16);
+  --text-parchment: #231c20;
+  --text-parchment-muted: #42363c;
+  --text-clay: #7a6e74;
+  --text-clay-dark: #574d52;
+  --text-clay-light: #9e9198;
+}
+
+[data-theme="midnight-sakura"] {
+  --bg-canvas: #141016;
+  --bg-surface: #1e1722;
+  --bg-surface-elevated: #281f2d;
+  --bg-surface-sunken: #0e0b10;
+  --border-primary: rgba(244, 114, 182, 0.20);
+  --border-brass: rgba(244, 114, 182, 0.20);
+  --border-brass-hover: rgba(244, 114, 182, 0.40);
+  --accent-brass-subtle: rgba(244, 114, 182, 0.16);
+  --accent-brass-hover: rgba(244, 114, 182, 0.32);
+  --accent-brass-solid: #f472b6;
+  --accent-mustard: #f472b6;
+  --accent-mustard-hover: #ec4899;
+  --accent-mustard-light: #fbcfe8;
+  --accent-mustard-muted: rgba(244, 114, 182, 0.14);
+  --accent-steel: #5eead4;
+  --accent-steel-hover: #2dd4bf;
+  --accent-steel-light: #99f6e4;
+  --accent-steel-muted: rgba(94, 234, 212, 0.18);
+  --text-parchment: #fce7f3;
+  --text-parchment-muted: #f5d0e5;
+  --text-clay: #b89db0;
+  --text-clay-dark: #826c7c;
+  --text-clay-light: #d6bfcf;
+}
+
+[data-theme="glacier-wine"] {
+  --bg-canvas: #0f131d;
+  --bg-surface: #171d2a;
+  --bg-surface-elevated: #21293a;
+  --bg-surface-sunken: #090c12;
+  --border-primary: rgba(147, 197, 253, 0.20);
+  --border-brass: rgba(147, 197, 253, 0.20);
+  --border-brass-hover: rgba(147, 197, 253, 0.40);
+  --accent-brass-subtle: rgba(147, 197, 253, 0.16);
+  --accent-brass-hover: rgba(147, 197, 253, 0.32);
+  --accent-brass-solid: #93c5fd;
+  --accent-mustard: #93c5fd;
+  --accent-mustard-hover: #60a5fa;
+  --accent-mustard-light: #bfdbfe;
+  --accent-mustard-muted: rgba(147, 197, 253, 0.14);
+  --accent-steel: #831843;
+  --accent-steel-hover: #701a28;
+  --accent-steel-light: #9f1239;
+  --accent-steel-muted: rgba(131, 24, 67, 0.18);
+  --text-parchment: #f0f9ff;
+  --text-parchment-muted: #e0f2fe;
+  --text-clay: #94a3b8;
+  --text-clay-dark: #64748b;
+  --text-clay-light: #cbd5e1;
 }
 
 body {
-  background-color: #14110e;
-  color: #fef3c7;
+  background-color: var(--bg-canvas, #14110e);
+  color: var(--text-parchment, #fef3c7);
   font-family: var(--font-inter);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Custom Bauhaus Warm Scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #14110e;
+  background: var(--bg-canvas, #14110e);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #28231d;
-  border: 1px solid rgba(229, 169, 60, 0.18);
+  background: var(--bg-surface-elevated, #28231d);
+  border: 1px solid var(--border-primary, rgba(229, 169, 60, 0.18));
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #383129;
+  background: var(--accent-mustard-hover, #d99b2e);
 }
