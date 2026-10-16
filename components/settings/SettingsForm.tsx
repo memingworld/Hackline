@@ -368,22 +368,24 @@ export function SettingsForm({
   };
 
   return (
-    <div className="space-y-8 max-w-4xl">
-      {/* 1. Profile Settings */}
-      <div className="rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.20)] p-5 sm:p-7 shadow-xl">
-        <div className="flex items-center gap-3 pb-5 border-b border-[rgba(229,169,60,0.15)]">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#28231d] border border-[rgba(229,169,60,0.25)] text-[#e5a93c] shadow-sm">
-            <User className="h-5 w-5" />
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-6xl">
+      {/* Left Column (Desktop 7 cols): Identity & Account Security */}
+      <div className="lg:col-span-7 space-y-8">
+        {/* 1. Profile Settings */}
+        <div className="rounded-2xl bg-surface border border-surface-border p-5 sm:p-7 shadow-xl">
+          <div className="flex items-center gap-3 pb-5 border-b border-surface-border">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-elevated border border-surface-border text-mustard shadow-sm">
+              <User className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-parchment tracking-tight font-mono">
+                Developer Identity & Profile
+              </h2>
+              <p className="text-xs text-clay">
+                Your profile details visible to squad members and invitees.
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-bold text-[#fef3c7] tracking-tight font-mono">
-              Developer Identity & Profile
-            </h2>
-            <p className="text-xs text-[#a89a8c]">
-              Your profile details visible to squad members and invitees.
-            </p>
-          </div>
-        </div>
 
         {/* Avatar & Visual Representation */}
         <div className="mt-6 flex flex-col sm:flex-row items-center sm:items-start gap-5 p-4 rounded-xl bg-[#181410] border border-[rgba(229,169,60,0.18)]">
@@ -548,91 +550,7 @@ export function SettingsForm({
         </form>
       </div>
 
-      {/* 2. Interface Theme & Visual Style */}
-      <div className="rounded-2xl bg-surface border border-surface-border p-5 sm:p-7 shadow-xl">
-        <div className="flex items-center gap-3 pb-5 border-b border-surface-border">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-elevated border border-surface-border text-mustard shadow-sm">
-            <Palette className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-base font-bold text-parchment tracking-tight font-mono">
-                Interface Theme & Visual Style
-              </h2>
-              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md border border-steel/30 bg-steel/15 text-steel">
-                Cross-Device Sync
-              </span>
-            </div>
-            <p className="text-xs text-clay mt-0.5">
-              Choose your squad workspace aesthetic. Saved to your profile and preserved across devices and logouts.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {THEME_LIST.map((theme) => {
-            const isSelected = theme.id === activeThemeId;
-            return (
-              <button
-                key={theme.id}
-                type="button"
-                onClick={() => handleThemeSelect(theme.id)}
-                className={`relative flex flex-col justify-between p-4 rounded-xl border text-left transition-all duration-200 select-none ${
-                  isSelected
-                    ? "bg-surface-elevated border-mustard shadow-md ring-1 ring-mustard/40"
-                    : "bg-surface-sunken/60 border-surface-border hover:border-mustard/40 hover:bg-surface-elevated/40"
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-parchment font-mono">
-                        {theme.name}
-                      </span>
-                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-mustard/15 text-mustard uppercase font-medium">
-                        {theme.category}
-                      </span>
-                    </div>
-
-                    <div
-                      className={`h-5 w-5 rounded-full border flex items-center justify-center transition-colors ${
-                        isSelected
-                          ? "border-mustard bg-mustard text-canvas"
-                          : "border-clay/40 bg-surface"
-                      }`}
-                    >
-                      {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-clay leading-relaxed mb-4">
-                    {theme.description}
-                  </p>
-                </div>
-
-                {/* 5 Swatches Preview Bar */}
-                <div className="pt-3 border-t border-surface-border flex items-center justify-between">
-                  <span className="text-[10px] font-mono uppercase text-clay/80 tracking-wider">
-                    Palette
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    {theme.swatches.map((color, i) => (
-                      <span
-                        key={i}
-                        className="w-4 h-4 rounded-full border border-surface shadow-xs transition-transform hover:scale-125"
-                        style={{ backgroundColor: color }}
-                        title={color}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 3. Security & Password Management */}
+      {/* 2. Security & Password Management */}
       <div className="rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.20)] p-5 sm:p-7 shadow-xl">
         <div className="flex items-center gap-3 pb-5 border-b border-[rgba(229,169,60,0.15)]">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#28231d] border border-[rgba(229,169,60,0.25)] text-[#e5a93c] shadow-sm">
@@ -780,22 +698,109 @@ export function SettingsForm({
           </div>
         </form>
       </div>
+    </div>
 
-      {/* 3. Personal Telegram Deadline Alert Engine */}
-      <div className="rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.20)] p-5 sm:p-7 shadow-xl">
-        <div className="flex items-center justify-between pb-5 border-b border-[rgba(229,169,60,0.15)] flex-wrap gap-3">
+    {/* Right Column (Desktop 5 cols): Workspace Theme & Notification Channels */}
+    <div className="lg:col-span-5 space-y-8">
+      {/* 3. Interface Theme & Visual Style */}
+      <div className="rounded-2xl bg-surface border border-surface-border p-5 sm:p-7 shadow-xl">
+        <div className="flex items-center gap-3 pb-5 border-b border-surface-border">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-elevated border border-surface-border text-mustard shadow-sm">
+            <Palette className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-base font-bold text-parchment tracking-tight font-mono">
+                Interface Theme & Visual Style
+              </h2>
+              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md border border-steel/30 bg-steel/15 text-steel">
+                Cross-Device Sync
+              </span>
+            </div>
+            <p className="text-xs text-clay mt-0.5">
+              Choose your squad workspace aesthetic. Preserved across devices and logouts.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3.5">
+          {THEME_LIST.map((theme) => {
+            const isSelected = theme.id === activeThemeId;
+            return (
+              <button
+                key={theme.id}
+                type="button"
+                onClick={() => handleThemeSelect(theme.id)}
+                className={`relative flex flex-col justify-between p-4 rounded-xl border text-left transition-all duration-200 select-none ${
+                  isSelected
+                    ? "bg-surface-elevated border-mustard shadow-md ring-1 ring-mustard/40"
+                    : "bg-surface-sunken/60 border-surface-border hover:border-mustard/40 hover:bg-surface-elevated/40"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-parchment font-mono">
+                        {theme.name}
+                      </span>
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-mustard/15 text-mustard uppercase font-medium">
+                        {theme.category}
+                      </span>
+                    </div>
+
+                    <div
+                      className={`h-5 w-5 rounded-full border flex items-center justify-center transition-colors ${
+                        isSelected
+                          ? "border-mustard bg-mustard text-canvas"
+                          : "border-clay/40 bg-surface"
+                      }`}
+                    >
+                      {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-clay leading-relaxed mb-4">
+                    {theme.description}
+                  </p>
+                </div>
+
+                {/* 5 Swatches Preview Bar */}
+                <div className="pt-3 border-t border-surface-border flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase text-clay/80 tracking-wider">
+                    Palette
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {theme.swatches.map((color, i) => (
+                      <span
+                        key={i}
+                        className="w-4 h-4 rounded-full border border-surface shadow-xs transition-transform hover:scale-125"
+                        style={{ backgroundColor: color }}
+                        title={color}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 4. Personal Telegram Deadline Alert Engine */}
+      <div className="rounded-2xl bg-surface border border-surface-border p-5 sm:p-7 shadow-xl">
+        <div className="flex items-center justify-between pb-5 border-b border-surface-border flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#28231d] border border-[rgba(74,130,166,0.35)] text-[#7bb4d6] shadow-sm">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-elevated border border-[rgba(74,130,166,0.35)] text-[#7bb4d6] shadow-sm">
               <Send className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#fef3c7] tracking-tight flex items-center gap-2 flex-wrap font-mono">
+              <h2 className="text-base font-bold text-parchment tracking-tight flex items-center gap-2 flex-wrap font-mono">
                 <span>Personal Telegram Deadline Alerts</span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6]">
                   Direct 1-on-1 DMs &bull; Free Forever
                 </span>
               </h2>
-              <p className="text-xs text-[#a89a8c]">
+              <p className="text-xs text-clay">
                 Instant push countdown warnings sent directly to your phone at T-24h and T-2h for all hackathons you join.
               </p>
             </div>
@@ -961,5 +966,6 @@ export function SettingsForm({
         </div>
       </div>
     </div>
+  </div>
   );
 }

@@ -52,7 +52,7 @@ export default async function DashboardLayout({
     (user?.email ? user.email.split("@")[0] : "Builder");
 
   return (
-    <div className="flex min-h-screen bg-[#14110e] text-[#fef3c7] selection:bg-[#e5a93c]/30 selection:text-[#fef3c7]">
+    <div className="flex min-h-screen bg-canvas text-parchment selection:bg-mustard/30 selection:text-parchment transition-colors duration-200">
       <DashboardSidebar
         currentUserId={user?.id}
         userEmail={userEmail}

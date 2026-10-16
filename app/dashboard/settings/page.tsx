@@ -44,20 +44,20 @@ export default async function SettingsPage() {
     : null;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-8 animate-in fade-in duration-300 max-w-6xl">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[rgba(229,169,60,0.18)]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-surface-border">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl font-bold tracking-tight text-[#fef3c7] font-mono">
+            <h1 className="text-2xl font-bold tracking-tight text-parchment font-mono">
               System Settings & Alerts
             </h1>
-            <span className="text-[11px] font-mono font-medium px-2.5 py-0.5 rounded-md border border-[rgba(74,130,166,0.35)] bg-[#4a82a6]/15 text-[#7bb4d6]">
+            <span className="text-[11px] font-mono font-medium px-2.5 py-0.5 rounded-md border border-steel/30 bg-steel/15 text-steel">
               Alert Engine Active
             </span>
           </div>
-          <p className="mt-1 text-xs text-[#a89a8c] max-w-xl">
-            Manage your developer profile credentials and configure Telegram automated deadline warnings.
+          <p className="mt-1 text-xs text-clay max-w-xl">
+            Manage your developer profile credentials, visual themes, and automated Telegram alerts.
           </p>
         </div>
       </div>

@@ -143,27 +143,27 @@ export function CommandPalette({
       {/* Background overlay click-to-close */}
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative w-full max-w-xl rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.25)] shadow-2xl overflow-hidden flex flex-col max-h-[80vh] backdrop-blur-2xl z-10">
+      <div className="relative w-full max-w-xl rounded-2xl bg-surface border border-surface-border shadow-2xl overflow-hidden flex flex-col max-h-[80vh] backdrop-blur-2xl z-10">
         {/* Search Input Bar */}
-        <div className="p-4 border-b border-[rgba(229,169,60,0.18)] flex items-center gap-3 bg-[#28231d]">
-          <Search className="h-4 w-4 text-[#e5a93c] shrink-0" />
+        <div className="p-4 border-b border-surface-border flex items-center gap-3 bg-surface-elevated">
+          <Search className="h-4 w-4 text-mustard shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Type a command or search hackathons, pages, or actions..."
-            className="w-full bg-transparent text-sm text-[#fef3c7] placeholder:text-[#a89a8c]/50 focus:outline-none font-sans"
+            className="w-full bg-transparent text-sm text-parchment placeholder:text-clay/50 focus:outline-none font-sans"
           />
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="p-1 rounded text-[#a89a8c] hover:text-[#fef3c7] transition-colors"
+              className="p-1 rounded text-clay hover:text-parchment transition-colors"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           )}
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded-lg bg-[#14110e] border border-[rgba(229,169,60,0.20)] px-2 py-0.5 font-mono text-[10px] text-[#a89a8c] shrink-0">
+          <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded-lg bg-canvas border border-surface-border px-2 py-0.5 font-mono text-[10px] text-clay shrink-0">
             ESC
           </kbd>
         </div>
@@ -173,7 +173,7 @@ export function CommandPalette({
           {/* Hackathons Section */}
           {matchedHackathons.length > 0 && (
             <div>
-              <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-[#a89a8c] block mb-1.5 font-semibold">
+              <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-clay block mb-1.5 font-semibold">
                 Switch Hackathon Sprint
               </span>
               <div className="space-y-1">
@@ -183,28 +183,28 @@ export function CommandPalette({
                     <button
                       key={h.id}
                       onClick={() => handleSelectHackathon(h.id)}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-[#28231d] transition-colors group"
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-surface-elevated transition-colors group"
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#14110e] border border-[rgba(229,169,60,0.20)] text-[#e5a93c]">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-canvas border border-surface-border text-mustard">
                           <Trophy className="h-3.5 w-3.5" />
                         </div>
                         <div className="truncate">
-                          <span className="font-medium text-[#fef3c7] block truncate">
+                          <span className="font-medium text-parchment block truncate">
                             {h.title}
                           </span>
-                          <span className="text-[10px] text-[#a89a8c] font-mono">
+                          <span className="text-[10px] text-clay font-mono">
                             {h.source_platform.toUpperCase()} &bull; {h.prize_pool || "TBA"}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         {isActive && (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#e5a93c]/15 border border-[rgba(229,169,60,0.30)] text-[#e5a93c]">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-mustard/15 border border-mustard/30 text-mustard">
                             Active
                           </span>
                         )}
-                        <ArrowRight className="h-3.5 w-3.5 text-[#6e6355] group-hover:text-[#fef3c7] transition-colors" />
+                        <ArrowRight className="h-3.5 w-3.5 text-clay group-hover:text-parchment transition-colors" />
                       </div>
                     </button>
                   );
@@ -216,7 +216,7 @@ export function CommandPalette({
           {/* Quick Actions */}
           {actions.length > 0 && (
             <div>
-              <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-[#a89a8c] block mb-1.5 font-semibold">
+              <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-clay block mb-1.5 font-semibold">
                 Quick Actions
               </span>
               <div className="space-y-1">
@@ -226,17 +226,17 @@ export function CommandPalette({
                     <button
                       key={act.label}
                       onClick={act.onClick}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-[#28231d] transition-colors group"
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-surface-elevated transition-colors group"
                     >
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#14110e] border border-[rgba(229,169,60,0.20)] text-[#e5a93c]">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-canvas border border-surface-border text-mustard">
                           <Icon className="h-3.5 w-3.5" />
                         </div>
-                        <span className="font-medium text-[#fef3c7]">
+                        <span className="font-medium text-parchment">
                           {act.label}
                         </span>
                       </div>
-                      <ArrowRight className="h-3.5 w-3.5 text-[#6e6355] group-hover:text-[#fef3c7] transition-colors" />
+                      <ArrowRight className="h-3.5 w-3.5 text-clay group-hover:text-parchment transition-colors" />
                     </button>
                   );
                 })}
@@ -247,7 +247,7 @@ export function CommandPalette({
           {/* Navigation Pages */}
           {pages.length > 0 && (
             <div>
-              <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-[#a89a8c] block mb-1.5 font-semibold">
+              <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-clay block mb-1.5 font-semibold">
                 Workspace Pages
               </span>
               <div className="space-y-1">
@@ -257,15 +257,15 @@ export function CommandPalette({
                     <button
                       key={p.href}
                       onClick={() => handleNavigate(p.href)}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-[#28231d] transition-colors group"
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-surface-elevated transition-colors group"
                     >
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#14110e] border border-[rgba(229,169,60,0.20)] text-[#a89a8c]">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-canvas border border-surface-border text-clay">
                           <Icon className="h-3.5 w-3.5" />
                         </div>
-                        <span className="text-[#fef3c7]">{p.label}</span>
+                        <span className="text-parchment">{p.label}</span>
                       </div>
-                      <ArrowRight className="h-3.5 w-3.5 text-[#6e6355] group-hover:text-[#fef3c7] transition-colors" />
+                      <ArrowRight className="h-3.5 w-3.5 text-clay group-hover:text-parchment transition-colors" />
                     </button>
                   );
                 })}
@@ -274,16 +274,16 @@ export function CommandPalette({
           )}
 
           {matchedHackathons.length === 0 && actions.length === 0 && pages.length === 0 && (
-            <div className="p-8 text-center text-[#a89a8c] font-mono text-xs">
+            <div className="p-8 text-center text-clay font-mono text-xs">
               No matching commands or hackathons found for &quot;{query}&quot;
             </div>
           )}
         </div>
 
         {/* Footer shortcuts hint */}
-        <div className="p-2.5 px-4 border-t border-[rgba(229,169,60,0.18)] bg-[#28231d] flex items-center justify-between text-[11px] font-mono text-[#a89a8c]">
+        <div className="p-2.5 px-4 border-t border-surface-border bg-surface-elevated flex items-center justify-between text-[11px] font-mono text-clay">
           <span>Navigate with mouse or Tab</span>
-          <span className="text-[#e5a93c]">Hackline Command Palette</span>
+          <span className="text-mustard">Hackline Command Palette</span>
         </div>
       </div>
     </div>,

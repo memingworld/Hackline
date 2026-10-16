@@ -110,17 +110,17 @@ export function NotificationsPopover({
     <div
       ref={popoverRef}
       onClick={(e) => e.stopPropagation()}
-      className="absolute right-0 top-12 z-50 w-80 sm:w-96 rounded-2xl bg-[#1f1b16] border border-[rgba(229,169,60,0.22)] shadow-2xl overflow-hidden backdrop-blur-2xl"
+      className="absolute right-0 top-12 z-50 w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-surface border border-surface-border shadow-2xl overflow-hidden backdrop-blur-2xl"
     >
       {/* Popover Header */}
-      <div className="p-3.5 px-4 border-b border-[rgba(229,169,60,0.18)] flex items-center justify-between bg-[#28231d]">
+      <div className="p-3.5 px-4 border-b border-surface-border flex items-center justify-between bg-surface-elevated">
         <div className="flex items-center gap-2">
-          <Bell className="h-4 w-4 text-[#e5a93c]" />
-          <span className="text-xs font-bold text-[#fef3c7] tracking-tight font-mono">
+          <Bell className="h-4 w-4 text-mustard" />
+          <span className="text-xs font-bold text-parchment tracking-tight font-mono">
             Notifications & Alerts
           </span>
           {alerts.length > 0 && (
-            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-[#e5a93c]/15 border border-[rgba(229,169,60,0.30)] text-[#e5a93c]">
+            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-mustard/15 border border-mustard/30 text-mustard">
               {alerts.length}
             </span>
           )}
@@ -130,7 +130,7 @@ export function NotificationsPopover({
           <button
             type="button"
             onClick={() => setCleared(true)}
-            className="text-[11px] font-mono text-[#a89a8c] hover:text-[#fef3c7] transition-colors flex items-center gap-1"
+            className="text-[11px] font-mono text-clay hover:text-parchment transition-colors flex items-center gap-1"
           >
             <Trash2 className="h-3 w-3" />
             <span>Clear</span>
@@ -142,11 +142,11 @@ export function NotificationsPopover({
       <div className="p-2 max-h-80 overflow-y-auto space-y-1.5 custom-scrollbar">
         {alerts.length === 0 ? (
           <div className="p-8 text-center flex flex-col items-center justify-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#181410] border border-[rgba(229,169,60,0.20)] text-[#e5a93c] mb-2.5 shadow-inner">
-              <CheckCircle2 className="h-5 w-5 text-[#e5a93c]" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-canvas border border-surface-border text-mustard mb-2.5 shadow-inner">
+              <CheckCircle2 className="h-5 w-5 text-mustard" />
             </div>
-            <span className="text-xs font-semibold text-[#fef3c7] font-mono">All Caught Up</span>
-            <p className="text-[11px] text-[#a89a8c] mt-1 max-w-[220px] leading-relaxed">
+            <span className="text-xs font-semibold text-parchment font-mono">All Caught Up</span>
+            <p className="text-[11px] text-clay mt-1 max-w-[220px] leading-relaxed">
               No active warnings or unaddressed milestone gates.
             </p>
           </div>
@@ -157,7 +157,7 @@ export function NotificationsPopover({
                 className={`p-3 rounded-xl border transition-colors ${
                   item.urgent
                     ? "border-amber-500/40 bg-amber-500/10 hover:border-amber-500/60"
-                    : "border-[rgba(229,169,60,0.18)] bg-[#28231d]/70 hover:border-[rgba(229,169,60,0.35)]"
+                    : "border-surface-border bg-surface-elevated/70 hover:border-mustard/40"
                 }`}
               >
                 <div className="flex items-start justify-between gap-2 mb-1">
@@ -165,19 +165,19 @@ export function NotificationsPopover({
                     {item.urgent ? (
                       <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
                     ) : item.type === "squad" ? (
-                      <Sparkles className="h-3.5 w-3.5 text-[#e5a93c] shrink-0" />
+                      <Sparkles className="h-3.5 w-3.5 text-mustard shrink-0" />
                     ) : (
-                      <Clock className="h-3.5 w-3.5 text-[#e5a93c] shrink-0" />
+                      <Clock className="h-3.5 w-3.5 text-mustard shrink-0" />
                     )}
-                    <span className="text-xs font-semibold text-[#fef3c7] tracking-tight">
+                    <span className="text-xs font-semibold text-parchment tracking-tight">
                       {item.title}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-[#a89a8c] shrink-0">
+                  <span className="text-[10px] font-mono text-clay shrink-0">
                     {item.timestamp}
                   </span>
                 </div>
-                <p className="text-[11px] text-[#a89a8c] leading-relaxed pl-5">
+                <p className="text-[11px] text-clay leading-relaxed pl-5">
                   {item.description}
                 </p>
               </div>
@@ -206,16 +206,16 @@ export function NotificationsPopover({
       </div>
 
       {/* Popover Footer */}
-      <div className="p-2.5 px-4 border-t border-[rgba(229,169,60,0.18)] bg-[#28231d] flex items-center justify-between text-[11px] font-mono">
+      <div className="p-2.5 px-4 border-t border-surface-border bg-surface-elevated flex items-center justify-between text-[11px] font-mono">
         <Link
           href="/dashboard/settings"
           onClick={onClose}
-          className="text-[#a89a8c] hover:text-[#fef3c7] transition-colors flex items-center gap-1.5"
+          className="text-clay hover:text-parchment transition-colors flex items-center gap-1.5"
         >
           <Settings className="h-3 w-3" />
           <span>Notification Settings</span>
         </Link>
-        <span className="text-[#a89a8c]">Telegram Engine Active</span>
+        <span className="text-clay">Telegram Engine Active</span>
       </div>
     </div>
   );
