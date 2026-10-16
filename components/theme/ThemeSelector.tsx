@@ -130,9 +130,9 @@ export function ThemeSelector({
       {/* Dropdown Menu */}
       {isOpen && (
         <div
-          className={`absolute ${
-            align === "right" ? "right-0" : "left-0"
-          } mt-2 w-64 rounded-2xl border border-surface-border bg-surface p-1.5 shadow-2xl z-50 animate-fade-in backdrop-blur-xl`}
+          className={`fixed inset-x-4 top-20 sm:absolute sm:inset-x-auto sm:top-full sm:mt-2 ${
+            align === "right" ? "sm:right-0" : "sm:left-0"
+          } sm:w-64 max-w-sm mx-auto sm:mx-0 rounded-2xl border border-surface-border bg-surface p-1.5 shadow-2xl z-50 animate-fade-in backdrop-blur-xl`}
           role="menu"
         >
           <div className="px-3 py-2 border-b border-surface-border mb-1">

@@ -44,7 +44,7 @@ export default async function LandingPage() {
       {/* Floating Header */}
       <header className="relative z-30 pt-6 px-4 max-w-5xl mx-auto">
         <nav className="flex items-center justify-between rounded-2xl border border-surface-border bg-surface/90 px-4 sm:px-5 py-3 backdrop-blur-xl shadow-xl transition-colors">
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2 group shrink-0">
             <div className="flex items-center gap-1.5">
               <span className="font-bold tracking-wider text-base text-parchment font-mono">
                 HACKLINE
@@ -54,14 +54,14 @@ export default async function LandingPage() {
           </Link>
 
           {/* Nav Controls: Theme Switcher & Auth */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Quick Theme Selector */}
             <ThemeSelector variant="compact" />
 
             {isAuthenticated ? (
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-mustard text-canvas hover:bg-mustard-hover px-3.5 py-1.5 text-xs font-semibold shadow-md transition-all active:scale-[0.98]"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-mustard text-canvas hover:bg-mustard-hover px-3.5 py-1.5 text-xs font-semibold shadow-md transition-all active:scale-[0.98] whitespace-nowrap shrink-0"
               >
                 <LayoutDashboard className="h-3 w-3" />
                 <span>Workspace</span>
@@ -70,13 +70,13 @@ export default async function LandingPage() {
               <>
                 <Link
                   href="/login"
-                  className="text-xs font-mono text-clay hover:text-parchment px-2.5 py-1.5 transition-colors"
+                  className="text-xs font-mono text-clay hover:text-parchment px-2.5 py-1.5 transition-colors whitespace-nowrap shrink-0"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/signup"
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-mustard text-canvas hover:bg-mustard-hover px-3.5 py-1.5 text-xs font-semibold shadow-md transition-all active:scale-[0.98]"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-mustard text-canvas hover:bg-mustard-hover px-3.5 py-1.5 text-xs font-semibold shadow-md transition-all active:scale-[0.98] whitespace-nowrap shrink-0"
                 >
                   <span>Get Started</span>
                   <ArrowRight className="h-3 w-3" />
