@@ -5,5 +5,19 @@
       "path": "/api/notifications/telegram/dispatch",
       "schedule": "0 0 * * *"
     }
+  ],
+  "services": {
+    "app": {
+      "root": ".",
+      "framework": "nextjs"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    }
   ]
 }
