@@ -225,7 +225,7 @@ export async function notifySquadDeployment(params: {
 
     const appBaseUrl =
       process.env.NEXT_PUBLIC_SITE_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://hackline.dev");
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://hackline.hartimeerror.xyz");
 
     const timeInfo = formatNotificationDeadline(params.endsAt, {
       referenceTimeMs: Date.now(),
@@ -340,7 +340,7 @@ export async function notifyTeammateAssignment(params: {
 
     const appBaseUrl =
       process.env.NEXT_PUBLIC_SITE_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://hackline.dev");
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://hackline.hartimeerror.xyz");
 
     const timeInfo = formatNotificationDeadline(params.deadline, {
       referenceTimeMs: Date.now(),

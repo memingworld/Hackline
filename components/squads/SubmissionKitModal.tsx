@@ -422,7 +422,7 @@ export function SubmissionKitModal({
                   <Input
                     value={formData.tagline}
                     onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                    placeholder="e.g. Competitive Sprint OS for high-stakes hackathon squads."
+                    placeholder="e.g. Collaborative sprint workspace for hackathon squads."
                     className="bg-[#14110E] border-[#382F26] text-[#FEF3C7] focus:border-[#E5A93C]"
                   />
                 </div>
@@ -443,7 +443,7 @@ export function SubmissionKitModal({
                     value={formData.problemDescription}
                     onChange={(e) => setFormData({ ...formData, problemDescription: e.target.value })}
                     placeholder="Describe what pain point sparked this build..."
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#14110E] border border-[#382F26] text-[#FEF3C7] focus:outline-none focus:border-[#E5A93C] resize-y"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#14110E] border border-[#382F26] text-[#FEF3C7] focus:outline-none focus:border-[#E5A93C] resize-none"
                   />
                 </div>
                 <div>
@@ -455,7 +455,7 @@ export function SubmissionKitModal({
                     value={formData.solutionDescription}
                     onChange={(e) => setFormData({ ...formData, solutionDescription: e.target.value })}
                     placeholder="Describe how your project solves this problem and its primary features..."
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#14110E] border border-[#382F26] text-[#FEF3C7] focus:outline-none focus:border-[#E5A93C] resize-y"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#14110E] border border-[#382F26] text-[#FEF3C7] focus:outline-none focus:border-[#E5A93C] resize-none"
                   />
                 </div>
               </div>
@@ -719,7 +719,7 @@ export function SubmissionKitModal({
                     value={formData.challenges}
                     onChange={(e) => setFormData({ ...formData, challenges: e.target.value })}
                     placeholder="Technical obstacles overcome during the sprint..."
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#14110E] border border-[#382F26] text-[#FEF3C7] focus:outline-none focus:border-[#E5A93C]"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#14110E] border border-[#382F26] text-[#FEF3C7] focus:outline-none focus:border-[#E5A93C] resize-none"
                   />
                 </div>
                 <div>
@@ -731,7 +731,7 @@ export function SubmissionKitModal({
                     value={formData.nextSteps}
                     onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
                     placeholder="Future roadmap milestones and key learnings..."
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#14110E] border border-[#382F26] text-[#FEF3C7] focus:outline-none focus:border-[#E5A93C]"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#14110E] border border-[#382F26] text-[#FEF3C7] focus:outline-none focus:border-[#E5A93C] resize-none"
                   />
                 </div>
               </div>

@@ -44,7 +44,7 @@ export function generateIcsContent(
     "VERSION:2.0",
     "PRODID:-//Hackline//Hackathon Calendar Sync//EN",
     "BEGIN:VEVENT",
-    `UID:${Date.now()}@hackline.dev`,
+    `UID:${Date.now()}@hackline.hartimeerror.xyz`,
     `DTSTAMP:${formatIcsDate(new Date())}`,
     `DTSTART:${formatIcsDate(startDate)}`,
     `DTEND:${formatIcsDate(endDate)}`,
@@ -77,7 +77,7 @@ export function generateMultiEventIcsContent(
 
     return [
       "BEGIN:VEVENT",
-      `UID:${Date.now()}-${idx}@hackline.dev`,
+      `UID:${Date.now()}-${idx}@hackline.hartimeerror.xyz`,
       `DTSTAMP:${nowStamp}`,
       `DTSTART:${formatIcsDate(startDate)}`,
       `DTEND:${formatIcsDate(endDate)}`,

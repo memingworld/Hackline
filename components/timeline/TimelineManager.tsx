@@ -160,7 +160,7 @@ export function TimelineManager({
 
       lines.push(
         "BEGIN:VEVENT",
-        `UID:${Date.now()}_${idx}@hackline.dev`,
+        `UID:${Date.now()}_${idx}@hackline.hartimeerror.xyz`,
         `DTSTAMP:${format(new Date())}`,
         `DTSTART:${format(startDate)}`,
         `DTEND:${format(endDate)}`,

@@ -178,7 +178,7 @@ export function DashboardSidebar({
   const renderSidebarContent = (isMobileDrawer = false) => (
     <div className="flex flex-col justify-between h-full p-4 select-none">
       <div>
-        {/* Brand Header — Clean Typographic Mark (Terminal logo & Sprint OS removed) */}
+        {/* Brand Header — Clean Typographic Mark */}
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/dashboard"

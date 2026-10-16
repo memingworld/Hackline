@@ -212,7 +212,7 @@ export function generateReadmeMarkdown(data: SubmissionKitFormData): string {
   }
 
   md += `## 👥 Team Squad\n\n${formatTeamMarkdown(data.members)}\n\n`;
-  md += `---\n*Generated with [HackLine](https://hackline.dev) — Competitive Hackathon OS*`;
+  md += `---\n*Generated with [HackLine](https://hackline.hartimeerror.xyz/)*`;
 
   return md.trim();
 }

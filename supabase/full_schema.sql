@@ -939,3 +939,28 @@ CREATE POLICY "System and captains can insert notifications"
   ON public.telegram_notifications FOR INSERT
   TO authenticated
   WITH CHECK (true);
+
+-- ==============================================================================
+-- 8. SUPABASE REALTIME REPLICATION CONFIGURATION
+-- ==============================================================================
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE 
+    public.submission_checklists, 
+    public.problem_statements, 
+    public.problem_votes, 
+    public.assets, 
+    public.team_members, 
+    public.hackathons, 
+    public.teams;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+  WHEN others THEN null;
+END $$;
+
+ALTER TABLE public.submission_checklists REPLICA IDENTITY FULL;
+ALTER TABLE public.problem_statements REPLICA IDENTITY FULL;
+ALTER TABLE public.problem_votes REPLICA IDENTITY FULL;
+ALTER TABLE public.assets REPLICA IDENTITY FULL;
+ALTER TABLE public.team_members REPLICA IDENTITY FULL;
+ALTER TABLE public.teams REPLICA IDENTITY FULL;
+ALTER TABLE public.hackathons REPLICA IDENTITY FULL;
