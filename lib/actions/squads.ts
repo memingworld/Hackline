@@ -2,6 +2,7 @@
 
 import crypto from "crypto";
 import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { sanitizePlainText } from "@/lib/security";
 import {
@@ -652,8 +653,10 @@ export async function joinTeamByInviteCode(inviteCode: string, duty?: string) {
       return { success: false, error: "Please sign in or create an account to join this squad." };
     }
 
-    // Direct lookup with description for reserved seat reconciliation
-    const { data: team, error: teamErr } = await supabase
+    // Use administrative client to resolve squad by invite code without being blocked by RLS
+    const admin = createAdminClient();
+
+    const { data: team, error: teamErr } = await admin
       .from("teams")
       .select("id, captain_id, max_members, description")
       .eq("invite_code", inviteCode)
@@ -664,7 +667,7 @@ export async function joinTeamByInviteCode(inviteCode: string, duty?: string) {
     }
 
     // Check existing membership
-    const { data: existing } = await supabase
+    const { data: existing } = await admin
       .from("team_members")
       .select("id")
       .eq("team_id", team.id)
@@ -695,14 +698,14 @@ export async function joinTeamByInviteCode(inviteCode: string, duty?: string) {
       reservedMembers.splice(reservedIndex, 1);
       const updatedDescription = encodeReservedMembers(cleanDescription, reservedMembers);
 
-      await supabase
+      await admin
         .from("teams")
         .update({ description: updatedDescription, updated_at: new Date().toISOString() })
         .eq("id", team.id);
     } else {
       // General invite join: verify capacity including reserved seats
       const teamCap = team.max_members || 4;
-      const { count } = await supabase
+      const { count } = await admin
         .from("team_members")
         .select("id", { count: "exact", head: true })
         .eq("team_id", team.id);
@@ -716,15 +719,15 @@ export async function joinTeamByInviteCode(inviteCode: string, duty?: string) {
       }
     }
 
-    // Execute join via SECURITY DEFINER RPC to bypass RLS safely and enforce invite verification
+    // Execute join via SECURITY DEFINER database function
     const { data: rpcData, error: rpcErr } = await supabase.rpc("join_team_with_invite", {
       invite_code_input: inviteCode,
       member_duty: assignedDuty,
     });
 
     if (rpcErr) {
-      // Fallback: If RPC is unavailable or fails, attempt direct insert
-      const { error: insertErr } = await supabase.from("team_members").insert({
+      // Fallback: direct insert via admin client
+      const { error: insertErr } = await admin.from("team_members").insert({
         team_id: team.id,
         user_id: user.id,
         duty: assignedDuty,
